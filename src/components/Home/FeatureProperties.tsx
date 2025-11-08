@@ -3,8 +3,10 @@ import propertyImg1 from '../../assets/featureproperty/FeaturePropertys1.svg'
 import propertyImg2 from '../../assets/featureproperty/fetureProperty2.svg'
 import propertyImg3 from '../../assets/featureproperty/fetureProperty3.svg'
 import propertyImg4 from '../../assets/featureproperty/fetureProperty4.svg'
+import { useNavigate } from 'react-router-dom';
 
 const FeaturedProperties: React.FC = () => {
+  const navigate = useNavigate()
   const properties = [
     {
       image: propertyImg1,
@@ -96,7 +98,7 @@ const FeaturedProperties: React.FC = () => {
                 </p>
 
                 {/* View Details Button */}
-                <button className="w-full py-2.5 border-2 border-[#E7F0FB] text-[#126AD8] rounded-lg font-medium  cursor-pointer transition-all duration-300">
+                <button  onClick={() => navigate(`/details/${index}`)} className="w-full py-2.5 border-2 border-[#E7F0FB] text-[#126AD8] rounded-lg font-medium  cursor-pointer transition-all duration-300">
                   View Details
                 </button>
               </div>
