@@ -1,5 +1,5 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, } from 'lucide-react';
+import {  Instagram, Mail, } from 'lucide-react';
 import footerImg from '../assets/footerImg.png'
 import logoImg from '../assets/logo.svg'
 
