@@ -1,7 +1,9 @@
 
  import logo from '../assets/logo.svg'
  import loginIcon from '../assets/loginIcon.svg'
+import { useNavigate } from 'react-router-dom';
 const Broker360Header: React.FC = () => {
+  const navigate = useNavigate()
   return (
     <header className="bg-[#F3F6F6] w-full ">
       <div className=" px-4 sm:px-5 lg:px-[200px] py-2.5 sm:py-3  ">
@@ -23,7 +25,7 @@ const Broker360Header: React.FC = () => {
         </button>
 
        
-        <button className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-[#126AD8] transition duration-150">
+        <button onClick={()=> navigate('/login')} className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-[#126AD8] transition duration-150">
        
          <img src={loginIcon} alt="" />
       

@@ -10,21 +10,10 @@ import mapProperty5 from '../../assets/mapProperty/mapProperty5.svg';
 import mapProperty6 from '../../assets/mapProperty/mapProperty6.svg';
 import mapImage from '../../assets/mapImg.svg'
 
-// const mapContainerStyle = {
-//   width: '100%',
-//   height: '100%',
-// };
 
-//const center = { lat: 39.9526, lng: -75.1652 }; // Example center (Philadelphia)
 
 const MapPropertySection: React.FC = () => {
   const [sortBy] = useState('Sort for you');
-  // const [zoom, setZoom] = useState(13);
-  // const mapRef = useRef<google.maps.Map | null>(null);
-
-  // const { isLoaded } = useLoadScript({
-  //   googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY', // replace with your API key
-  // });
 
   const properties = [
     {
@@ -148,13 +137,13 @@ const MapPropertySection: React.FC = () => {
           <div className="absolute top-4 right-4 flex flex-col space-y-2">
             <button
               onClick={handleZoomIn}
-              className="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="w-10 h-10 bg-white rounded-[8px] shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
               <span className="text-2xl font-bold">+</span>
             </button>
             <button
               onClick={handleZoomOut}
-              className="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="w-10 h-10 bg-white rounded-[8px] shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
               <span className="text-2xl font-bold">-</span>
             </button>
@@ -234,7 +223,7 @@ const MapPropertySection: React.FC = () => {
                       <span>{property.size}</span>
                     </div>
 
-                    <button className="w-full mt-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-600 hover:text-white transition-colors">
+                    <button className="w-full mt-4 py-2 border border-blue-600 text-blue-600 rounded-[8px] text-sm font-medium hover:bg-blue-600 hover:text-white transition-colors">
                       View Details
                     </button>
                   </div>

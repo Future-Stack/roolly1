@@ -48,7 +48,7 @@ const LeadershipTeam: React.FC = () => {
           {teamMembers.map((member, index) => (
             <div 
               key={index}
-              className="bg-white rounded-lg border border-[#E7F0FB] transition-shadow duration-300 overflow-hidden"
+              className="bg-white rounded-[8px] border border-[#E7F0FB] transition-shadow duration-300 overflow-hidden"
             >
               <div className="flex flex-col sm:flex-row">
                 {/* Image Section */}

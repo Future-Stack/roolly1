@@ -5,7 +5,7 @@ const DeailHeader = () => {
   return (
     <div className="w-full ">
            {/* Header Section */}
-        <div className="bg-white  mx-[200px]  p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
+        <div className="bg-white  mx-[100px]  p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl md:text-[30px] font-semibold leading-11 text-[#000000] pb-4 border-b border-gray-200 sm:mb-4">
             Discover Every Detail About This Property
           </h1>

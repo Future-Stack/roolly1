@@ -1,11 +1,15 @@
 import DeailHeader from "./DeailHeader"
-// import PropertyDetail from "./Detail"
+import PropertyMapContact from "./PropertyContact"
+import PropertyDetail from "./PropertyDetail"
+import RelatedProperties from "./RelativeProperty"
 
 const DetailsPage = () => {
   return (
     <div>
         <DeailHeader/>
-      {/* <PropertyDetail/> */}
+      <PropertyDetail/>
+      <PropertyMapContact/>
+      <RelatedProperties/>
     </div>
   )
 }
