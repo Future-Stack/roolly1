@@ -13,7 +13,7 @@ const FeaturedProperties = () => {
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {properties.map((property) => (
+          {properties.slice(0,4).map((property) => (
             <div
               key={property.id}
               className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E7F0FB] p-3  transition-shadow duration-300"
