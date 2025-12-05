@@ -1,13 +1,20 @@
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./layout/Navbar";
 import Footer from "./layout/Footer";
-import Layout from "./layout/Layout";
 
 const App = () => {
+  const location = useLocation();
+
+
+  const hideHeaderFooter = ["/login", "/register","/upload_photo", "/verification"];
+
+  const shouldHide = hideHeaderFooter.includes(location.pathname);
+
   return (
     <div>
-      <Navbar />
-      <Layout />
-      <Footer />
+      {!shouldHide && <Navbar />}
+      <Outlet />
+      {!shouldHide && <Footer />}
     </div>
   );
 };
