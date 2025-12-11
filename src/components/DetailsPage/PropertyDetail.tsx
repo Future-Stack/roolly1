@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight,  Home, Ruler, Mountain } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Ruler, Mountain } from "lucide-react";
 import { properties } from "@/data/properties";
 import brochure from '../../assets/brochure.svg'
 import flyThrough from '../../assets/flythrough.svg'
@@ -52,7 +52,7 @@ const PropertyDetail: React.FC = () => {
     <div className="w-full py-8 sm:py-12 md:py-16 px-4 sm:px-6 md:px-8 lg:px-12">
       <div className="xl:mx-[100px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          
+
           {/* IMAGE CAROUSEL */}
           <div className="">
             <div className="relative h-full">
@@ -78,9 +78,8 @@ const PropertyDetail: React.FC = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      currentSlide === index ? "bg-blue-600 w-6" : "bg-white/70"
-                    }`}
+                    className={`w-2 h-2 rounded-full transition-all ${currentSlide === index ? "bg-blue-600 w-6" : "bg-white/70"
+                      }`}
                   />
                 ))}
               </div>
@@ -121,131 +120,131 @@ const PropertyDetail: React.FC = () => {
             </div>
 
             <div>
-                <h1 className="mb-8 text-2xl text-[#082D5B] font-semibold leading-6  ">Facts & features</h1>
-                <div className="flex items-center gap-5">
-                    <button className="flex items-center text-[#126AD8] font-medium text-base border border-[#0D4B99] py-3 px-5 rounded-[8px] leading-6 gap-2"> 
-                        <img src={brochure} alt="" />
-                         Brochure</button>
-                    <button className="flex items-center text-[#126AD8] font-medium text-base border border-[#0D4B99] py-3 px-5 rounded-[8px] leading-6 gap-2"> 
-                    <img src={flyThrough} alt="" />
-                         Fly Through</button>
-                </div>
+              <h1 className="mb-8 text-2xl text-[#082D5B] font-semibold leading-6  ">Facts & features</h1>
+              <div className="flex items-center gap-5">
+                <button className="flex items-center text-[#126AD8] font-medium text-base border border-[#0D4B99] py-3 px-5 rounded-[8px] leading-6 gap-2">
+                  <img src={brochure} alt="" />
+                  Brochure</button>
+                <button className="flex items-center text-[#126AD8] font-medium text-base border border-[#0D4B99] py-3 px-5 rounded-[8px] leading-6 gap-2">
+                  <img src={flyThrough} alt="" />
+                  Fly Through</button>
+              </div>
             </div>
 
             {/* --- Internals: Specifications --- */}
             <div className=" mt-6">
               <h3 className="text-2xl bg-[#E7F0FB] w-full py-2.5 px-5 font-medium text-black mb-5 leading-9 ">
-                Internals 
+                Internals
               </h3>
-                    <h2 className="text-[#000000] text-xl font-semibold leading-7 mb-5 ">Specifications</h2>
+              <h2 className="text-[#000000] text-xl font-semibold leading-7 mb-5 ">Specifications</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-4 text-sm">
-            
-                
-            
+
+
+
                 {/* LEFT COLUMN */}
-<ul className="space-y-2 list-disc list-inside text-gray-600">
-  {internalLeftKeys.map((key) => {
-    const value = property.specs[key as keyof typeof property.specs];
-    if (!value) return null;
-    return (
-     <li key={key} className="py-1">
-  <span className="text-gray-600 text-sm">{formatKey(key)} -</span>
-  <span className="font-medium text-black text-base ml-4">
-    {(() => {
-      const val = String(property.specs[key as keyof typeof property.specs]);
-      
-      if (key === "lengthWidth") {
-        return val.split(" ").map((part, idx) =>
-          part.toLowerCase() === "sq" ? (
-            <span key={idx} className="text-green-600">{part}</span>
-          ) : (
-            <span key={idx}> {part} </span>
-          )
-        );
-      }
+                <ul className="space-y-2 list-disc list-inside text-gray-600">
+                  {internalLeftKeys.map((key) => {
+                    const value = property.specs[key as keyof typeof property.specs];
+                    if (!value) return null;
+                    return (
+                      <li key={key} className="py-1">
+                        <span className="text-gray-600 text-sm">{formatKey(key)} -</span>
+                        <span className="font-medium text-black text-base ml-4">
+                          {(() => {
+                            const val = String(property.specs[key as keyof typeof property.specs]);
 
-      if (key === "powerCapacity") {
-        return val.split(" ").map((part, idx) =>
-          part.toLowerCase() === "kva" ? (
-            <span key={idx} className="text-green-600">{part}</span>
-          ) : (
-            <span key={idx}> {part} </span>
-          )
-        );
-      }
+                            if (key === "lengthWidth") {
+                              return val.split(" ").map((part, idx) =>
+                                part.toLowerCase() === "sq" ? (
+                                  <span key={idx} className="text-green-600">{part}</span>
+                                ) : (
+                                  <span key={idx}> {part} </span>
+                                )
+                              );
+                            }
 
-    
-      return val;
-    })()}
-  </span>
-</li>
+                            if (key === "powerCapacity") {
+                              return val.split(" ").map((part, idx) =>
+                                part.toLowerCase() === "kva" ? (
+                                  <span key={idx} className="text-green-600">{part}</span>
+                                ) : (
+                                  <span key={idx}> {part} </span>
+                                )
+                              );
+                            }
 
-    );
-  })}
-</ul>
 
-{/* RIGHT COLUMN */}
-<ul className="space-y-2 list-disc list-inside text-gray-600">
-  {internalRightKeys.map((key) => {
-    const value = property.specs[key as keyof typeof property.specs];
-    if (!value) return null;
-    return (
-      <li key={key} className="py-1">
-        <span className="text-gray-600 text-sm ">{formatKey(key)} -</span>
-        <span className="font-medium text-black text-base ml-4">{value}</span>
-      </li>
-    );
-  })}
-</ul>
+                            return val;
+                          })()}
+                        </span>
+                      </li>
+
+                    );
+                  })}
+                </ul>
+
+                {/* RIGHT COLUMN */}
+                <ul className="space-y-2 list-disc list-inside text-gray-600">
+                  {internalRightKeys.map((key) => {
+                    const value = property.specs[key as keyof typeof property.specs];
+                    if (!value) return null;
+                    return (
+                      <li key={key} className="py-1">
+                        <span className="text-gray-600 text-sm ">{formatKey(key)} -</span>
+                        <span className="font-medium text-black text-base ml-4">{value}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </div>
 
             {/* --- Externals: Specifications --- */}
             <div className=" mt-6">
-                <h3 className="text-2xl bg-[#E7F0FB] w-full py-2.5 px-5 font-medium text-black mb-5 leading-9 ">
-                Externals 
+              <h3 className="text-2xl bg-[#E7F0FB] w-full py-2.5 px-5 font-medium text-black mb-5 leading-9 ">
+                Externals
               </h3>
-                    <h2 className="text-[#000000] text-xl font-semibold leading-7 mb-5 ">Specifications</h2>
+              <h2 className="text-[#000000] text-xl font-semibold leading-7 mb-5 ">Specifications</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 {/* LEFT COLUMN */}
-               <ul className="space-y-2 list-disc list-inside text-gray-600">
-  {["yardSpace", "areaOfYard"].map((key) => (
-<li key={key} className="py-1">
-  <span className="text-gray-600 text-sm">{formatKey(key)} -</span>
-  <span className="font-medium text-black text-base ml-4">
-    {(() => {
-      const val = String(property.exterior[key as keyof typeof property.exterior]);
-      
-      if (key === "yardSpace") {
-     
-        return val.split(" ").map((part, idx) =>
-          part.toLowerCase() === "sq" ? (
-            <span key={idx} className="text-green-600">{part}</span>
-          ) : (
-            <span key={idx}> {part} </span>
-          )
-        );
-      }
+                <ul className="space-y-2 list-disc list-inside text-gray-600">
+                  {["yardSpace", "areaOfYard"].map((key) => (
+                    <li key={key} className="py-1">
+                      <span className="text-gray-600 text-sm">{formatKey(key)} -</span>
+                      <span className="font-medium text-black text-base ml-4">
+                        {(() => {
+                          const val = String(property.exterior[key as keyof typeof property.exterior]);
 
-      return val;
-    })()}
-  </span>
-</li>
+                          if (key === "yardSpace") {
 
-  ))}
-</ul>
+                            return val.split(" ").map((part, idx) =>
+                              part.toLowerCase() === "sq" ? (
+                                <span key={idx} className="text-green-600">{part}</span>
+                              ) : (
+                                <span key={idx}> {part} </span>
+                              )
+                            );
+                          }
 
-{/* Externals - RIGHT */}
-<ul className="space-y-2 list-disc list-inside text-gray-600">
-  {["yardSurface", "parkingIncluded"].map((key) => (
-    <li key={key} className="py-1">
-      <span className="text-gray-600 text-sm ">{formatKey(key)} -</span>
-      <span className="font-medium text-black text-base ml-4">
-        {property.exterior[key as keyof typeof property.exterior]}
-      </span>
-    </li>
-  ))}
-</ul>
+                          return val;
+                        })()}
+                      </span>
+                    </li>
+
+                  ))}
+                </ul>
+
+                {/* Externals - RIGHT */}
+                <ul className="space-y-2 list-disc list-inside text-gray-600">
+                  {["yardSurface", "parkingIncluded"].map((key) => (
+                    <li key={key} className="py-1">
+                      <span className="text-gray-600 text-sm ">{formatKey(key)} -</span>
+                      <span className="font-medium text-black text-base ml-4">
+                        {property.exterior[key as keyof typeof property.exterior]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 

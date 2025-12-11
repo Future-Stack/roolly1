@@ -1,5 +1,6 @@
-import { FileText, ImageIcon, Plus } from 'lucide-react';
+import { ImageIcon, Plus, SquarePlay } from 'lucide-react';
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface ImageUpload {
     id: string;
@@ -49,7 +50,6 @@ const PropertyInformationForm: React.FC = () => {
                     </p>
                 </div>
 
-
                 <div className='bg-white rounded-2xl px-4 pb-6 pt-12'>
                     {/* Step Indicator */}
                     <div className="flex items-center justify-center mb-8">
@@ -58,9 +58,11 @@ const PropertyInformationForm: React.FC = () => {
                                 1
                             </div>
                             <div className="w-16 h-0.5 bg-gray-300"></div>
-                            <div className="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[15px] font-medium">
-                                2
-                            </div>
+                            <Link to='risk'>
+                                <div className="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[15px] font-medium">
+                                    2
+                                </div>
+                            </Link>
                         </div>
                     </div>
 
@@ -257,7 +259,7 @@ const PropertyInformationForm: React.FC = () => {
 
                     {/* Key Specification */}
                     <div className="mb-6">
-                        <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+                        <h2 className="text-base font-semibold text-gray-900 mb-4">
                             Key Specification (comma separated)
                         </h2>
                         <textarea
@@ -271,40 +273,44 @@ const PropertyInformationForm: React.FC = () => {
                     </div>
 
                     {/* Image Upload Section */}
-                    <div className="mb-6">
-                        <h2 className="text-[15px] font-semibold text-gray-900 mb-1">
+                    <div className="mb-6 border border-gray-200 rounded-lg p-4">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-1">
                             Please upload  image, size less than 100KB
                         </h2>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                             {Object.values(images).map((img) => (
-                                <div key={img.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                                    <h3 className="text-[13px] font-medium text-gray-900 mb-3">
+                                <div key={img.id} className="bg-white border border-dashed border-gray-200 rounded-lg p-4">
+                                    <h3 className="text-base font-medium text-[#303539] mb-3">
                                         {img.title}
                                     </h3>
 
-                                    <div className="w-full h-[120px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
-                                        {img.preview ? (
-                                            <img src={img.preview} alt={img.title} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <ImageIcon className="w-12 h-12 text-gray-300" strokeWidth={1.5} />
-                                        )}
+                                    <div className='flex justify-center'>
+                                        <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                                            {img.preview ? (
+                                                <img src={img.preview} alt={img.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <ImageIcon className="w-12 h-12 text-gray-400" strokeWidth={1.5} />
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <label className="cursor-pointer">
-                                        <div className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium">
-                                            <span>Upload</span>
-                                            <Plus className="w-4 h-4" strokeWidth={2.5} />
-                                        </div>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => handleImageUpload(img.id, e)}
-                                            className="hidden"
-                                        />
-                                    </label>
+                                    <div className='flex justify-center'>
+                                        <label className="cursor-pointer">
+                                            <div className="flex items-center justify-center gap-1.5 px-4 py-2 border border-dashed border-[#92BAED] text-[#126AD8] rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium bg-[#E7F0FB]">
+                                                <span>Upload</span>
+                                                <Plus className="w-4 h-4" strokeWidth={2.5} />
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => handleImageUpload(img.id, e)}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    </div>
 
-                                    <p className="text-[11px] text-gray-500 mt-2 leading-tight">
+                                    <p className="text-[13px] text-[#6B21A8] mt-2 leading-tight bg-[#FAF5FF] p-1 text-center rounded-md">
                                         {img.description}
                                     </p>
                                 </div>
@@ -320,59 +326,96 @@ const PropertyInformationForm: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         {/* Brochure Upload */}
                         <div>
-                            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Brochure Upload
                             </h2>
+
                             <div className="border border-gray-300 rounded-lg p-6">
-                                <div className="flex flex-col items-center justify-center mb-4">
-                                    <FileText className="w-12 h-12 text-gray-300 mb-3" strokeWidth={1.5} />
-                                    <p className="text-[13px] text-gray-600 text-center">
-                                        Please upload  Brochure, Pdf less than 100KB
-                                    </p>
+                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-x-4">
+
+                                    {/* Icon Section */}
+                                    <div className="flex flex-col items-center justify-center bg-gray-100 mt-2 rounded-sm w-full sm:w-auto p-4">
+                                        <ImageIcon className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
+                                    </div>
+
+                                    {/* Text + Button Section */}
+                                    <div className="text-center sm:text-left w-full">
+                                        <p className="text-md text-gray-600 font-semibold">
+                                            Please upload Brochure, Pdf less than 100KB
+                                        </p>
+
+                                        <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
+                                            <button className="px-3 py-2 bg-white border border-blue-600 text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
+                                                Choose File
+                                            </button>
+
+                                            <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
+                                                No File Chosen
+                                            </span>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button className="px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium">
-                                        Choose File
+
+                                {/* Save Button */}
+                                <div className="flex justify-center sm:justify-end">
+                                    <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors w-full sm:w-auto">
+                                        Save
                                     </button>
-                                    <span className="text-[13px] text-gray-500">No File Chosen</span>
                                 </div>
                             </div>
-                            <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors">
-                                Save
-                            </button>
                         </div>
+
 
                         {/* Media Upload */}
                         <div>
-                            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Media Upload
                             </h2>
+
                             <div className="border border-gray-300 rounded-lg p-6">
-                                <div className="flex flex-col items-center justify-center mb-4">
-                                    <FileText className="w-12 h-12 text-gray-300 mb-3" strokeWidth={1.5} />
-                                    <p className="text-[13px] text-gray-600 text-center">
-                                        Please upload  Video, size less than 10 MB
-                                    </p>
+                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-x-4">
+
+                                    {/* Icon Section */}
+                                    <div className="flex flex-col items-center justify-center bg-gray-100 mt-2 rounded-sm w-full sm:w-auto p-4">
+                                        <SquarePlay className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
+                                    </div>
+
+                                    {/* Text + Button Section */}
+                                    <div className="text-center sm:text-left w-full">
+                                        <p className="text-md text-gray-600 font-semibold">
+                                            Please upload Brochure, Pdf less than 100KB
+                                        </p>
+
+                                        <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
+                                            <button className="px-3 py-2 bg-white border border-blue-600 text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
+                                                Choose File
+                                            </button>
+
+                                            <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
+                                                No File Chosen
+                                            </span>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button className="px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium">
-                                        Choose File
+
+                                {/* Save Button */}
+                                <div className="flex justify-center sm:justify-end">
+                                    <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors w-full sm:w-auto">
+                                        Save
                                     </button>
-                                    <span className="text-[13px] text-gray-500">No File Chosen</span>
                                 </div>
                             </div>
-                            <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors">
-                                Save
-                            </button>
                         </div>
                     </div>
 
                     {/* Bottom Actions */}
                     <div className="flex items-center gap-3 mt-8">
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors">
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors">
                             Continue
                         </button>
-                        <button className="text-gray-700 hover:text-gray-900 px-4 py-2.5 text-[14px] font-medium transition-colors">
+                        <button className="text-gray-700 hover:text-gray-900 px-4 py-2 text-[14px] font-medium transition-colors rounded-md border border-gray-300">
                             Cancel
                         </button>
                     </div>

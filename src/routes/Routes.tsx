@@ -14,6 +14,9 @@ import CommunicationWithBroker from "@/pages/vendorDashboard/Messages/Communicat
 import AnalyticsReporting from "@/pages/vendorDashboard/AnalyticsReporting/AnalyticsReporting";
 import Settings from "@/pages/vendorDashboard/Settings/Settings";
 import PropertyInformationForm from "@/components/vendorDashboard/Property/PropertyInformationForm";
+import RiskProfileManagementForm from "@/components/vendorDashboard/Property/RiskProfileManagementForm";
+import BrokerLayout from "@/components/brokerDashboard/BrokerLayout/BrokerLayout";
+import BrokerDashboardOverview from "@/pages/brokerDashboard/Overview/Overview";
 
 
 const routes = createBrowserRouter([
@@ -73,6 +76,10 @@ const routes = createBrowserRouter([
         element:<PropertyInformationForm/>
       },
       {
+        path:'properties/:id/risk',
+        element:<RiskProfileManagementForm/>
+      },
+      {
         path:'messages',
         element:<CommunicationWithBroker/>
       },
@@ -84,6 +91,16 @@ const routes = createBrowserRouter([
         path:'settings',
         element:<Settings/>
       }
+    ]
+  },
+  {
+    path:'/broker-dashboard',
+    element:<BrokerLayout/>,
+    children:[
+      {
+        index:true,
+        element:<BrokerDashboardOverview/>
+      },
     ]
   }
 ]);
