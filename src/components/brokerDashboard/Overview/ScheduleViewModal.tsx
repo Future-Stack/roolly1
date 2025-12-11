@@ -4,6 +4,8 @@ import { X, Calendar, Clock, Send } from 'lucide-react';
 interface ScheduleViewingModalProps {
     isOpen?: boolean;
     onClose?: () => void;
+    leadName:string;
+    propertyName:string;
 }
 
 const ScheduleViewModal: React.FC<ScheduleViewingModalProps> = ({

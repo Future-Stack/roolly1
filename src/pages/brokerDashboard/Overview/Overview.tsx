@@ -3,10 +3,12 @@ import { Target, TrendingUp, Plus, FileText, ChartLine } from 'lucide-react';
 import BrokerLeads from '@/components/brokerDashboard/Overview/BrokerLeads';
 import BrokerAvailableLeads from '@/components/brokerDashboard/Overview/BrokerAvailableLeads';
 import LeadGenerationEnquiryForm from '@/components/brokerDashboard/BrokerLeads/LeadGenerationEnquiryForm';
+import PropertyCribSheet from '@/components/brokerDashboard/BrokerLeads/PropertyCribSheet';
 
 const BrokerDashboardOverview: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my' | 'available'>('my');
   const [newLeadModalOpen, setNewLeadModalOpen] = useState(false); 
+  const [propertyCribModalOpen, setPropertyCribModalOpen] = useState(false); 
 
   const openNewLeadModal = () => {
     setNewLeadModalOpen(true);
@@ -16,12 +18,26 @@ const BrokerDashboardOverview: React.FC = () => {
     setNewLeadModalOpen(false);
   };
 
+  const openPropertyCribModal = () => {
+    setPropertyCribModalOpen(true);
+  };
+
+  const closePropertyCribModal = () => {
+    setPropertyCribModalOpen(false);
+  };
+
   return (
     <div className="w-full bg-gray-50 min-h-screen">
       {/* New Lead Modal */}
       <LeadGenerationEnquiryForm
         isOpen={newLeadModalOpen}
         onClose={closeNewLeadModal}
+      />
+
+      {/* Property Crib Sheet Modal */}
+      <PropertyCribSheet
+        isOpen={propertyCribModalOpen}
+        onClose={closePropertyCribModal}
       />
 
       <div className="max-w-[1400px] mx-auto">
@@ -35,7 +51,10 @@ const BrokerDashboardOverview: React.FC = () => {
               Welcome back! Here's what's happening with your platform today.
             </p>
           </div>
-          <button className="bg-[#EA580C] hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors">
+          <button 
+            onClick={openPropertyCribModal}
+            className="bg-[#EA580C] hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors"
+          >
             <FileText className="w-4 h-4" strokeWidth={2} />
             Property Crib Sheet
           </button>

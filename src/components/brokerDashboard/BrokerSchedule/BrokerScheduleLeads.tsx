@@ -1,13 +1,15 @@
 
 import { MapPin, Clock, Calendar, Phone, Mail, MoreVertical, Info, } from 'lucide-react';
-import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
+import ScheduleViewModal from '../Overview/ScheduleViewModal';
+import Pagination from '@/components/ui/Pagination';
 
 interface Lead {
   id: string;
   name: string;
   status: 'Green' | 'Blue';
   secondaryStatus: 'Viewed' | 'Enquired';
+  stats:string,
   propertyId: string;
   propertyName: string;
   timeAgo: string;
@@ -20,7 +22,7 @@ interface Lead {
   email: string;
   alertMessage: string;
 }
-const BrokerLeads = () => {
+const BrokerScheduleLeads = () => {
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedLead, setSelectedLead] = useState<{ name: string; propertyName: string } | null>(null);
@@ -31,6 +33,7 @@ const BrokerLeads = () => {
             name: 'Rachel Green',
             status: 'Green',
             secondaryStatus: 'Viewed',
+            stats:'Scheduled',
             propertyId: 'PR001',
             propertyName: 'Central Manchester Office Suite',
             timeAgo: '6m ago',
@@ -48,6 +51,7 @@ const BrokerLeads = () => {
             name: 'Rachel Green',
             status: 'Green',
             secondaryStatus: 'Enquired',
+            stats:'Scheduled',
             propertyId: 'PR001',
             propertyName: 'Central Manchester Office Suite',
             timeAgo: '6m ago',
@@ -68,15 +72,6 @@ const BrokerLeads = () => {
 
     const closeActionMenu = () => {
         setOpenActionMenuId(null);
-    };
-
-    const handleScheduleViewing = (lead: Lead) => {
-        setSelectedLead({
-            name: lead.name,
-            propertyName: lead.propertyName
-        });
-        setModalOpen(true);
-        closeActionMenu(); // If action menu is open, close it
     };
 
     const closeModal = () => {
@@ -101,13 +96,17 @@ const BrokerLeads = () => {
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <h3 className="text-[16px] font-semibold text-gray-900">{lead.name}</h3>
-                                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.status === 'Green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
+                                <span className={`px-3 py-1.5 rounded text-[12px] font-semibold ${lead.status === 'Green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
                                     }`}>
                                     {lead.status}
                                 </span>
-                                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.secondaryStatus === 'Viewed' ? 'bg-orange-500 text-white' : 'bg-blue-600 text-white'
+                                <span className={`px-3 py-1.5 rounded text-[12px] font-semibold ${lead.secondaryStatus === 'Viewed' ? 'bg-orange-500 text-white' : 'bg-blue-600 text-white'
                                     }`}>
                                     {lead.secondaryStatus}
+                                </span>
+                                <span className={`px-3 py-1.5 rounded text-[12px] font-semibold ${lead.stats === 'Scheduled' ? 'bg-[#9333EA] text-white' : 'bg-blue-600 text-white'
+                                    }`}>
+                                    {lead.stats}
                                 </span>
                             </div>
                             <div className="relative">
@@ -220,19 +219,18 @@ const BrokerLeads = () => {
                                     </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => handleScheduleViewing(lead)}
-                                className="bg-[#126AD8] hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
-                            >
-                                <Calendar className="w-4 h-4" strokeWidth={2} />
-                                Schedule Viewing
-                            </button>
+
                         </div>
                     </div>
                 ))}
+            </div>
+
+            {/* pagination */}
+            <div className='flex justify-center my-16'>
+                <Pagination/>
             </div>
         </div>
     )
 }
 
-export default BrokerLeads
+export default BrokerScheduleLeads

@@ -8,7 +8,6 @@ import UploadPhoto from "@/components/vendorAuth/UploadPhoto";
 import Verification from "@/components/vendorAuth/Verofication";
 import VendorLayout from "@/components/vendorDashboard/VendorLayout/VendorLayout";
 import Overview from "@/pages/vendorDashboard/Overview/Overview";
-import LeadManagement from "@/pages/vendorDashboard/LeadManagement/LeadManagement";
 import PropertyManagement from "@/pages/vendorDashboard/PropertyManagement/PropertyManagement";
 import CommunicationWithBroker from "@/pages/vendorDashboard/Messages/CommunicationWithBroker";
 import AnalyticsReporting from "@/pages/vendorDashboard/AnalyticsReporting/AnalyticsReporting";
@@ -17,6 +16,8 @@ import PropertyInformationForm from "@/components/vendorDashboard/Property/Prope
 import RiskProfileManagementForm from "@/components/vendorDashboard/Property/RiskProfileManagementForm";
 import BrokerLayout from "@/components/brokerDashboard/BrokerLayout/BrokerLayout";
 import BrokerDashboardOverview from "@/pages/brokerDashboard/Overview/Overview";
+import BrokerLeadManagement from "@/pages/brokerDashboard/BrokerLeadManagement/BrokerLeadManagement";
+import BrokerSchedule from "@/pages/brokerDashboard/BrokerSchedule/BrokerSchedule";
 
 
 const routes = createBrowserRouter([
@@ -63,10 +64,10 @@ const routes = createBrowserRouter([
         path:'overview',
         element:<Overview/>
       },
-      {
-        path:'leads',
-        element:<LeadManagement/>
-      },
+      // {
+      //   path:'leads',
+      //   element:<LeadManagement/>
+      // },
       {
         path:'properties',
         element:<PropertyManagement/>
@@ -101,6 +102,14 @@ const routes = createBrowserRouter([
         index:true,
         element:<BrokerDashboardOverview/>
       },
+      {
+        path:'leads',
+        element:<BrokerLeadManagement/>
+      },
+      {
+        path:'schedule',
+        element:<BrokerSchedule/>
+      }
     ]
   }
 ]);

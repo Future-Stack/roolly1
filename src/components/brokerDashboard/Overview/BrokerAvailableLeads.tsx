@@ -7,8 +7,8 @@ import Pagination from '@/components/ui/Pagination';
 interface Lead {
     id: string;
     name: string;
-    status: 'Green' | 'Blue';
-    secondaryStatus: 'Viewed' | 'Enquired';
+    status: 'Green' | 'Blue' | 'Amber';
+    secondaryStatus: 'Viewed' | 'Enquired'|'NEW';
     propertyId: string;
     propertyName: string;
     timeAgo: string;
