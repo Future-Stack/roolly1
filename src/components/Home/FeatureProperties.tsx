@@ -5,10 +5,9 @@ const FeaturedProperties = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="xl:ml-[200px]">
-
-        <h1 className="text-4xl sm:text-5xl text-black font-semibold mb-12">
+    <div className="w-full mx-auto mt-4 sm:mt-6 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28">
+      <div>
+        <h1 className="text-3xl sm:text-4xl text-black font-semibold mb-12 mt-5">
           Featured Properties
         </h1>
 
@@ -26,7 +25,7 @@ const FeaturedProperties = () => {
                 />
               </div>
 
-              <div className="p-4">
+              <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[#126AD8] font-semibold text-2xl">
                     {property.type}
@@ -54,7 +53,7 @@ const FeaturedProperties = () => {
 
                 <button
                   onClick={() => navigate(`/details/${property.id}`)}
-                  className="w-full py-2.5 border-2 border-[#E7F0FB] text-[#126AD8] rounded-[12px] font-medium transition-all duration-300"
+                  className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
                 >
                   View Details
                 </button>
