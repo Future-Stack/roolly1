@@ -3,19 +3,20 @@ import heroImg from '../../assets/hero.jpg'
 
 const HeroSection: React.FC = () => {
   return (
-    <div className="relative w-full  overflow-hidden mt-20  ">
+    <div className='w-full mx-auto mt-8 sm:mt-12 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28 '>
+      <div className="relative overflow-hidden">
         <div className=''>
       {/* Background Image with Overlay */}
         {/* Background Image with Overlay */}
       <div
-        className="absolute inset-0 xl:mx-[200px] "
+        className="absolute inset-0"
         style={{
           background: `linear-gradient(0deg, rgba(0, 0, 0, 0.37) 0%, rgba(0, 0, 0, 0.37) 100%), url(${heroImg}) lightgray 50% / cover no-repeat`,
         }}
       ></div>
 
       {/* Content Container */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen ">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh]">
     
 
         {/* Main Heading */}
@@ -42,6 +43,7 @@ const HeroSection: React.FC = () => {
         </div>
       </div>
       </div>
+    </div>
     </div>
   );
 };

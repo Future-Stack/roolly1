@@ -1,5 +1,5 @@
 
-import { MapPin, Clock, Calendar, Phone, Mail,Info, Hand, } from 'lucide-react';
+import { MapPin, Clock, Calendar, Phone, Mail,Info } from 'lucide-react';
 import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
 import Pagination from '@/components/ui/Pagination';
@@ -109,10 +109,6 @@ const BrokerAvailableLeads = () => {
                                     }`}>
                                     {lead.secondaryStatus}
                                 </span>
-                            </div>
-                            <div className="relative bg-[#126AD8] px-2 py-2 rounded-md flex gap-x-1 text-white">
-                                <span><Hand  className='text-white'/></span>
-                                Grab Leads
                             </div>
                         </div>
 

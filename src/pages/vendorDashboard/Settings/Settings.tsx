@@ -164,15 +164,15 @@ const Settings: React.FC = () => {
 
             {/* Security Settings Content */}
             {activeTab === 'security' && (
-                    <div>
-                      <SecuritySettings/>
-                    </div>
+                <div>
+                    <SecuritySettings />
+                </div>
             )}
 
             {/* General Settings Content */}
             {activeTab === 'general' && (
                 <div>
-                    <NotificationSettings/>
+                    <NotificationSettings />
                 </div>
             )}
         </div>
