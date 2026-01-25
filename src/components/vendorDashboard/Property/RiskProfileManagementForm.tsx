@@ -7,25 +7,29 @@ interface RiskProfile {
     checked: boolean;
 }
 
-interface Restriction {
-    id: string;
-    checked: boolean;
+interface RiskProfileManagementFormProps {
+    vehicleRepairUse: boolean;
+    vehicleSaleUse: boolean;
+    subletting: boolean;
+    leisureUse: boolean;
+    petBusinessUse: boolean;
+    plasticRecyclingUse: boolean;
+    onRestrictionChange: (name: string, value: boolean) => void;
 }
 
-const RiskProfileManagementForm: React.FC = () => {
+const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
+    vehicleRepairUse,
+    vehicleSaleUse,
+    subletting,
+    leisureUse,
+    petBusinessUse,
+    plasticRecyclingUse,
+    onRestrictionChange
+}) => {
     const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([
         { id: 'low', checked: false },
         { id: 'medium', checked: false },
         { id: 'high', checked: false }
-    ]);
-
-    const [restrictions, setRestrictions] = useState<Restriction[]>([
-        { id: 'vehicleRepair', checked: false },
-        { id: 'vehicleSale', checked: false },
-        { id: 'subletting', checked: false },
-        { id: 'petBusiness', checked: false },
-        { id: 'leisure', checked: false },
-        { id: 'plasticRecycling', checked: false }
     ]);
 
     const toggleRiskProfile = (id: string) => {
@@ -36,12 +40,31 @@ const RiskProfileManagementForm: React.FC = () => {
         );
     };
 
-    const toggleRestriction = (id: string) => {
-        setRestrictions(prev =>
-            prev.map(restriction =>
-                restriction.id === id ? { ...restriction, checked: !restriction.checked } : restriction
-            )
-        );
+    // Map props to restrictions state
+    const restrictions = [
+        { id: 'vehicleRepairUse', checked: vehicleRepairUse, label: 'Vehicle Repair Use', description: 'Prohibit subletting for short-term holiday rentals' },
+        { id: 'vehicleSaleUse', checked: vehicleSaleUse, label: 'Vehicle Sale Use', description: 'Restrict use for business or commercial purposes' },
+        { id: 'subletting', checked: subletting, label: 'Subletting', description: 'Prohibit tenant from subletting to third parties' },
+        { id: 'petBusinessUse', checked: petBusinessUse, label: 'Pet Business Use', description: 'Restrict keeping of pets on the property' },
+        { id: 'leisureUse', checked: leisureUse, label: 'Leisure Use', description: '' },
+        { id: 'plasticRecyclingUse', checked: plasticRecyclingUse, label: 'Plastic Recycling Use', description: 'Prohibit use or cultivation of cannabis' }
+    ];
+
+    const handleRestrictionToggle = (id: string, currentValue: boolean) => {
+        // Map the checkbox IDs to the actual form field names
+        const fieldMap: { [key: string]: string } = {
+            'vehicleRepairUse': 'vehicle_repair_use',
+            'vehicleSaleUse': 'vehicle_sale_use',
+            'subletting': 'subletting',
+            'petBusinessUse': 'pet_business_use',
+            'leisureUse': 'leisure_use',
+            'plasticRecyclingUse': 'plastic_recycling_use'
+        };
+
+        const fieldName = fieldMap[id];
+        if (fieldName) {
+            onRestrictionChange(fieldName, !currentValue);
+        }
     };
 
     return (
@@ -191,122 +214,28 @@ const RiskProfileManagementForm: React.FC = () => {
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Vehicle Repair Use */}
-                            <div className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={restrictions[0].checked}
-                                        onChange={() => toggleRestriction('vehicleRepair')}
-                                        className="mt-0.5 w-4 h-4 rounded  border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900 mb-0.5">
-                                            Vehicle Repair Use
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Prohibit subletting for short-term holiday rentals
-                                        </p>
+                            {restrictions.map((restriction) => (
+                                <div key={restriction.id} className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={restriction.checked}
+                                            onChange={() => handleRestrictionToggle(restriction.id, restriction.checked)}
+                                            className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <div>
+                                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                                                {restriction.label}
+                                            </h3>
+                                            {restriction.description && (
+                                                <p className="text-sm text-gray-600">
+                                                    {restriction.description}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Vehicle Sale Use */}
-                            <div className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={restrictions[1].checked}
-                                        onChange={() => toggleRestriction('vehicleSale')}
-                                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900 mb-0.5">
-                                            Vehicle Sale Use
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Restrict use for business or commercial purposes
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Subletting */}
-                            <div className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={restrictions[2].checked}
-                                        onChange={() => toggleRestriction('subletting')}
-                                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900 mb-0.5">
-                                            Subletting
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Prohibit tenant from subletting to third parties
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Pet Business Use */}
-                            <div className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={restrictions[3].checked}
-                                        onChange={() => toggleRestriction('petBusiness')}
-                                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900 mb-0.5">
-                                            Pet Business Use
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Restrict keeping of pets on the property
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Leisure Use */}
-                            <div className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={restrictions[4].checked}
-                                        onChange={() => toggleRestriction('leisure')}
-                                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900">
-                                            Leisure Use
-                                        </h3>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Plastic Recycling Use */}
-                            <div className="bg-[#ECEDEE] border border-gray-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={restrictions[5].checked}
-                                        onChange={() => toggleRestriction('plasticRecycling')}
-                                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <div>
-                                        <h3 className="text-base font-semibold text-gray-900 mb-0.5">
-                                            Plastic Recycling Use
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Prohibit use or cultivation of cannabis
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
 
@@ -327,10 +256,16 @@ const RiskProfileManagementForm: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-3">
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors">
+                        <button 
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors"
+                        >
                             Submit
                         </button>
-                        <button className="text-gray-700 hover:text-gray-900 px-4 py-2.5 text-[14px] font-medium transition-colors">
+                        <button 
+                            type="button"
+                            className="text-gray-700 hover:text-gray-900 px-4 py-2.5 text-[14px] font-medium transition-colors"
+                        >
                             Cancel
                         </button>
                     </div>

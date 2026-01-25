@@ -1,11 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { logout } from "@/redux/features/auth/authSlice";
+import { useAppDispatch } from "@/redux/hook";
 import { LogOut, Settings, HelpCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
-const ProfileDropdown = ({
+interface ProfileDropdownProps {
+  isOpen: boolean;
+  onClose: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement | null>; // Updated to accept null
+}
+
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   isOpen,
   onClose,
   dropdownRef
-}: any) => {
+}) => {
+  const dispatch = useAppDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    onClose(); 
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -21,7 +37,8 @@ const ProfileDropdown = ({
       </div>
 
       {/* Settings */}
-      <button
+      <Link 
+        to="/vendor-dashboard/settings"
         onClick={onClose}
         className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
       >
@@ -29,7 +46,7 @@ const ProfileDropdown = ({
           <Settings className="w-5 h-5 text-[#4338CA]" strokeWidth={2} />
         </div>
         <span className="text-base font-medium text-gray-900">Settings</span>
-      </button>
+      </Link>
 
       {/* Help */}
       <button
@@ -44,7 +61,7 @@ const ProfileDropdown = ({
 
       {/* Logout */}
       <button
-        onClick={onClose}
+        onClick={handleLogout}
         className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#7E22CE33] flex items-center justify-center">

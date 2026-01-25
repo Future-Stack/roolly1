@@ -1,22 +1,26 @@
-import React, { useState, useRef} from 'react';
-import { Eye, EyeOff, Check } from 'lucide-react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useRef } from 'react';
+import { Eye, EyeOff, Check, User, Camera, ArrowLeft } from 'lucide-react';
 import regiImg from '../../assets/registerImg.svg';
 import logoImg from '../../assets/logo.svg';
 import { Link } from 'react-router-dom';
+import { useRegisterMutation } from '@/redux/features/auth/registerApi';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import { useVerifyEmailMutation } from '@/redux/features/auth/verifyEmailApi';
 
-// UploadPhoto Component Interface
 interface UploadPhotoProps {
-  onSelect: () => void;
+  onSelect: (imageFile?: File) => void;
 }
 
-// Verification Component Interface
 interface VerificationProps {
   onSelect: () => void;
+  email: string;
 }
 
-// UploadPhoto Component
 const UploadPhoto: React.FC<UploadPhotoProps> = ({ onSelect }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -26,15 +30,16 @@ const UploadPhoto: React.FC<UploadPhotoProps> = ({ onSelect }) => {
         setSelectedImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setImageFile(file);
     }
   };
 
   const handleSkip = () => {
-    console.log('Skip clicked');
+    onSelect();
   };
 
   const handleSendVerification = () => {
-    onSelect();
+    onSelect(imageFile || undefined);
   };
 
   return (
@@ -107,22 +112,23 @@ const UploadPhoto: React.FC<UploadPhotoProps> = ({ onSelect }) => {
         {/* Login Link */}
         <p className="text-center text-gray-900 text-sm">
           I don't have an account ?{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
             Log in
-          </a>
+          </Link>
         </p>
       </div>
     </div>
   );
 };
 
-// Import icons for UploadPhoto component
-import { User, Camera } from 'lucide-react';
-
 // Verification Component
-const Verification: React.FC<VerificationProps> = ({ onSelect }) => {
+const Verification: React.FC<VerificationProps> = ({ onSelect, email }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState('');
+  const [verificationSuccess, setVerificationSuccess] = useState('');
+  const [verifyEmail] = useVerifyEmailMutation();
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) {
@@ -149,12 +155,48 @@ const Verification: React.FC<VerificationProps> = ({ onSelect }) => {
     onSelect();
   };
 
-  const handleResendCode = () => {
-    console.log('Resend code clicked');
+  const handleResendCode = async () => {
+    try {
+      setVerificationSuccess('Verification code resent successfully!');
+      setTimeout(() => setVerificationSuccess(''), 3000);
+    } catch (error) {
+      console.log('error:', error);
+      setVerificationError('Failed to resend code. Please try again.');
+    }
   };
 
-  const handleVerifyAccount = () => {
-    console.log('Verify account clicked with code:', code.join(''));
+  const handleVerifyAccount = async () => {
+    const otp = code.join('');
+
+    if (otp.length !== 6) {
+      setVerificationError('Please enter the 6-digit verification code');
+      return;
+    }
+
+    setIsVerifying(true);
+    setVerificationError('');
+    setVerificationSuccess('');
+
+    try {
+      const verificationData = {
+        email: email,
+        otp: otp,
+        purpose: 'email_verification'
+      };
+
+      console.log('Sending verification data:', verificationData);
+      const res = await verifyEmail(verificationData).unwrap();
+
+      if (res?.message) {
+        setVerificationSuccess('Account verified successfully! Redirecting to login...');
+      }
+
+    } catch (err: any) {
+      console.error('Verification error:', err);
+      setVerificationError(err?.data?.message || 'Verification failed. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -171,9 +213,23 @@ const Verification: React.FC<VerificationProps> = ({ onSelect }) => {
 
             {/* Description */}
             <p className="text-center text-gray-600 text-sm mb-6 sm:mb-8 leading-relaxed px-2">
-              If you have an account, we have sent a code to{' '}
-              <span className="font-semibold text-gray-900">test@test12309u.com</span>. Enter it below.
+              We have sent a verification code to{' '}
+              <span className="font-semibold text-gray-900">{email}</span>. Please enter the code below.
             </p>
+
+            {/* Error Message */}
+            {verificationError && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm text-center">
+                {verificationError}
+              </div>
+            )}
+
+            {/* Success Message */}
+            {verificationSuccess && (
+              <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm text-center">
+                {verificationSuccess}
+              </div>
+            )}
 
             {/* Code Input Boxes */}
             <div className="flex justify-center gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-hidden">
@@ -216,9 +272,10 @@ const Verification: React.FC<VerificationProps> = ({ onSelect }) => {
           {/* Verify Account Button */}
           <button
             onClick={handleVerifyAccount}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-lg transition-colors"
+            disabled={isVerifying || code.join('').length !== 6}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Verify Account
+            {isVerifying ? 'Verifying...' : 'Verify Account'}
           </button>
         </div>
       </div>
@@ -226,19 +283,109 @@ const Verification: React.FC<VerificationProps> = ({ onSelect }) => {
   );
 };
 
-// Import ArrowLeft icon for Verification component
-import { ArrowLeft } from 'lucide-react';
-
 // Main Register Component
 const Register: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'registration' | 'upload' | 'verification'>('registration');
-  const [fullName, setFullName] = useState('Rob');
-  const [email, setEmail] = useState('test@gmail.com');
-  const [phone, setPhone] = useState('+44 7700 800000');
-  const [password, setPassword] = useState('••••••••••••••');
-  const [confirmPassword, setConfirmPassword] = useState('••••••••••••••');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState<string | undefined>('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const [register, { isLoading }] = useRegisterMutation();
+
+  const handleRegistrationSubmit = async () => {
+    // Validation
+    if (!fullName || !email || !phone || !password || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    // Validate phone number format
+    if (!phone || !phone.match(/^\+[1-9]\d{1,14}$/)) {
+      setError('Please enter a valid phone number with country code');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+
+    try {
+      // Create FormData
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('email', email);
+      formData.append('phone_number', phone || '');
+      formData.append('password', password);
+      formData.append('confirm_password', confirmPassword);
+
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      // Call API
+      const result = await register(formData).unwrap();
+
+      setSuccess('Registration successful! Please check your email for verification.');
+      console.log('Registration result:', result);
+
+      // Move to upload photo step if image not uploaded yet
+      if (!imageFile) {
+        setActiveTab('upload');
+      } else {
+        setActiveTab('verification');
+      }
+
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err?.data?.message || 'Registration failed. Please try again.');
+    }
+  };
+
+  const handleUploadPhoto = (uploadedImageFile?: File) => {
+    if (uploadedImageFile) {
+      setImageFile(uploadedImageFile);
+    }
+    setActiveTab('verification');
+  };
+
+  const handleBackFromVerification = () => {
+    setActiveTab('upload');
+  };
+
+  // Custom style for phone input
+  const phoneInputStyle = {
+    width: '100%',
+    padding: '12px 16px',
+    backgroundColor: '#EBF3FF',
+    border: '1px solid transparent',
+    borderRadius: '8px',
+    fontSize: '16px',
+    color: '#1F2937',
+    transition: 'all 0.2s ease',
+  };
+
+  const phoneInputFocusStyle = {
+    backgroundColor: 'white',
+    borderColor: '#3B82F6',
+    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
+    outline: 'none',
+  };
 
   // Render active tab content
   const renderActiveTab = () => {
@@ -256,6 +403,20 @@ const Register: React.FC = () => {
               </p>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm">
+                {success}
+              </div>
+            )}
+
             {/* Registration Form */}
             <div className="space-y-4">
               {/* Full Name */}
@@ -269,7 +430,7 @@ const Register: React.FC = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900"
-                  placeholder="Rob"
+                  placeholder="Enter your full name"
                 />
               </div>
 
@@ -284,23 +445,81 @@ const Register: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900"
-                  placeholder="test@gmail.com"
+                  placeholder="Enter your email"
                 />
               </div>
 
-              {/* Phone Number */}
+              {/* Phone Number with Country Code */}
               <div>
                 <label htmlFor="phone" className="block text-md text-[#000000] mb-2">
                   Phone Number
                 </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900"
-                  placeholder="+44 7700 800000"
-                />
+                <div className="relative">
+                  <PhoneInput
+                    international
+                    defaultCountry="BD"
+                    onChange={(value) => setPhone(value || '')}
+                    className="custom-phone-input"
+                    style={{
+                      '--PhoneInput-color--focus': '#3B82F6',
+                      '--PhoneInputCountrySelectArrow-color': '#6B7280',
+                      '--PhoneInputCountrySelectArrow-color--focus': '#3B82F6',
+                      '--PhoneInputCountryFlag-borderColor': 'transparent',
+                    } as React.CSSProperties}
+                    inputStyle={phoneInputStyle}
+                    inputClassName="custom-phone-input-field"
+                    onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                      Object.assign(e.target.style, phoneInputFocusStyle);
+                    }}
+                    onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                      e.target.style.backgroundColor = '#EBF3FF';
+                      e.target.style.borderColor = 'transparent';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    placeholder="Enter phone number"
+                  />
+                  <style>{`
+                    .custom-phone-input .PhoneInputInput {
+                      background-color: #EBF3FF;
+                      border: none;
+                      outline: none;
+                      padding-left: 8px;
+                      font-size: 16px;
+                      color: #1F2937;
+                      width: 100%;
+                    }
+                    
+                    .custom-phone-input .PhoneInputInput:focus {
+                      background-color: white;
+                      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+                    }
+                    
+                    .custom-phone-input .PhoneInputCountry {
+                      padding: 0 8px;
+                      border-right: 1px solid #D1D5DB;
+                    }
+                    
+                    .custom-phone-input .PhoneInputCountrySelect {
+                      background-color: transparent;
+                      border: none;
+                    }
+                    
+                    .custom-phone-input .PhoneInputCountrySelect:focus {
+                      outline: none;
+                    }
+                    
+                    .PhoneInputCountryIcon {
+                      border-radius: 2px;
+                    }
+                    
+                    .PhoneInputCountrySelectArrow {
+                      margin-left: 4px;
+                    }
+                  `}</style>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter phone number with country code (e.g., +8801302176538)
+                </p>
               </div>
 
               {/* Password */}
@@ -315,7 +534,7 @@ const Register: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900 pr-12"
-                    placeholder="••••••••••••••"
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
@@ -339,7 +558,7 @@ const Register: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900 pr-12"
-                    placeholder="••••••••••••••"
+                    placeholder="Confirm your password"
                   />
                   <button
                     type="button"
@@ -353,10 +572,11 @@ const Register: React.FC = () => {
 
               {/* Next Button */}
               <button
-                onClick={() => setActiveTab('upload')}
-                className="w-full bg-[#126AD8] cursor-pointer text-white font-medium py-3 px-4 rounded-[8px] transition shadow-sm mt-6"
+                onClick={handleRegistrationSubmit}
+                disabled={isLoading}
+                className="w-full bg-[#126AD8] cursor-pointer text-white font-medium py-3 px-4 rounded-[8px] transition shadow-sm mt-6 disabled:opacity-50"
               >
-                Next
+                {isLoading ? 'Processing...' : 'Next'}
               </button>
 
               {/* Login Link */}
@@ -370,9 +590,12 @@ const Register: React.FC = () => {
           </>
         );
       case 'upload':
-        return <UploadPhoto onSelect={() => setActiveTab('verification')} />;
+        return <UploadPhoto onSelect={handleUploadPhoto} />;
       case 'verification':
-        return <Verification onSelect={() => setActiveTab('upload')} />;
+        return <Verification
+          onSelect={handleBackFromVerification}
+          email={email}
+        />;
       default:
         return null;
     }
@@ -462,8 +685,8 @@ const Register: React.FC = () => {
 
               {/* DOTTED LINE 1 */}
               <div className={`flex-1 h-0.5 border-t-2 -mt-4 ${getStepStatus(2) === 'completed' || getStepStatus(2) === 'current'
-                  ? 'border-blue-600'
-                  : 'border-gray-400 border-dotted'
+                ? 'border-blue-600'
+                : 'border-gray-400 border-dotted'
                 }`}></div>
 
               {/* STEP 2 - Upload Photo */}
@@ -493,8 +716,8 @@ const Register: React.FC = () => {
 
               {/* DOTTED LINE 2 */}
               <div className={`flex-1 h-0.5 border-t-2 -mt-4 ${getStepStatus(3) === 'completed' || getStepStatus(3) === 'current'
-                  ? 'border-blue-600'
-                  : 'border-gray-400 border-dotted'
+                ? 'border-blue-600'
+                : 'border-gray-400 border-dotted'
                 }`}></div>
 
               {/* STEP 3 - Verification */}

@@ -1,17 +1,44 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import loginImg from '../../assets/loginImg.svg'
 import logoImg from '../../assets/logo.svg'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useLoginMutation } from '@/redux/features/auth/loginApi';
+import { verifyToken } from '@/utils/verifyToken';
+import { useAppDispatch } from '@/redux/hook';
+import { setUser } from '@/redux/features/auth/authSlice';
+import { toast } from 'react-toastify';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('test@gmail.com');
-  const [password, setPassword] = useState('••••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const dispacth = useAppDispatch()
+  const [login, { isLoading }] = useLoginMutation();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
+    try {
+      const res = await login({ email, password }).unwrap();
+      const user = verifyToken(res?.access);
+      dispacth(setUser({ user: user, token: res.access }));
+
+      toast.success('Login Successful');
+
+      if (res?.role === 'ADMIN') {
+        navigate('/admin-dashboard');
+      } else if (res?.role === 'BROKER') {
+        navigate('/broker-dashboard');
+      }else{
+        navigate('/vendor-dashboard');
+      }
+
+    } catch (err:any) {
+      toast.error(err?.data?.non_field_errors[0])
+    }
+
   };
 
   return (
@@ -30,7 +57,7 @@ const Login: React.FC = () => {
 
         {/* CONTENT WRAPPER - This makes padding work */}
         <div className="relative z-10 flex flex-col justify-between w-full h-full px-6 sm:px-9 py-6 sm:py-8">
-          
+
           {/* Logo - Top */}
           <div className="flex items-center gap-2 bg-gray-200 rounded-[12px] px-4 py-2 shadow-lg w-max">
             <img src={logoImg} alt="logo" />
@@ -106,18 +133,18 @@ const Login: React.FC = () => {
                 </button>
               </div>
               <div className="mt-2 text-right">
-                <a href="#" className="text-sm text-gray-600 hover:text-blue-600 transition">
+                <Link to="/forgot-password-req" className="text-sm text-gray-600 hover:text-blue-600 transition">
                   Forgot Password ?
-                </a>
+                </Link>
               </div>
             </div>
 
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-[#126AD8] text-white font-medium py-3 px-4 rounded-[8px] transition"
+              className="w-full bg-[#126AD8] hover:bg-[#126AD8]/80  text-white font-medium py-3 px-4 rounded-[8px] transition"
             >
-              log in
+              {`${isLoading ? 'Login....' : 'Login'}`}
             </button>
 
             {/* Register Link */}

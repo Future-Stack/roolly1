@@ -7,13 +7,11 @@ import routes from "./routes/Routes.tsx";
 import "react-toastify/dist/ReactToastify.css";
 import { Bounce, ToastContainer } from "react-toastify";
 
-// Redux imports
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {/* Entire App Redux store দিয়ে wrap করা হয়েছে */}
     <Provider store={store}>
       <RouterProvider router={routes} />
 

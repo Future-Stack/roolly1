@@ -2,7 +2,7 @@
 import { MapPin, Clock, Calendar, Phone, Mail,Info } from 'lucide-react';
 import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
-import Pagination from '@/components/ui/Pagination';
+// import Pagination from '@/components/ui/Pagination';
 
 interface Lead {
     id: string;
@@ -181,9 +181,9 @@ const BrokerAvailableLeads = () => {
                 ))}
             </div>
             {/* pagination */}
-            <div className='my-16 flex justify-center'>
+            {/* <div className='my-16 flex justify-center'>
                 <Pagination/>
-            </div>
+            </div> */}
         </div>
     )
 }

@@ -3,13 +3,16 @@ import React, { useEffect, useRef, useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import ProfileDropdown from "./ProfileDropdown";
 import logo from '../../../assets/logo.png'
+import { useGetVendorProfileQuery } from "@/redux/features/vendor/getVendorProfileApi";
 
 const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const {data:profile} = useGetVendorProfileQuery(undefined)
 
-  const profileDropdownRef = useRef<HTMLDivElement>(null);
-  const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  // Update ref types to include null
+  const profileDropdownRef = useRef<HTMLDivElement | null>(null);
+  const notificationDropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -99,7 +102,7 @@ const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
               aria-label="Profile"
             >
               <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+                src={profile?.image || '/default-profile.png'}
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
                 alt="Profile"
               />
