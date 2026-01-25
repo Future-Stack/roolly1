@@ -10,7 +10,7 @@ import CommunicationWithBroker from "@/pages/vendorDashboard/Messages/Communicat
 import AnalyticsReporting from "@/pages/vendorDashboard/AnalyticsReporting/AnalyticsReporting";
 import Settings from "@/pages/vendorDashboard/Settings/Settings";
 import PropertyInformationForm from "@/components/vendorDashboard/Property/PropertyInformationForm";
-import RiskProfileManagementForm from "@/components/vendorDashboard/Property/RiskProfileManagementForm";
+// import RiskProfileManagementForm from "@/components/vendorDashboard/Property/RiskProfileManagementForm";
 import BrokerLayout from "@/components/brokerDashboard/BrokerLayout/BrokerLayout";
 import BrokerDashboardOverview from "@/pages/brokerDashboard/Overview/Overview";
 import BrokerLeadManagement from "@/pages/brokerDashboard/BrokerLeadManagement/BrokerLeadManagement";
@@ -31,6 +31,11 @@ import Broker from "@/pages/AdminDashboard/Broker/Broker";
 import AdminSettings from "@/pages/AdminDashboard/AdminSettings/AdminSettings";
 import HomePropertyDetails from "@/components/DetailsPage/DetailsPage";
 import AllProperty from "@/pages/AllProperty/AllProperty";
+import ProtectedRoute from "@/layout/ProtectedRoute";
+// import ForgotPassword from "@/auth/ForgotPassword/ForgotPassword";
+import ForgotPasswordReq from "@/auth/ForgotPasswordReq/ForgotPasswordReq";
+import AddProperty from "@/pages/vendorDashboard/AddProperty/AddProperty";
+import UpdateVendorProperty from "@/pages/vendorDashboard/UpdateVendorProperty/UpdateVendorProperty";
 
 
 const routes = createBrowserRouter([
@@ -57,13 +62,17 @@ const routes = createBrowserRouter([
       {
         path:'/all-properties',
         element:<AllProperty/>
+      },
+      {
+        path:'/forgot-password-req',
+        element:<ForgotPasswordReq/>
       }
     ],
   },
 
   {
     path:'/vendor-dashboard',
-    element:<VendorLayout/>,
+    element:<ProtectedRoute><VendorLayout/></ProtectedRoute>,
     children:[
       {
         index:true,
@@ -85,9 +94,13 @@ const routes = createBrowserRouter([
         path:'properties/:id',
         element:<PropertyInformationForm/>
       },
+      // {
+      //   path:'properties/:id/risk',
+      //   element:<RiskProfileManagementForm/>
+      // },
       {
-        path:'properties/:id/risk',
-        element:<RiskProfileManagementForm/>
+        path:'edit-property/:id',
+        element:<UpdateVendorProperty/>
       },
       {
         path:'messages',
@@ -100,6 +113,10 @@ const routes = createBrowserRouter([
       {
         path:'settings',
         element:<Settings/>
+      },
+      {
+        path:'add-property',
+        element:<AddProperty/>
       }
     ]
   },
@@ -147,7 +164,7 @@ const routes = createBrowserRouter([
   },
   {
     path:'/admin-dashboard',
-    element:<AdminLayout/>,
+    element:<ProtectedRoute><AdminLayout/></ProtectedRoute>,
     children:[
       {
         index:true,

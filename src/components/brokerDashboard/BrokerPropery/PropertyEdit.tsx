@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ImageIcon, Plus, SquarePlay } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RiskProfileManagement from './RiskProfileManagement';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useEditPropertyMutation } from '@/redux/features/broker/property/editPropertyApi';
+import { useGetPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
 
 interface ImageUpload {
     id: string;
@@ -8,12 +12,95 @@ interface ImageUpload {
     description: string;
     file?: File;
     preview?: string;
+    existingUrl?: string;
+}
+
+interface FormData {
+    property_name: string;
+    transaction: string;
+    property_type: string;
+    location: string;
+    estimated_price: string;
+    lease_duration: string;
+    description: string;
+    built_area: string;
+    length_width: string;
+    office_space: string;
+    eaves_height: string;
+    power_capacity: string;
+    phase: string;
+    roller_shutter_type: string;
+    shutters_height_width: string;
+    lighting_type: string;
+    epc_rating: string;
+    any_further_details: string;
+    yard_space: boolean;
+    yard_area: string;
+    yard_surface: string;
+    parking_include: string;
+    key_specification: string;
+    risk_level: string;
+    vehicle_repair_use: boolean;
+    vehicle_sale_use: boolean;
+    subletting: boolean;
+    leisure_use: boolean;
+    pet_business_use: boolean;
+    plastic_recycling_use: boolean;
+    whatsapp_number: string;
+    phone_number: string;
+    images: File[];
+    brochure_pdf?: File;
+    brochure_video?: File;
 }
 
 const PropertyEdit: React.FC = () => {
-    // const [currentStep] = useState(1);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [editProperty, { isLoading: isSubmitting }] = useEditPropertyMutation();
+    const { data: propertyData, isLoading: isLoadingProperty } = useGetPropertyDetailsQuery(id);
+    console.log(propertyData)
+    
+    const [formData, setFormData] = useState<FormData>({
+        property_name: '',
+        transaction: 'sale',
+        property_type: 'industrial',
+        location: '',
+        estimated_price: '',
+        lease_duration: '',
+        description: '',
+        built_area: '',
+        length_width: '',
+        office_space: '',
+        eaves_height: '',
+        power_capacity: '',
+        phase: '1',
+        roller_shutter_type: '',
+        shutters_height_width: '',
+        lighting_type: '1',
+        epc_rating: '1',
+        any_further_details: '',
+        yard_space: false,
+        yard_area: '',
+        yard_surface: 'Concrete',
+        parking_include: '0',
+        key_specification: '',
+        risk_level: 'medium',
+        vehicle_repair_use: false,
+        vehicle_sale_use: false,
+        subletting: false,
+        leisure_use: false,
+        pet_business_use: false,
+        plastic_recycling_use: false,
+        whatsapp_number: '',
+        phone_number: '',
+        images: [],
+    });
+
+    const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
+    const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
+    
     const [images, setImages] = useState<{ [key: string]: ImageUpload }>({
-        aerial: { id: 'aerial', title: 'Aerial View', description: 'Overhead or drone shot showing building in context (site layout, access points).', preview: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=150&fit=crop' },
+        aerial: { id: 'aerial', title: 'Aerial View', description: 'Overhead or drone shot showing building in context (site layout, access points).' },
         frontExternal: { id: 'frontExternal', title: 'Front External', description: 'Main frontage view from the street or approach road.' },
         externalRoller: { id: 'externalRoller', title: 'External – Roller Shutter', description: 'Close-up showing loading or vehicle access.' },
         internalFront: { id: 'internalFront', title: 'Internal – Front', description: 'Inside view facing towards front of the unit.' },
@@ -22,6 +109,89 @@ const PropertyEdit: React.FC = () => {
         internalSide: { id: 'internalSide', title: 'Internal – Side Angle', description: 'Diagonal shot showing depth and space.' },
         amenities: { id: 'amenities', title: 'Amenities', description: 'Cafeteria or canteen or office, kitchenette, reception, and toilets.' }
     });
+
+    // Initialize form with existing property data
+    useEffect(() => {
+        if (propertyData) {
+            setFormData({
+                property_name: propertyData.property_name || '',
+                transaction: propertyData.transaction || 'sale',
+                property_type: propertyData.property_type || 'industrial',
+                location: propertyData.location || '',
+                estimated_price: propertyData.estimated_price || '',
+                lease_duration: propertyData.lease_duration || '',
+                description: propertyData.description || '',
+                built_area: propertyData.built_area || '',
+                length_width: propertyData.length_width || '',
+                office_space: propertyData.office_space || '',
+                eaves_height: propertyData.eaves_height || '',
+                power_capacity: propertyData.power_capacity || '',
+                phase: propertyData.phase?.toString() || '1',
+                roller_shutter_type: propertyData.roller_shutter_type || '',
+                shutters_height_width: propertyData.shutters_height_width || '',
+                lighting_type: propertyData.lighting_type?.toString() || '1',
+                epc_rating: propertyData.epc_rating?.toString() || '1',
+                any_further_details: propertyData.any_further_details || '',
+                yard_space: propertyData.yard_space || false,
+                yard_area: propertyData.yard_area || '',
+                yard_surface: propertyData.yard_surface || 'Concrete',
+                parking_include: propertyData.parking_include?.toString() || '0',
+                key_specification: propertyData.key_specification || '',
+                risk_level: propertyData.risk_level || 'medium',
+                vehicle_repair_use: propertyData.vehicle_repair_use || false,
+                vehicle_sale_use: propertyData.vehicle_sale_use || false,
+                subletting: propertyData.subletting || false,
+                leisure_use: propertyData.leisure_use || false,
+                pet_business_use: propertyData.pet_business_use || false,
+                plastic_recycling_use: propertyData.plastic_recycling_use || false,
+                whatsapp_number: propertyData.whatsapp_number || '',
+                phone_number: propertyData.phone_number || '',
+                images: [],
+            });
+
+            // Set existing images
+            if (propertyData.existing_images && propertyData.existing_images.length > 0) {
+                const imageMap = { ...images };
+                propertyData.existing_images.forEach((img:any, index:number) => {
+                    const imageKeys = Object.keys(imageMap);
+                    if (index < imageKeys.length) {
+                        const key = imageKeys[index];
+                        imageMap[key] = {
+                            ...imageMap[key],
+                            preview: img.url,
+                            existingUrl: img.url
+                        };
+                    }
+                });
+                setImages(imageMap);
+            }
+
+            // Set phone number from property owner if available
+            if (propertyData.property_owner?.phone_number) {
+                setFormData(prev => ({
+                    ...prev,
+                    phone_number: propertyData.property_owner.phone_number
+                }));
+            }
+        }
+    }, [propertyData]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        
+        if (type === 'checkbox') {
+            const checkbox = e.target as HTMLInputElement;
+            setFormData(prev => ({
+                ...prev,
+                [name]: checkbox.checked
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
 
     const handleImageUpload = (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -37,377 +207,729 @@ const PropertyEdit: React.FC = () => {
         }
     };
 
+    const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setBrochurePdfFile(file);
+        }
+    };
+
+    const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setBrochureVideoFile(file);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        try {
+            // Collect all image files
+            const imageFiles: File[] = [];
+            Object.values(images).forEach(img => {
+                if (img.file) {
+                    imageFiles.push(img.file);
+                }
+            });
+
+            // Create FormData object
+            const formDataToSend = new FormData();
+            
+            // Add all form fields
+            Object.entries(formData).forEach(([key, value]) => {
+                if (key !== 'images') {
+                    formDataToSend.append(key, value.toString());
+                }
+            });
+
+            // Add images
+            imageFiles.forEach((file) => {
+                formDataToSend.append(`images`, file);
+            });
+
+            // Add brochure files if present
+            if (brochurePdfFile) {
+                formDataToSend.append('brochure_pdf', brochurePdfFile);
+            }
+
+            if (brochureVideoFile) {
+                formDataToSend.append('brochure_video', brochureVideoFile);
+            }
+
+            // Call API
+            const response = await editProperty({
+                id: id!,
+                data: formDataToSend
+            }).unwrap();
+
+            console.log('Property updated successfully:', response);
+            
+            // Redirect to property details page
+            navigate(`/broker/property/${id}/view`);
+
+        } catch (error) {
+            console.error('Error updating property:', error);
+            // Handle error (show error message to user)
+        }
+    };
+
+    const handleCancel = () => {
+        navigate(-1);
+    };
+
+    // Loading state
+    if (isLoadingProperty) {
+        return (
+            <div className="w-full min-h-screen flex items-center justify-center">
+                <div className="text-gray-500">Loading property details...</div>
+            </div>
+        );
+    }
+
+    // Options for dropdowns
+    const transactionOptions = ['sale', 'lease'];
+    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
+    const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
+    const riskLevelOptions = ['low', 'medium', 'high'];
+    const phaseOptions = ['1', '2', '3'];
+    const lightingTypeOptions = ['1', '2', '3'];
+    const epcRatingOptions = ['1', '2', '3', '4', '5', '6', '7'];
+
     return (
         <div className="w-full min-h-screen">
             <div>
                 {/* Header */}
                 <div className="mb-6">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-                        Listting New Property
+                        Edit Property
                     </h1>
                     <p className="text-base text-gray-600">
-                        Listing Property For the perfect buyer or tenant — list it today!                    </p>
+                        Update property details for the perfect buyer or tenant.
+                    </p>
                 </div>
 
-                <div className='bg-white rounded-2xl px-4 pb-6 pt-4'>
+                <form onSubmit={handleSubmit}>
+                    <div className='bg-white rounded-2xl px-4 pb-6 pt-4'>
 
-                    {/* Property Details Section */}
-                    <div className="mb-8">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            Property details
-                        </h2>
+                        {/* Property Details Section */}
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                                Property details
+                            </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                            {/* Property name */}
-                            <div>
-                                <label className="block text-base  text-gray-900 mb-2">
-                                    Property name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Premium Commercial Property"
-                                    className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            {/* Transaction */}
-                            <div>
-                                <label className="block text-base  text-gray-900 mb-2">
-                                    Transaction
-                                </label>
-                                <select className="w-full h-[42px] px-3 text-[13px] text-gray-400 bg-white border border-dashed border-[#EA4335]  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option>Select</option>
-                                </select>
-                            </div>
-
-                            {/* Property Type */}
-                            <div>
-                                <label className="block text-base text-gray-900 mb-2">
-                                    Property Type
-                                </label>
-                                <select className="w-full h-[42px] px-3 text-[13px]  bg-white border border-dashed border-[#EA4335]  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-400">
-                                    <option>Commercial</option>
-                                    <option>Special</option>
-                                </select>
-                            </div>
-
-                            {/* Location */}
-                            <div>
-                                <label className="block text-base  text-gray-900 mb-2">
-                                    Location
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="City, County"
-                                    className="w-full h-[42px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-white border border-dashed border-[#EA4335]  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            {/* Rent or purchase estimated price */}
-                            <div>
-                                <label className="block text-base  text-gray-900 mb-2">
-                                    Rent or purchase estimated price
-                                </label>
-                                <select className="w-full h-[42px] px-3 text-[13px] text-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option>$10000-$20000</option>
-                                </select>
-                            </div>
-
-                            {/* lease Duration */}
-                            <div>
-                                <label className="block text-base  text-gray-900 mb-2">
-                                    lease Duration
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="03"
-                                    className="w-full h-[42px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Description */}
-                        <div className="mt-5">
-                            <label className="block text-base text-gray-900 mb-2">
-                                Description
-                            </label>
-                            <textarea
-                                rows={4}
-                                className="w-full px-3 py-2 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335]  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Internal Specification */}
-                    <div className="mb-8">
-                        <h2 className="text-base font-semibold text-gray-900 mb-4">
-                            Internal Specification
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border border-dashed border-[#EA4335]  rounded-lg p-2">
-                            {[
-                                { label: 'Area', placeholder: 'X sq ftl' },
-                                { label: 'Type of roller shutter', placeholder: 'Three' },
-                                { label: 'Length & Width (comma separated)', placeholder: '2400X1600' },
-                                { label: 'Height & width of shutters(comma separated)', placeholder: '400-300' },
-                                { label: 'Office space included', placeholder: 'X sq ftl' },
-                                { label: 'Type of lighting', placeholder: '03' },
-                                { label: 'Eaves height', placeholder: 'X sq ftl' },
-                                { label: 'EPC Rating', placeholder: '03' },
-                                { label: 'Power capacity', placeholder: 'X kvs' },
-                                { label: 'Type of lighting', placeholder: '03' }
-                            ].map((field, index) => (
-                                <div key={index}>
-                                    <label className="block text-base text-gray-900 mb-1.5">
-                                        {field.label}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                                {/* Property name */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Property name
                                     </label>
                                     <input
                                         type="text"
-                                        placeholder={field.placeholder}
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        name="property_name"
+                                        value={formData.property_name}
+                                        onChange={handleInputChange}
+                                        placeholder="Premium Commercial Property"
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
-                            ))}
 
-                            <div>
-                                <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-                                    phase
-                                </label>
-                                <select className="w-full h-[38px] px-3 text-[13px] text-gray-400 bg-blue-50 border border-dashed border-[#EA4335]  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option>03</option>
-                                </select>
+                                {/* Transaction */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Transaction
+                                    </label>
+                                    <select 
+                                        name="transaction"
+                                        value={formData.transaction}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {transactionOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option.charAt(0).toUpperCase() + option.slice(1)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Property Type */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Property Type
+                                    </label>
+                                    <select 
+                                        name="property_type"
+                                        value={formData.property_type}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {propertyTypeOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option.charAt(0).toUpperCase() + option.slice(1)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Location */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Location
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleInputChange}
+                                        placeholder="City, County"
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* Rent or purchase estimated price */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Estimated Price ($)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="estimated_price"
+                                        value={formData.estimated_price}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 10000"
+                                        step="0.01"
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* lease Duration */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Lease Duration (years)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="lease_duration"
+                                        value={formData.lease_duration}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 3"
+                                        step="0.5"
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-                                    Any further details
+                            {/* Description */}
+                            <div className="mt-5">
+                                <label className="block text-base text-gray-900 mb-2">
+                                    Description
                                 </label>
-                                <input
-                                    type="text"
-                                    placeholder="Details"
-                                    className="w-full h-[38px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    className="w-full px-3 py-2 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    {/* External Specification */}
-                    <div className="mb-8">
-                        <h2 className="text-base font-semibold text-gray-900 mb-4">
-                            External Specification
-                        </h2>
+                        {/* Internal Specification */}
+                        <div className="mb-8">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                Internal Specification
+                            </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border border-dashed border-[#EA4335]  rounded-lg p-4">
-                            <div>
-                                <label className="block text-base text-gray-900 mb-1.5">
-                                    Yard space included(comma separated)
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="X sq ftl"
-                                    className="w-full h-[38px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border border-dashed border-[#EA4335] rounded-lg p-2">
+                                {/* Built Area */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Built Area (sq ft)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="built_area"
+                                        value={formData.built_area}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 1682.80"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-base  text-gray-900 mb-1.5">
-                                    Yard surface
-                                </label>
-                                <select className="w-full h-[38px] px-3 text-[13px] text-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option>Concrete/tarmac</option>
-                                </select>
-                            </div>
+                                {/* Roller Shutter Type */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Type of roller shutter
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="roller_shutter_type"
+                                        value={formData.roller_shutter_type}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Manual"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-base text-gray-900 mb-1.5">
-                                    Area of yard
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="1200"
-                                    className="w-full h-[38px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                                {/* Length & Width */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Length & Width
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="length_width"
+                                        value={formData.length_width}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 53x58 ft"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-basetext-gray-900 mb-1.5">
-                                    Parking included
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="03"
-                                    className="w-full h-[38px] px-3 text-[13px] text-gray-400 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
+                                {/* Shutters Height & Width */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Height & width of shutters
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="shutters_height_width"
+                                        value={formData.shutters_height_width}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 2x4 ft"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* Office Space */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Office space included (sq ft)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="office_space"
+                                        value={formData.office_space}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 481.32"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* Lighting Type */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Type of lighting
+                                    </label>
+                                    <select 
+                                        name="lighting_type"
+                                        value={formData.lighting_type}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {lightingTypeOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                Type {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Eaves Height */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Eaves height (ft)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="eaves_height"
+                                        value={formData.eaves_height}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 13.55"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* EPC Rating */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        EPC Rating
+                                    </label>
+                                    <select 
+                                        name="epc_rating"
+                                        value={formData.epc_rating}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {epcRatingOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                Rating {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Power Capacity */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Power capacity
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="power_capacity"
+                                        value={formData.power_capacity}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 207.83"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* Phase */}
+                                <div>
+                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+                                        Phase
+                                    </label>
+                                    <select 
+                                        name="phase"
+                                        value={formData.phase}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {phaseOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option} Phase
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Any further details */}
+                                <div>
+                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+                                        Any further details
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="any_further_details"
+                                        value={formData.any_further_details}
+                                        onChange={handleInputChange}
+                                        placeholder="Additional details"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Key Specification */}
-                    <div className="mb-6">
-                        <h2 className="text-base font-semibold text-gray-900 mb-4">
-                            Key Specification (comma separated)
-                        </h2>
-                        <textarea
-                            rows={3}
-                            placeholder="key pharmacy"
-                            className="w-full px-3 py-2 text-[13px] text-gray-700 placeholder-gray-400 bg-white 
-               border border-dashed border-[#EA4335]  rounded-md focus:outline-none 
-               focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        ></textarea>
+                        {/* External Specification */}
+                        <div className="mb-8">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                External Specification
+                            </h2>
 
-                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 border border-dashed border-[#EA4335] rounded-lg p-4">
+                                {/* Yard Space */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Yard space included
+                                    </label>
+                                    <input
+                                        type="checkbox"
+                                        name="yard_space"
+                                        checked={formData.yard_space}
+                                        onChange={handleInputChange}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-[13px] text-gray-900">Yes</span>
+                                </div>
 
-                    {/* Image Upload Section */}
-                    <div className="mb-6 border border-gray-200  rounded-lg p-4">
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-1">
-                            Please upload  image, size less than 100KB
-                        </h2>
+                                {/* Yard Surface */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Yard surface
+                                    </label>
+                                    <select 
+                                        name="yard_surface"
+                                        value={formData.yard_surface}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {yardSurfaceOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                            {Object.values(images).map((img) => (
-                                <div key={img.id} className="bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
-                                    <h3 className="text-base font-medium text-[#303539] mb-3">
-                                        {img.title}
-                                    </h3>
+                                {/* Area of yard */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Area of yard (sq ft)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="yard_area"
+                                        value={formData.yard_area}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 201.22"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
-                                    <div className='flex justify-center'>
-                                        <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
-                                            {img.preview ? (
-                                                <img src={img.preview} alt={img.title} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <ImageIcon className="w-12 h-12 text-gray-400" strokeWidth={1.5} />
-                                            )}
-                                        </div>
-                                    </div>
+                                {/* Parking included */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Parking included
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="parking_include"
+                                        value={formData.parking_include}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 6"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div className='flex justify-center'>
-                                        <label className="cursor-pointer">
-                                            <div className="flex items-center justify-center gap-1.5 px-4 py-2 border  border-dashed border-[#EA4335]  rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium bg-[#E7F0FB]">
-                                                <span>Upload</span>
-                                                <Plus className="w-4 h-4" strokeWidth={2.5} />
+                        {/* Key Specification */}
+                        <div className="mb-6">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                Key Specification
+                            </h2>
+                            <textarea
+                                name="key_specification"
+                                value={formData.key_specification}
+                                onChange={handleInputChange}
+                                rows={3}
+                                placeholder="Key specifications"
+                                className="w-full px-3 py-2 text-[13px] text-gray-700 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+
+                        {/* Risk Level */}
+                        <div className="mb-6">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                Risk Level
+                            </h2>
+                            <select 
+                                name="risk_level"
+                                value={formData.risk_level}
+                                onChange={handleInputChange}
+                                className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                {riskLevelOptions.map(option => (
+                                    <option key={option} value={option}>
+                                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="mb-8">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                Contact Information
+                            </h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="phone_number"
+                                        value={formData.phone_number}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., +8801996629397"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        WhatsApp Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="whatsapp_number"
+                                        value={formData.whatsapp_number}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., +8801712345678"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Image Upload Section */}
+                        <div className="mb-6 border border-gray-200 rounded-lg p-4">
+                            <h2 className="text-2xl font-semibold text-gray-900 mb-1">
+                                Please upload images (size less than 100KB)
+                            </h2>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                                {Object.values(images).map((img) => (
+                                    <div key={img.id} className="bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
+                                        <h3 className="text-base font-medium text-[#303539] mb-3">
+                                            {img.title}
+                                        </h3>
+
+                                        <div className='flex justify-center'>
+                                            <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                                                {img.preview ? (
+                                                    <img src={img.preview} alt={img.title} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <ImageIcon className="w-12 h-12 text-gray-400" strokeWidth={1.5} />
+                                                )}
                                             </div>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => handleImageUpload(img.id, e)}
-                                                className="hidden"
-                                            />
-                                        </label>
-                                    </div>
+                                        </div>
 
-                                    <p className="text-[13px] text-[#6B21A8] mt-2 leading-tight bg-[#FAF5FF] p-1 text-center rounded-md">
-                                        {img.description}
-                                    </p>
-                                </div>
-                            ))}
+                                        <div className='flex justify-center'>
+                                            <label className="cursor-pointer">
+                                                <div className="flex items-center justify-center gap-1.5 px-4 py-2 border border-dashed border-[#EA4335] rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium bg-[#E7F0FB]">
+                                                    <span>Upload</span>
+                                                    <Plus className="w-4 h-4" strokeWidth={2.5} />
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleImageUpload(img.id, e)}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <p className="text-[13px] text-[#6B21A8] mt-2 leading-tight bg-[#FAF5FF] p-1 text-center rounded-md">
+                                            {img.description}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        <button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors">
-                            Save
-                        </button>
-                    </div>
+                        {/* File Upload Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            {/* Brochure Upload */}
+                            <div>
+                                <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                    Brochure Upload (PDF)
+                                </h2>
 
-                    {/* File Upload Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        {/* Brochure Upload */}
-                        <div>
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">
-                                Brochure Upload
-                            </h2>
+                                <div className="border border-dashed border-[#EA4335] rounded-lg p-6">
+                                    <div className="flex flex-col sm:flex-row gap-6 sm:gap-x-4">
+                                        {/* Icon Section */}
+                                        <div className="flex flex-col items-center justify-center bg-gray-100 mt-2 rounded-sm w-full sm:w-auto p-4">
+                                            <ImageIcon className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
+                                        </div>
 
-                            <div className="border border-dashed border-[#EA4335]  rounded-lg p-6">
-                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-x-4">
+                                        {/* Text + Button Section */}
+                                        <div className="text-center sm:text-left w-full">
+                                            <p className="text-md text-gray-600 font-semibold">
+                                                Please upload Brochure, PDF less than 100KB
+                                            </p>
 
-                                    {/* Icon Section */}
-                                    <div className="flex flex-col items-center justify-center bg-gray-100 mt-2 rounded-sm w-full sm:w-auto p-4">
-                                        <ImageIcon className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
-                                    </div>
+                                            <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
+                                                <label className="cursor-pointer">
+                                                    <div className="px-3 py-2 bg-white border-dashed border-[#EA4335] text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
+                                                        Choose File
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf"
+                                                        onChange={handleBrochurePdfUpload}
+                                                        className="hidden"
+                                                    />
+                                                </label>
 
-                                    {/* Text + Button Section */}
-                                    <div className="text-center sm:text-left w-full">
-                                        <p className="text-md text-gray-600 font-semibold">
-                                            Please upload Brochure, Pdf less than 100KB
-                                        </p>
-
-                                        <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
-                                            <button className="px-3 py-2 bg-white border-dashed border-[#EA4335] text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
-                                                Choose File
-                                            </button>
-
-                                            <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
-                                                No File Chosen
-                                            </span>
+                                                <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
+                                                    {brochurePdfFile ? brochurePdfFile.name : 'No File Chosen'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-
                                 </div>
+                            </div>
 
-                                {/* Save Button */}
-                                <div className="flex justify-center sm:justify-end">
-                                    <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors w-full sm:w-auto">
-                                        Save
-                                    </button>
+                            {/* Media Upload */}
+                            <div>
+                                <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                    Media Upload (Video)
+                                </h2>
+
+                                <div className="border border-dashed border-[#EA4335] rounded-lg p-6">
+                                    <div className="flex flex-col sm:flex-row gap-6 sm:gap-x-4">
+                                        {/* Icon Section */}
+                                        <div className="flex flex-col items-center justify-center bg-gray-100 mt-2 rounded-sm w-full sm:w-auto p-4">
+                                            <SquarePlay className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
+                                        </div>
+
+                                        {/* Text + Button Section */}
+                                        <div className="text-center sm:text-left w-full">
+                                            <p className="text-md text-gray-600 font-semibold">
+                                                Please upload Video, less than 100MB
+                                            </p>
+
+                                            <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
+                                                <label className="cursor-pointer">
+                                                    <div className="px-3 py-2 bg-white border-dashed border-[#EA4335] text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
+                                                        Choose File
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept="video/*"
+                                                        onChange={handleBrochureVideoUpload}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+
+                                                <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
+                                                    {brochureVideoFile ? brochureVideoFile.name : 'No File Chosen'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <RiskProfileManagement 
+                            vehicleRepairUse={formData.vehicle_repair_use}
+                            vehicleSaleUse={formData.vehicle_sale_use}
+                            subletting={formData.subletting}
+                            leisureUse={formData.leisure_use}
+                            petBusinessUse={formData.pet_business_use}
+                            plasticRecyclingUse={formData.plastic_recycling_use}
+                            onRestrictionChange={(name:string, value:any) => {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    [name]: value
+                                }));
+                            }}
+                        />
 
-                        {/* Media Upload */}
-                        <div>
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">
-                                Media Upload
-                            </h2>
-
-                            <div className="border border-dashed border-[#EA4335]  rounded-lg p-6">
-                                <div className="flex flex-col sm:flex-row gap-6 sm:gap-x-4">
-
-                                    {/* Icon Section */}
-                                    <div className="flex flex-col items-center justify-center bg-gray-100 mt-2 rounded-sm w-full sm:w-auto p-4">
-                                        <SquarePlay className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
-                                    </div>
-
-                                    {/* Text + Button Section */}
-                                    <div className="text-center sm:text-left w-full">
-                                        <p className="text-md text-gray-600 font-semibold">
-                                            Please upload Brochure, Pdf less than 100KB
-                                        </p>
-
-                                        <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
-                                            <button className="px-3 py-2 bg-white border-dashed border-[#EA4335]  text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
-                                                Choose File
-                                            </button>
-
-                                            <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
-                                                No File Chosen
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                {/* Save Button */}
-                                <div className="flex justify-center sm:justify-end">
-                                    <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors w-full sm:w-auto">
-                                        Save
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Bottom Actions */}
+                        <div className="flex items-center gap-3 mt-8">
+                            <button 
+                                type="button"
+                                onClick={handleCancel}
+                                className="text-gray-700 hover:text-gray-900 px-4 py-2 text-[14px] font-medium transition-colors rounded-md border border-gray-300"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSubmitting ? 'Updating...' : 'Update Property'}
+                            </button>
                         </div>
                     </div>
-
-                    <RiskProfileManagement />
-
-                    {/* Bottom Actions */}
-                    <div className="flex items-center gap-3 mt-8">
-                        <button className="text-gray-700 hover:text-gray-900 px-4 py-2 text-[14px] font-medium transition-colors rounded-md border border-gray-300">
-                            Cancel
-                        </button>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors">
-                            List New Property
-                        </button>
-                    </div>
-                </div>
-
+                </form>
             </div>
         </div>
     );

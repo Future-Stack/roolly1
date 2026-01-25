@@ -1,10 +1,16 @@
 import LeadGenerationEnquiryForm from '@/components/brokerDashboard/BrokerLeads/LeadGenerationEnquiryForm';
+import ListedProperty from '@/components/brokerDashboard/BrokerPropery/ListedProperty';
 import PropertyApplication from '@/components/brokerDashboard/BrokerPropery/PropertyApplication';
+import { useGetListedPropertyApiQuery } from '@/redux/features/broker/property/getListedPropertyApi';
+import { useGetNewPropertyQuery } from '@/redux/features/broker/property/getNewPropertyApi';
 import React, { useState } from 'react';
 
 const BrokerProperty: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'application' | 'list'>('application');
     const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
+    const {data:listedProperty} = useGetListedPropertyApiQuery(undefined);
+    const {data:newProperty} = useGetNewPropertyQuery(undefined)
+
 
     const closeNewLeadModal = () => {
         setNewLeadModalOpen(false);
@@ -42,7 +48,7 @@ const BrokerProperty: React.FC = () => {
                                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                 }`}
                         >
-                            New Property Application (02)
+                        {` New Property Application (${newProperty?.count})`}
                         </button>
                         <button
                             onClick={() => setActiveTab('list')}
@@ -51,13 +57,13 @@ const BrokerProperty: React.FC = () => {
                                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                 }`}
                         >
-                            My Listed Property (113)
+                           {`My Listed Property (${listedProperty?.count})`}
                         </button>
                     </div>
                 </div>
 
                 {/* Lead Cards */}
-                {activeTab === 'application' ? <PropertyApplication /> : <PropertyApplication />}
+                {activeTab === 'application' ? <PropertyApplication /> : <ListedProperty />}
             </div>
         </div>
     );
