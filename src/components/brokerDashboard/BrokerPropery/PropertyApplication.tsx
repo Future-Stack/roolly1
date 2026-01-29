@@ -145,6 +145,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                         <Calendar size={14} strokeWidth={2} />
                         <span>{formatDate(created_at)}</span>
                     </div>
+                    <div className='flex items-center gap-1.5'>
+                        <h1>Property Id: {id}</h1>
+                    </div>
                 </div>
             </div>
 

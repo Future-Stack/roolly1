@@ -14,6 +14,12 @@ interface PasswordFormData {
     confirm_new_password: string;
 }
 
+interface BasicInfoFormData {
+    full_name: string;
+    email: string;
+    phone_number: string;
+}
+
 const AdminSettings: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [activeSection, setActiveSection] = useState<string>('picture');
@@ -35,16 +41,31 @@ const AdminSettings: React.FC = () => {
     const [passwordSuccess, setPasswordSuccess] = useState<string>('');
     const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
 
+    // Basic info states
+    const [basicInfoForm, setBasicInfoForm] = useState<BasicInfoFormData>({
+        full_name: '',
+        email: '',
+        phone_number: ''
+    });
+    const [basicInfoErrors, setBasicInfoErrors] = useState<Partial<BasicInfoFormData>>({});
+    const [basicInfoSuccess, setBasicInfoSuccess] = useState<string>('');
+    const [basicInfoLoading, setBasicInfoLoading] = useState<boolean>(false);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+
     // API calls
     const [changePassword] = useChangePasswordMutation();
     const [updateAdminProfile] = useUpdateAdminProfileMutation();
     const { data: profile, refetch: refetchProfile } = useGetAdminProfileQuery(undefined);
 
-
-    // Initialize with profile image
+    // Initialize with profile data
     useEffect(() => {
-        if (profile?.image) {
-            setSelectedImage(profile.image);
+        if (profile) {
+            setSelectedImage(profile.image || null);
+            setBasicInfoForm({
+                full_name: profile.full_name || '',
+                email: profile.email || '',
+                phone_number: profile.phone_number || ''
+            });
         }
     }, [profile]);
 
@@ -55,9 +76,9 @@ const AdminSettings: React.FC = () => {
         // Reset errors
         setImageError('');
         
-        // Check file size (max 2MB)
+        // Check file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            setImageError('Image size should be less than 2MB');
+            setImageError('Image size should be less than 5MB');
             return;
         }
 
@@ -101,17 +122,13 @@ const AdminSettings: React.FC = () => {
             const formData = new FormData();
             formData.append('image', selectedFile);
 
-            console.log('Uploading image:', selectedFile.name);
-
-            const response = await updateAdminProfile(formData).unwrap();
+            await updateAdminProfile(formData).unwrap();
 
             setImageSuccess('Profile picture updated successfully!');
             setSelectedFile(null);
             
             // Refetch profile data to get updated image URL
             await refetchProfile();
-
-            console.log('Image upload response:', response);
 
         } catch (error: any) {
             console.error('Image upload error:', error);
@@ -225,6 +242,100 @@ const AdminSettings: React.FC = () => {
         setPasswordSuccess('');
     };
 
+    const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setBasicInfoForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        if (basicInfoErrors[name as keyof BasicInfoFormData]) {
+            setBasicInfoErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
+
+    const handleBasicInfoSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBasicInfoSuccess('');
+        setBasicInfoErrors({});
+
+        // Basic validation
+        const errors: Partial<BasicInfoFormData> = {};
+        if (!basicInfoForm.full_name.trim()) errors.full_name = 'Full name is required';
+        if (!basicInfoForm.email.trim()) errors.email = 'Email is required';
+        if (!basicInfoForm.phone_number.trim()) errors.phone_number = 'Phone number is required';
+
+        if (Object.keys(errors).length > 0) {
+            setBasicInfoErrors(errors);
+            return;
+        }
+
+        setBasicInfoLoading(true);
+
+        try {
+            // Create FormData for basic info update
+            const formData = new FormData();
+            formData.append('full_name', basicInfoForm.full_name);
+            formData.append('email', basicInfoForm.email);
+            formData.append('phone_number', basicInfoForm.phone_number);
+
+            await updateAdminProfile(formData).unwrap();
+
+            setBasicInfoSuccess('Profile information updated successfully!');
+            setIsEditing(false);
+            
+            // Refetch profile data
+            await refetchProfile();
+
+        } catch (error: any) {
+            console.error('Basic info update error:', error);
+
+            if (error?.data) {
+                const errorData = error.data;
+                
+                if (errorData.full_name) {
+                    setBasicInfoErrors(prev => ({ ...prev, full_name: errorData.full_name[0] }));
+                } else if (errorData.email) {
+                    setBasicInfoErrors(prev => ({ ...prev, email: errorData.email[0] }));
+                } else if (errorData.phone_number) {
+                    setBasicInfoErrors(prev => ({ ...prev, phone_number: errorData.phone_number[0] }));
+                } else {
+                    setBasicInfoErrors(prev => ({ 
+                        ...prev, 
+                        full_name: 'Failed to update profile. Please try again.' 
+                    }));
+                }
+            } else {
+                setBasicInfoErrors(prev => ({ 
+                    ...prev, 
+                    full_name: 'Failed to update profile. Please try again.' 
+                }));
+            }
+        } finally {
+            setBasicInfoLoading(false);
+        }
+    };
+
+    const handleBasicInfoCancel = () => {
+        if (profile) {
+            setBasicInfoForm({
+                full_name: profile.full_name || '',
+                email: profile.email || '',
+                phone_number: profile.phone_number || ''
+            });
+        }
+        setIsEditing(false);
+        setBasicInfoErrors({});
+        setBasicInfoSuccess('');
+    };
+
+    const handleBasicInfoEdit = () => {
+        setIsEditing(true);
+    };
+
     const renderProfileContent = () => {
         switch (activeSection) {
             case 'picture':
@@ -327,6 +438,14 @@ const AdminSettings: React.FC = () => {
                 return (
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 mb-6">Basic Information Update</h2>
+                        
+                        {/* Success Message */}
+                        {basicInfoSuccess && (
+                            <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-md">
+                                <p className="text-green-600 text-sm font-medium">{basicInfoSuccess}</p>
+                            </div>
+                        )}
+
                         <div className="space-y-4 w-full max-w-md">
                             <div>
                                 <label className="block text-sm font-medium text-gray-900 mb-2">Profile Image</label>
@@ -344,36 +463,84 @@ const AdminSettings: React.FC = () => {
                                     )}
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-900 mb-2">Full Name</label>
-                                <input
-                                    type="text"
-                                    value={profile?.full_name || ''}
-                                    placeholder="Enter your full name"
-                                    className="w-full px-4 py-2.5 border border-[#00000000] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#E7F0FB99]"
-                                    readOnly
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-900 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    value={profile?.email || ''}
-                                    placeholder="Enter your email"
-                                    className="w-full px-4 py-2.5 border border-[#00000000] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#E7F0FB99]"
-                                    readOnly
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-900 mb-2">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    value={profile?.phone_number || ''}
-                                    placeholder="Enter your phone number"
-                                    className="w-full px-4 py-2.5 border border-[#00000000] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#E7F0FB99]"
-                                    readOnly
-                                />
-                            </div>
+                            
+                            <form onSubmit={handleBasicInfoSubmit}>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-900 mb-2">Full Name</label>
+                                        <input
+                                            type="text"
+                                            name="full_name"
+                                            value={basicInfoForm.full_name}
+                                            onChange={handleBasicInfoChange}
+                                            placeholder="Enter your full name"
+                                            className={`w-full px-4 py-2.5 border ${basicInfoErrors.full_name ? 'border-red-300' : 'border-[#00000000]'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#E7F0FB99]`}
+                                        />
+                                        {basicInfoErrors.full_name && (
+                                            <p className="mt-1 text-sm text-red-600">{basicInfoErrors.full_name}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-900 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={basicInfoForm.email}
+                                            onChange={handleBasicInfoChange}
+                                            placeholder="Enter your email"
+                                            className={`w-full px-4 py-2.5 border ${basicInfoErrors.email ? 'border-red-300' : 'border-[#00000000]'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#E7F0FB99]`}
+                                        />
+                                        {basicInfoErrors.email && (
+                                            <p className="mt-1 text-sm text-red-600">{basicInfoErrors.email}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-900 mb-2">Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            name="phone_number"
+                                            value={basicInfoForm.phone_number}
+                                            onChange={handleBasicInfoChange}
+                                            placeholder="Enter your phone number"
+                                            className={`w-full px-4 py-2.5 border ${basicInfoErrors.phone_number ? 'border-red-300' : 'border-[#00000000]'} rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#E7F0FB99]`}
+                                        />
+                                        {basicInfoErrors.phone_number && (
+                                            <p className="mt-1 text-sm text-red-600">{basicInfoErrors.phone_number}</p>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-2 pt-2">
+                                        {!isEditing ? (
+                                            <button
+                                                type="button"
+                                                onClick={handleBasicInfoEdit}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-md transition-colors"
+                                            >
+                                                Edit Information
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    type="submit"
+                                                    disabled={basicInfoLoading}
+                                                    className={`bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-md transition-colors ${basicInfoLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    {basicInfoLoading ? 'Saving...' : 'Save Changes'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBasicInfoCancel}
+                                                    disabled={basicInfoLoading}
+                                                    className={`hover:bg-gray-200 text-black font-medium text-sm px-6 py-2.5 rounded-md transition-colors border border-gray-300 ${basicInfoLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 );

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Pagination from '@/components/ui/Pagination';
-import { useGetAvailableLeadsQuery } from '@/redux/features/broker/leads/getAvailableLeadsApi';
-import { ArrowDown, Mail, MoreVertical, Phone, Plus } from 'lucide-react';
-import React, { useState } from 'react';
+import { useGetBrokerLeadsListQuery } from '@/redux/features/broker/leads/getBrokerLeadsListApi';
+import { ArrowDown, Mail, MoreVertical, Phone, Plus, Search, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface Lead {
   id: number;
@@ -17,26 +19,57 @@ interface Lead {
   phone_number: string;
 }
 
+const statusOptions = [
+  { value: '', label: 'All Status' },
+  { value: 'enquired', label: 'Enquired' },
+  { value: 'viewed', label: 'Viewed' },
+  { value: 'terms_sent', label: 'Terms Sent' },
+  { value: 'in_legals', label: 'In Legals' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'closed', label: 'Closed' }
+];
+
 const BrokerLeadManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize] = useState<number>(5);
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<boolean>(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
 
-  // Fetch leads from backend with pagination
-  const { 
-    data: leadsData, 
-    isLoading, 
-    isError,
-    error,
-    refetch 
-  } = useGetAvailableLeadsQuery({
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Build query parameters
+  const queryParams: any = {
     page: currentPage,
     page_size: pageSize
-  }, {
+  };
+
+  if (debouncedSearch.trim()) {
+    queryParams.search = debouncedSearch.trim();
+  }
+
+  if (selectedStatus) {
+    queryParams.status = selectedStatus; 
+  }
+  const {
+    data: leadsData,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useGetBrokerLeadsListQuery(queryParams, {
     refetchOnMountOrArgChange: true,
   });
-
-  console.log(leadsData)
 
   // Extract data from response
   const leads: Lead[] = leadsData?.results || [];
@@ -57,8 +90,10 @@ const BrokerLeadManagement: React.FC = () => {
       case 'new': return 'bg-blue-600';
       case 'enquired': return 'bg-purple-600';
       case 'viewed': return 'bg-orange-600';
-      case 'terms sent': return 'bg-[#9333EA]';
+      case 'terms_sent': return 'bg-[#9333EA]';
+      case 'in_legals': return 'bg-indigo-600';
       case 'completed': return 'bg-green-600';
+      case 'closed': return 'bg-gray-600';
       default: return 'bg-gray-600';
     }
   };
@@ -68,7 +103,8 @@ const BrokerLeadManagement: React.FC = () => {
     return date.toLocaleDateString('en-GB');
   };
 
-  const handleMoreClick = (leadId: string) => {
+  const handleMoreClick = (leadId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
   };
 
@@ -76,8 +112,24 @@ const BrokerLeadManagement: React.FC = () => {
     setOpenActionMenuId(null);
   };
 
+  const closeStatusDropdown = () => {
+    setStatusDropdownOpen(false);
+  };
+
+  const handleStatusSelect = (status: string) => {
+    setSelectedStatus(status);
+    setStatusDropdownOpen(false);
+    setCurrentPage(1); // Reset to first page when changing status
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const clearFilters = () => {
+    setSelectedStatus('');
+    setSearchQuery('');
+    setCurrentPage(1);
   };
 
   // Format traffic light display
@@ -94,6 +146,13 @@ const BrokerLeadManagement: React.FC = () => {
   const formatPropertyType = (type?: string) => {
     if (!type) return 'N/A';
     return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
+  // Get selected status label
+  const getSelectedStatusLabel = () => {
+    if (!selectedStatus) return 'Status';
+    const status = statusOptions.find(opt => opt.value === selectedStatus);
+    return status ? status.label : 'Status';
   };
 
   if (isLoading) {
@@ -113,8 +172,8 @@ const BrokerLeadManagement: React.FC = () => {
       <div className="min-h-screen bg-gray-50 p-4 sm:p-6 flex items-center justify-center">
         <div className="text-center text-red-600">
           <p>Error loading leads. Please try again later.</p>
-          <button 
-            onClick={() => refetch()} 
+          <button
+            onClick={() => refetch()}
             className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Retry
@@ -134,27 +193,95 @@ const BrokerLeadManagement: React.FC = () => {
         </div>
 
         {/* Filters Bar */}
-        <div className='flex justify-between mb-5'>
-          <div className="">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-              <div className="flex flex-wrap gap-3 items-center">
-                <div className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'>
-                  <span className="text-gray-600">Property Type</span>
-                  <ArrowDown className="w-4 h-4" />
-                </div>
-
-                <div className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'>
-                  <span className="text-gray-600">Status</span>
-                  <ArrowDown className="w-4 h-4" />
-                </div>
-              </div>
+        <div className='flex flex-col lg:flex-row justify-between gap-4 mb-5'>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search leads..."
+                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <button
+                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'
+              >
+                <span className="text-gray-700">{getSelectedStatusLabel()}</span>
+                <ArrowDown className={`w-4 h-4 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Status Dropdown */}
+              {statusDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={closeStatusDropdown}
+                  />
+                  <div className="absolute top-full mt-2 z-40 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-2 max-h-60 overflow-y-auto">
+                      {statusOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleStatusSelect(option.value)}
+                          className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedStatus === option.value
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Clear Filters Button */}
+            {(selectedStatus || searchQuery) && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </button>
+            )}
           </div>
-          <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm">
-            <Plus className="w-5 h-5" />
-            New lead
-          </button>
+
+          <Link to="/broker-dashboard/create-lead">
+            <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm">
+              <Plus className="w-5 h-5" />
+              New lead
+            </button>
+          </Link>
         </div>
+
+        {/* Active Filters Info */}
+        {(selectedStatus || debouncedSearch) && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-sm text-blue-700">
+              Showing leads
+              {selectedStatus && ` filtered by ${getSelectedStatusLabel().toLowerCase()}`}
+              {debouncedSearch && ` matching "${debouncedSearch}"`}
+            </p>
+          </div>
+        )}
 
         {/* Table */}
         <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
@@ -198,16 +325,16 @@ const BrokerLeadManagement: React.FC = () => {
                       <td className="px-4 py-4 text-sm text-gray-700">{formatDate(lead.created_at)}</td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
-                          <button 
+                          <button
                             onClick={() => window.open(`mailto:${lead.email_address}`, '_blank')}
-                            className="p-1.5 hover:bg-gray-100 rounded transition-colors" 
+                            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                             title="Send Email"
                           >
                             <Mail className="w-5 h-5 text-gray-600" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => window.open(`tel:${lead.phone_number}`, '_blank')}
-                            className="p-1.5 hover:bg-gray-100 rounded transition-colors" 
+                            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                             title="Call"
                           >
                             <Phone className="w-5 h-5 text-gray-600" />
@@ -218,7 +345,7 @@ const BrokerLeadManagement: React.FC = () => {
                         <div className="relative">
                           <button
                             className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                            onClick={() => handleMoreClick(`lead-${lead.id}`)}
+                            onClick={(e) => handleMoreClick(`lead-${lead.id}`, e)}
                           >
                             <MoreVertical className="w-5 h-5 text-gray-600" />
                           </button>
@@ -261,7 +388,7 @@ const BrokerLeadManagement: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
-                      No leads available
+                      {selectedStatus || debouncedSearch ? 'No leads match your filters' : 'No leads available'}
                     </td>
                   </tr>
                 )}
@@ -283,16 +410,6 @@ const BrokerLeadManagement: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* Debug info (remove in production) */}
-        <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
-          <h3 className="font-semibold mb-1">Debug Info:</h3>
-          <p>Current Page: {currentPage}</p>
-          <p>Total Leads: {totalCount}</p>
-          <p>Total Pages: {totalPages}</p>
-          <p>API Loading: {isLoading ? 'Yes' : 'No'}</p>
-          <p>API Error: {isError ? 'Yes' : 'No'}</p>
-        </div>
       </div>
     </div>
   );
