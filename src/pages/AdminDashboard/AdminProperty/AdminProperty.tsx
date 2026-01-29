@@ -17,7 +17,6 @@ interface Broker {
     phone_number: string;
     email: string;
 }
-
 interface PropertyData {
     id: number;
     property_onwer: PropertyOwner;
@@ -31,7 +30,6 @@ interface PropertyData {
     transaction: string;
     is_listed: boolean;
 }
-
 interface PropertyCard {
     id: number;
     name: string;
@@ -48,7 +46,6 @@ interface PropertyCard {
     brokerPhone: string;
     propertyData: PropertyData;
 }
-
 const AdminProperty: React.FC = () => {
     const [selectedPropertyType, setSelectedPropertyType] = useState('All');
     const [selectedBroker, setSelectedBroker] = useState('All Brokers');
@@ -56,8 +53,8 @@ const AdminProperty: React.FC = () => {
     const [brokerFilterOpen, setBrokerFilterOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredBrokers, setFilteredBrokers] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1); // Added currentPage state
-    const itemsPerPage = 5; // 5 properties per page
+    const [currentPage, setCurrentPage] = useState(1); 
+    const itemsPerPage = 5; 
     const navigate = useNavigate();
 
     // Build query params based on filters with pagination
@@ -185,7 +182,7 @@ const AdminProperty: React.FC = () => {
     useEffect(() => {
         if (propertiesData && propertiesData.length > 0) {
             const uniqueBrokers = Array.from(
-                new Set(propertiesData.map(p => p.broker.full_name))
+                new Set(propertiesData.map(p => p.broker?.full_name))
             );
             setFilteredBrokers(uniqueBrokers);
         } else {
@@ -196,7 +193,7 @@ const AdminProperty: React.FC = () => {
     // Transform API data to PropertyCard format
     const properties: PropertyCard[] = propertiesData.map((property: PropertyData) => ({
         id: property.id,
-        name: property.property_onwer.full_name,
+        name: property.property_onwer?.full_name,
         location: property.location,
         timeAgo: getTimeAgo(property.created_at),
         date: formatDate(property.created_at),
@@ -205,9 +202,9 @@ const AdminProperty: React.FC = () => {
         estimatedPrice: formatPrice(property.estimated_price),
         sqft: formatArea(property.built_area),
         transaction: formatTransaction(property.transaction),
-        broker: property.broker.full_name,
-        brokerEmail: property.broker.email,
-        brokerPhone: property.broker.phone_number,
+        broker: property.broker?.full_name,
+        brokerEmail: property.broker?.email,
+        brokerPhone: property.broker?.phone_number,
         propertyData: property
     }));
 
@@ -229,13 +226,13 @@ const AdminProperty: React.FC = () => {
     const handlePropertyTypeSelect = (option: string) => {
         setSelectedPropertyType(option);
         setPropertyTypeFilterOpen(false);
-        setCurrentPage(1); // Reset to page 1 when filter changes
+        setCurrentPage(1); 
     };
 
     const handleBrokerSelect = (option: string) => {
         setSelectedBroker(option);
         setBrokerFilterOpen(false);
-        setCurrentPage(1); // Reset to page 1 when filter changes
+        setCurrentPage(1); 
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,14 +241,14 @@ const AdminProperty: React.FC = () => {
 
     const handleClearSearch = () => {
         setSearchTerm('');
-        setCurrentPage(1); // Reset to page 1 when clearing search
+        setCurrentPage(1); 
     };
 
     const handleClearFilters = () => {
         setSelectedPropertyType('All');
         setSelectedBroker('All Brokers');
         setSearchTerm('');
-        setCurrentPage(1); // Reset to page 1 when clearing all filters
+        setCurrentPage(1); 
     };
 
     const handleEditListing = (propertyId: number) => {
@@ -261,7 +258,7 @@ const AdminProperty: React.FC = () => {
 
     const handleMessageBroker = (brokerEmail: string, brokerPhone: string) => {
         console.log('Message broker:', brokerEmail, brokerPhone);
-        // You can implement email or phone call functionality here
+        
     };
 
     const handlePageChange = (page: number) => {
@@ -270,8 +267,7 @@ const AdminProperty: React.FC = () => {
     };
 
     const propertyTypeOptions = ['All', 'House', 'Land', 'Industrial', 'Office', 'Retail', 'Other'];
-
-    // Update the API query function to accept broker__full_name
+    
     useEffect(() => {
         refetch();
     }, [queryParams, refetch]);

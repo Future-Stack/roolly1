@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, {  useState } from 'react';
 import { Target, TrendingUp, Plus, FileText, ChartLine } from 'lucide-react';
 import BrokerLeads from '@/components/brokerDashboard/Overview/BrokerLeads';
 import BrokerAvailableLeads from '@/components/brokerDashboard/Overview/BrokerAvailableLeads';
 import LeadGenerationEnquiryForm from '@/components/brokerDashboard/BrokerLeads/LeadGenerationEnquiryForm';
 import PropertyCribSheet from '@/components/brokerDashboard/BrokerLeads/PropertyCribSheet';
+import { useGetBrokerLeadsQuery } from '@/redux/features/broker/leads/getBrokerLeadsApi';
 
 const BrokerDashboardOverview: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my' | 'available'>('my');
   const [newLeadModalOpen, setNewLeadModalOpen] = useState(false); 
   const [propertyCribModalOpen, setPropertyCribModalOpen] = useState(false); 
+  const {data:brokerLeads} = useGetBrokerLeadsQuery(undefined);
 
   const openNewLeadModal = () => {
     setNewLeadModalOpen(true);
@@ -119,7 +121,7 @@ const BrokerDashboardOverview: React.FC = () => {
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
             >
-              My leads(02)
+              My leads({brokerLeads?.length|| 0})
             </button>
             <button
               onClick={() => setActiveTab('available')}

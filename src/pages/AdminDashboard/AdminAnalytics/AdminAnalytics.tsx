@@ -1,4 +1,4 @@
-
+import { useGetAdminAnalyticsQuery } from '@/redux/features/admin/overview/getAdminAnalyticsApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
 import React from 'react';
 import { Bar, BarChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -10,6 +10,8 @@ const properties = [
 ];
 
 const AdminAnalytics: React.FC = () => {
+    const {data:analytics} = useGetAdminAnalyticsQuery(undefined);
+    console.log("Analytics Data:", analytics); 
     const monthlyData = [
         { month: 'Jan', leads: 150, conversions: 50 },
         { month: 'Feb', leads: 175, conversions: 60 },
@@ -68,8 +70,8 @@ const AdminAnalytics: React.FC = () => {
                         <Users className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">3</p>
-                        <p className="text-[13px] text-green-600 font-medium">2 qualified</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytics?.assigned_leads?.value}</p>
+                        <p className="text-[13px] text-green-600 font-medium">{analytics?.assigned_leads?.sub_text}</p>
                     </div>
                 </div>
 
@@ -80,8 +82,8 @@ const AdminAnalytics: React.FC = () => {
                         <Building2 className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">05</p>
-                        <p className="text-[13px] text-gray-600 font-normal">05 leads to handle</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytics?.total_leads?.value}</p>
+                        <p className="text-[13px] text-gray-600 font-normal">{analytics?.total_leads?.sub_text}</p>
                     </div>
                 </div>
 
@@ -92,8 +94,8 @@ const AdminAnalytics: React.FC = () => {
                         <TrendingUp className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">60%</p>
-                        <p className="text-[13px] text-gray-600 font-normal">+5.3% this month</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytics?.conversion_rate?.value}</p>
+                        <p className="text-[13px] text-gray-600 font-normal">{analytics?.conversion_rate?.sub_text}</p>
                     </div>
                 </div>
 
@@ -104,8 +106,8 @@ const AdminAnalytics: React.FC = () => {
                         <Eye className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">20000</p>
-                        <p className="text-[13px] text-gray-600 font-normal">+5.3% this month</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytics?.property_views?.value}</p>
+                        <p className="text-[13px] text-gray-600 font-normal">{analytics?.property_views?.sub_text}</p>
                     </div>
                 </div>
             </div>

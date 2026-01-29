@@ -36,6 +36,7 @@ import ProtectedRoute from "@/layout/ProtectedRoute";
 import ForgotPasswordReq from "@/auth/ForgotPasswordReq/ForgotPasswordReq";
 import AddProperty from "@/pages/vendorDashboard/AddProperty/AddProperty";
 import UpdateVendorProperty from "@/pages/vendorDashboard/UpdateVendorProperty/UpdateVendorProperty";
+import CreateNewLead from "@/pages/brokerDashboard/CreateNewLead/CreateNewLead";
 
 
 const routes = createBrowserRouter([
@@ -139,6 +140,10 @@ const routes = createBrowserRouter([
       {
         path:'property',
         element:<BrokerProperty/>
+      },
+      {
+        path:'create-lead',
+        element:<CreateNewLead/>
       },
       {
         path:'property/:id',
