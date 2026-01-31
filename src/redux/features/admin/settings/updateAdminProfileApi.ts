@@ -8,6 +8,7 @@ const updateAdminProfileApi = baseApi.injectEndpoints({
                 method: 'PATCH',
                 body: formData,
             }),
+            invalidatesTags:["admin_profile"]
         })
     }),
 })

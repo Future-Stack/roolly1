@@ -2,6 +2,7 @@ import { useState } from 'react';
 import bannerImg from '../../assets/bnnnerImg.svg';
 import chatbotImg from '../../assets/chatbot-img.png';
 import ChatbotMain from './chatbot/ChatbotMain';
+import { Link } from 'react-router-dom';
 
 const Banner: React.FC = () => {
   // States
@@ -205,7 +206,9 @@ const Banner: React.FC = () => {
                 }}
                 className="w-full px-6 py-3 text-base bg-[#126AD8] text-white border border-[#0D4B99] font-medium rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
+                <Link to='/all-properties'>
                 <span>Search</span>
+                </Link>
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
-import ActionMenu from '@/components/vendorDashboard/Leads/ActionMenu';
+// import ActionMenu from '@/components/vendorDashboard/Leads/ActionMenu';
 import Pagination from '@/components/vendorDashboard/Leads/Pagination';
-import { Mail, MoreVertical, Phone, Plus, Search } from 'lucide-react';
+import { useGetVendorLeadsQuery } from '@/redux/features/vendor/getVendorLeadsApi';
+import { Mail, MoreVertical, Phone, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
 
@@ -17,6 +18,8 @@ interface Lead {
 const LeadManagement: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
+    const {data:allLeads} = useGetVendorLeadsQuery(undefined); 
+    console.log(allLeads)
 
     const leads: Lead[] = [
         {
@@ -83,10 +86,6 @@ const LeadManagement: React.FC = () => {
                             View and manage all property inquiries
                         </p>
                     </div>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-medium text-[15px] transition-colors whitespace-nowrap self-start lg:self-auto">
-                        <Plus className="w-5 h-5 text-[#FDFEFF]" strokeWidth={2.5} />
-                        Add New Property
-                    </button>
                 </div>
 
                 {/* Search Bar */}
@@ -188,9 +187,9 @@ const LeadManagement: React.FC = () => {
                                     </div>
 
                                     {/* Dropdown Menu */}
-                                    {openMenuIndex === index && (
+                                    {/* {openMenuIndex === index && (
                                         <ActionMenu onClose={() => setOpenMenuIndex(null)} />
-                                    )}
+                                    )} */}
                                 </td>
 
                             </tr>

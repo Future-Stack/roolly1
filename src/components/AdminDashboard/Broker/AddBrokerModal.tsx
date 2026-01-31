@@ -3,6 +3,8 @@ import { useAddBrokerMutation } from '@/redux/features/admin/broker-management/a
 import { X } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 interface AddBrokerModalProps {
   isOpen?: boolean;
@@ -45,12 +47,11 @@ const AddBrokerModal: React.FC<AddBrokerModalProps> = ({
       onSuccess();
       onClose();
 
-    } catch (err:any) {
-      
-      if(err){
-        toast.error(err?.data?.email[0])
-      }else{
-        toast.error('Failed to add broker.')
+    } catch (err: any) {
+      if (err) {
+        toast.error(err?.data?.email?.[0] || 'Failed to add broker.');
+      } else {
+        toast.error('Failed to add broker.');
       }
     }
   };
@@ -133,14 +134,13 @@ const AddBrokerModal: React.FC<AddBrokerModalProps> = ({
             <label htmlFor="phone" className="block text-gray-900 text-sm font-medium mb-2">
               Phone Number
             </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
+            <PhoneInput
+              international
+              defaultCountry="US"
               value={formData.phone}
-              onChange={(e) => handleChange('phone', e.target.value)}
-              placeholder="+1234567890"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(value) => handleChange('phone', value || '')}
+              className="w-full"
+              inputClassName="w-full px-4 py-3 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isLoading}
             />
           </div>
@@ -151,7 +151,7 @@ const AddBrokerModal: React.FC<AddBrokerModalProps> = ({
               Temporary Password
             </label>
             <input
-              type="password" // Changed from text to password for better UX
+              type="password"
               id="password"
               name="password"
               value={formData.password}

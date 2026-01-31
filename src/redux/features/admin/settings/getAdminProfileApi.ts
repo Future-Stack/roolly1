@@ -1,14 +1,15 @@
 import { baseApi } from "@/redux/api/baseApi";
 
-const geAdminProfileApi = baseApi.injectEndpoints({
-    endpoints : (builder) => ({
-       getAdminProfile: builder.query({
-            query : () => ({
-                url : '/admin/profile',
-                method: 'GET',
-            })
-        })
+const getAdminProfileApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    getAdminProfile: builder.query({
+      query: () => ({
+        url: "/admin/profile",
+        method: "GET",
+      }),
+      providesTags: ["admin_profile"],
     }),
-})
+  }),
+});
 
-export const {useGetAdminProfileQuery} = geAdminProfileApi;
+export const { useGetAdminProfileQuery } = getAdminProfileApi;

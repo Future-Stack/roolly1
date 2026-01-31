@@ -17,7 +17,6 @@ import BrokerLeadManagement from "@/pages/brokerDashboard/BrokerLeadManagement/B
 import BrokerSchedule from "@/pages/brokerDashboard/BrokerSchedule/BrokerSchedule";
 import BrokerProperty from "@/pages/brokerDashboard/BrokerProperty/BrokerProperty";
 import PropertyEdit from "@/components/brokerDashboard/BrokerPropery/PropertyEdit";
-import PropertyDetails from "@/pages/brokerDashboard/PropertyDetails/PropertyDetails";
 import BrokerMessage from "@/pages/brokerDashboard/BrokerMessage/BrokerMessage";
 import BrokerAnalytics from "@/pages/brokerDashboard/BrokerAnalytics/BrokerAnalytics";
 import BrokerSettings from "@/pages/brokerDashboard/BrokerSettings/BrokerSettings";
@@ -38,6 +37,8 @@ import AddProperty from "@/pages/vendorDashboard/AddProperty/AddProperty";
 import UpdateVendorProperty from "@/pages/vendorDashboard/UpdateVendorProperty/UpdateVendorProperty";
 import CreateNewLead from "@/pages/brokerDashboard/CreateNewLead/CreateNewLead";
 import UpdateLead from "@/pages/brokerDashboard/UpdateLead/UpdateLead";
+import LeadManagement from "@/pages/vendorDashboard/LeadManagement/LeadManagement";
+import PropertyDetails from "@/pages/Users/PropertyDetails/PropertyDetails";
 
 
 const routes = createBrowserRouter([
@@ -66,6 +67,10 @@ const routes = createBrowserRouter([
         element:<AllProperty/>
       },
       {
+        path:'/property-details/:id',
+        element:<PropertyDetails/>
+      },
+      {
         path:'/forgot-password-req',
         element:<ForgotPasswordReq/>
       }
@@ -84,10 +89,10 @@ const routes = createBrowserRouter([
         path:'overview',
         element:<Overview/>
       },
-      // {
-      //   path:'leads',
-      //   element:<LeadManagement/>
-      // },
+      {
+        path:'leads',
+        element:<LeadManagement/>
+      },
       {
         path:'properties',
         element:<PropertyManagement/>

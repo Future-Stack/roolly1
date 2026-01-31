@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Eye, EyeOff, Check, User, Camera, ArrowLeft } from 'lucide-react';
 import regiImg from '../../assets/registerImg.svg';
 import logoImg from '../../assets/logo.svg';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useRegisterMutation } from '@/redux/features/auth/registerApi';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -129,6 +129,7 @@ const Verification: React.FC<VerificationProps> = ({ onSelect, email }) => {
   const [verificationError, setVerificationError] = useState('');
   const [verificationSuccess, setVerificationSuccess] = useState('');
   const [verifyEmail] = useVerifyEmailMutation();
+  const navigate = useNavigate();
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) {
@@ -189,6 +190,7 @@ const Verification: React.FC<VerificationProps> = ({ onSelect, email }) => {
 
       if (res?.message) {
         setVerificationSuccess('Account verified successfully! Redirecting to login...');
+        navigate('/login')
       }
 
     } catch (err: any) {

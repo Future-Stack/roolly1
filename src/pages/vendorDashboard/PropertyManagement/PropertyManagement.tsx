@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Plus, Building2, Ruler, Maximize, ScanEye, MessageSquareText, X } from 'lucide-react';
+import { Plus, Building2, Ruler, Maximize, ScanEye, X } from 'lucide-react';
 import Pagination from '@/components/vendorDashboard/Leads/Pagination';
 import { Link } from 'react-router-dom';
 import { useGetAllVendorPropertyQuery } from '@/redux/features/vendor/getAllVendorPropertyApi';
@@ -57,20 +57,21 @@ const PropertyManagement: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  
+  // const [createMessage] = useCreateMessageMutation();
+
   const { data: apiResponse, isLoading, isError, refetch } = useGetAllVendorPropertyQuery({
     page: currentPage,
-    page_size: 5 
+    page_size: 5
   });
 
   const [deleteProperty, { isLoading: isDeleting }] = useDeleteVendorPropertyMutation();
 
   const propertiesData = apiResponse as ApiResponse;
-  
+
   // Calculate stats
   const totalProperties = propertiesData?.count || 0;
   const availableProperties = propertiesData?.results?.filter(prop => prop.status === 'Available').length || 0;
-  
+
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -97,15 +98,15 @@ const PropertyManagement: React.FC = () => {
     try {
       const res = await deleteProperty(propertyToDelete.id).unwrap();
       console.log(res)
-      
+
       // Show success message
       toast.success(`Property "${propertyToDelete.property_name}" deleted successfully!`);
-      
+
       // Close modal
       handleCloseModal();
-      
+
       refetch();
-      
+
     } catch (error: any) {
       console.error('Delete error:', error);
       setDeleteError(error?.data?.message || 'Failed to delete property. Please try again.');
@@ -130,6 +131,20 @@ const PropertyManagement: React.FC = () => {
       </div>
     );
   }
+
+  // const handleCreateMessage = async () => {
+  //   try {
+  //     const res = await createMessage({
+  //       user_id: property?.property_owner?.id
+  //     }).unwrap();
+  //     navigate(`/broker-dashboard/messages`, {
+  //       state: { res }
+  //     });
+
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+  // }
 
   return (
     <>
@@ -248,7 +263,7 @@ const PropertyManagement: React.FC = () => {
                         Edit
                       </button>
                     </Link>
-                    <button 
+                    <button
                       onClick={() => handleDeleteClick(property)}
                       className="flex-1 h-[44px] px-4 text-[15px] font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isDeleting}
@@ -260,9 +275,10 @@ const PropertyManagement: React.FC = () => {
                         <ScanEye className="w-5 h-5 text-gray-700" strokeWidth={2} />
                       </button>
                     </Link>
-                    <button className="w-[44px] h-[44px] flex items-center justify-center bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    {/* <button
+                      className="w-[44px] h-[44px] flex items-center justify-center bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                       <MessageSquareText className="w-5 h-5 text-gray-700" strokeWidth={2} />
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </div>
@@ -314,10 +330,10 @@ const PropertyManagement: React.FC = () => {
               )}
 
               <p className="text-gray-600 mb-4">
-                Are you sure you want to delete the property 
+                Are you sure you want to delete the property
                 <span className="font-semibold text-gray-900"> "{propertyToDelete?.property_name}"</span>?
               </p>
-              
+
               <p className="text-sm text-gray-500 mb-6">
                 This action cannot be undone. All property data, images, and related information will be permanently deleted.
               </p>

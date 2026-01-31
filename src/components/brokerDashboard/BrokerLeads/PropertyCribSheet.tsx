@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { X, FileText, Eye, ExternalLink } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 interface Property {
   id: string;
@@ -20,6 +21,8 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
   isOpen = true, 
   onClose 
 }) => {
+  const pdfRef = useRef<HTMLDivElement>(null);
+  
   const properties: Property[] = [
     {
       id: '1',
@@ -32,16 +35,16 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
     },
     {
       id: '2',
-      name: 'PR001 - Leeds Industrial Park',
+      name: 'PR002 - Leeds Industrial Park',
       type: 'Land',
-      transaction: 'sell',
+      transaction: 'Sell',
       location: 'Manchester City Centre',
       size: '1000 sq',
       price: '$5000-$7000'
     },
     {
       id: '3',
-      name: 'PR001 - Leeds Industrial Park',
+      name: 'PR003 - Leeds Industrial Park',
       type: 'Land',
       transaction: 'Rent',
       location: 'Manchester City Centre',
@@ -50,7 +53,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
     },
     {
       id: '4',
-      name: 'PR001 - Leeds Industrial Park',
+      name: 'PR004 - Leeds Industrial Park',
       type: 'Land',
       transaction: 'Rent',
       location: 'Manchester City Centre',
@@ -59,7 +62,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
     },
     {
       id: '5',
-      name: 'PR001 - Leeds Industrial Park',
+      name: 'PR005 - Leeds Industrial Park',
       type: 'Land',
       transaction: 'Rent',
       location: 'Manchester City Centre',
@@ -67,6 +70,99 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
       price: '$5000-$7000'
     }
   ];
+
+  const handleExportPDFSimple = () => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      
+      // Add title
+      pdf.setFontSize(20);
+      pdf.text('Property Crib Sheet', pageWidth / 2, 20, { align: 'center' });
+      
+      pdf.setFontSize(11);
+      pdf.text('Quick reference guide for all available properties', pageWidth / 2, 30, { align: 'center' });
+      
+      // Add date
+      const date = new Date().toLocaleDateString('en-GB');
+      pdf.setFontSize(10);
+      pdf.text(`Generated on: ${date}`, pageWidth / 2, 37, { align: 'center' });
+      
+      // Start table
+      const startY = 50;
+      let currentY = startY;
+      
+      // Table header
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(10, currentY, pageWidth - 20, 10, 'F');
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'bold');
+      
+      const headers = ['Property Name', 'Type', 'Transaction', 'Location', 'Size', 'Price'];
+      const colWidths = [40, 20, 25, 45, 20, 30];
+      
+      let x = 10;
+      headers.forEach((header, i) => {
+        pdf.text(header, x + 2, currentY + 7);
+        x += colWidths[i];
+      });
+      
+      currentY += 12;
+      
+      // Table rows
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      
+      properties.forEach((property, index) => {
+        if (index % 2 === 0) {
+          pdf.setFillColor(250, 250, 250);
+          pdf.rect(10, currentY, pageWidth - 20, 10, 'F');
+        }
+        
+        x = 10;
+        pdf.text(property.name, x + 2, currentY + 7);
+        x += colWidths[0];
+        
+        pdf.text(property.type, x + 2, currentY + 7);
+        x += colWidths[1];
+        
+        pdf.text(property.transaction, x + 2, currentY + 7);
+        x += colWidths[2];
+        
+        pdf.text(property.location, x + 2, currentY + 7);
+        x += colWidths[3];
+        
+        pdf.text(property.size, x + 2, currentY + 7);
+        x += colWidths[4];
+        
+        pdf.text(property.price, x + 2, currentY + 7);
+        
+        currentY += 10;
+        
+        // Add new page if needed
+        if (currentY > 280) {
+          pdf.addPage();
+          currentY = 20;
+        }
+      });
+      
+      // Add summary
+      currentY += 10;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Total Properties: ${properties.length}`, 10, currentY);
+      
+      // Download PDF
+      const fileName = `Property_Crib_Sheet_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -95,7 +191,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6" ref={pdfRef}>
           {/* Section Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -103,13 +199,26 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
                 Available Properties
               </h3>
               <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[12px] font-semibold rounded-lg">
-                5 Units
+                {properties.length} Units
               </span>
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors">
-              <ExternalLink className="w-4 h-4" strokeWidth={2} />
-              Export as Pdf
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportPDFSimple}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" strokeWidth={2} />
+                Export as PDF
+              </button>
+              {/* Alternative button for more advanced PDF */}
+              {/* <button
+                onClick={handleExportPDFAdvanced}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" strokeWidth={2} />
+                Export PDF (Advanced)
+              </button> */}
+            </div>
           </div>
 
           <p className="text-[13px] text-gray-600 mb-6">
