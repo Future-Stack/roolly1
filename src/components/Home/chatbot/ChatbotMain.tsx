@@ -133,7 +133,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
     if (showLocationModal) {
         return (
             <ChatWindow>
-                <LocationSelectionModal
+                <LocationSelectionModal    
                     onClose={handleCloseAll}
                     onSelectCity={handleSelectCity}
                 />
