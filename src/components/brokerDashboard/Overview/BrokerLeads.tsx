@@ -2,6 +2,7 @@ import { MapPin, Clock, Calendar, Phone, Mail, MoreVertical, Info } from 'lucide
 import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
 import { useGetBrokerLeadsQuery } from '@/redux/features/broker/leads/getBrokerLeadsApi';
+import { useGetSingleScheduleQuery } from '@/redux/features/broker/schedule/getSingleScheduleApi';
 
 interface Property {
   property_name: string;
@@ -11,16 +12,16 @@ interface Property {
 }
 
 interface Lead {
-  property: Property;
+  property: Property | null;
   client_name: string;
   source: string;
   email_address: string;
   phone_number: string;
   lead_status: string;
   lead_traffic: string;
-  budget_range: string;
+  budget_range: string | null;
   financials_details: boolean;
-  schedule_id: string | null;
+  schedule_id: number | null;
 }
 
 interface FormattedLead {
@@ -39,16 +40,27 @@ interface FormattedLead {
   phone: string;
   email: string;
   alertMessage: string;
+  scheduleId: number | null;
 }
 
 const BrokerLeads = () => {
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedLead, setSelectedLead] = useState<{ name: string; propertyName: string } | null>(null);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
   const { data: brokerLeadsData, isLoading, isError } = useGetBrokerLeadsQuery(undefined);
+  console.log('API Data:', brokerLeadsData);
 
-  // Format time ago
-  const getTimeAgo = (dateString: string) => {
+  const { 
+    data: scheduleData, 
+    isLoading: scheduleLoading,
+    isError: scheduleError 
+  } = useGetSingleScheduleQuery(selectedScheduleId?.toString() || undefined, {
+    skip: !selectedScheduleId,
+  });
+
+  const getTimeAgo = (dateString: string | undefined | null) => {
+    if (!dateString) return 'Just now';
+    
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -65,14 +77,16 @@ const BrokerLeads = () => {
     }
   };
 
-  // Format date
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return 'N/A';
+    
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
 
-  // Get traffic light status
   const getTrafficStatus = (traffic: string): 'Green' | 'Blue' | 'Red' | 'Amber' => {
+    if (!traffic) return 'Blue';
+    
     switch (traffic.toLowerCase()) {
       case 'green': return 'Green';
       case 'blue': return 'Blue';
@@ -82,16 +96,18 @@ const BrokerLeads = () => {
     }
   };
 
-  // Format status display
   const formatStatus = (status: string) => {
+    if (!status) return 'Not Specified';
+    
     return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  // Get alert message based on source and status
   const getAlertMessage = (source: string, status: string) => {
-    if (source === 'ai') {
+    if (!source || !status) return 'New lead received. Follow up required.';
+    
+    if (source.toLowerCase() === 'ai') {
       return 'New AI chat lead. Ready to proceed quickly.';
-    } else if (source === 'whatsapp') {
+    } else if (source.toLowerCase() === 'whatsapp') {
       return 'WhatsApp lead. Quick response recommended.';
     } else if (status === 'completed') {
       return 'Lead completed. Follow up for feedback.';
@@ -102,41 +118,58 @@ const BrokerLeads = () => {
     }
   };
 
-  // Format property type for business type
-  const formatBusinessType = (propertyType: string) => {
+  const formatBusinessType = (propertyType: string | undefined | null) => {
+    if (!propertyType) return 'Not specified';
+    
     switch (propertyType.toLowerCase()) {
       case 'office': return 'Office Space';
       case 'industrial': return 'Industrial';
       case 'retail': return 'Retail';
       case 'residential': return 'Residential';
+      case 'land': return 'Land';
       default: return propertyType.charAt(0).toUpperCase() + propertyType.slice(1);
     }
   };
 
-  // Transform backend data to frontend format
+  const formatBudget = (budgetRange: string | null) => {
+    if (!budgetRange) return 'Not specified';
+    
+    if (budgetRange.includes('-')) {
+      const [min, max] = budgetRange.split('-');
+      return `£${min}-£${max}`;
+    }
+    
+    return `£${budgetRange}`;
+  };
+
   const transformLeads = (data: Lead[]): FormattedLead[] => {
-    if (!data) return [];
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((lead, index) => {
-      // Generate a unique ID using index and timestamp
-      const id = `${Date.now()}-${index}`;
+      // Use actual data or fallbacks
+      const hasProperty = lead.property !== null;
       
       return {
-        id,
-        name: lead.client_name,
+        id: `${Date.now()}-${index}`,
+        name: lead.client_name || 'Unknown Client',
         status: getTrafficStatus(lead.lead_traffic),
         secondaryStatus: formatStatus(lead.lead_status),
         propertyId: `PR${(index + 1).toString().padStart(3, '0')}`,
-        propertyName: lead.property.property_name,
-        timeAgo: getTimeAgo(lead.property.created_at),
-        date: formatDate(lead.property.created_at),
-        businessType: formatBusinessType(lead.property.property_type),
-        budget: lead.budget_range ? `£${lead.budget_range.replace('-', '-£')}` : 'Not specified',
-        source: lead.source.charAt(0).toUpperCase() + lead.source.slice(1),
+        propertyName: hasProperty && lead.property?.property_name 
+          ? lead.property.property_name 
+          : 'No Property Linked',
+        timeAgo: getTimeAgo(hasProperty ? lead.property?.created_at : null),
+        date: formatDate(hasProperty ? lead.property?.created_at : null),
+        businessType: formatBusinessType(hasProperty ? lead.property?.property_type : null),
+        budget: formatBudget(lead.budget_range),
+        source: lead.source 
+          ? lead.source.charAt(0).toUpperCase() + lead.source.slice(1)
+          : 'Unknown',
         financials: lead.financials_details ? 'Provided' : 'Not provided',
-        phone: lead.phone_number,
-        email: lead.email_address,
-        alertMessage: getAlertMessage(lead.source, lead.lead_status)
+        phone: lead.phone_number || 'Not provided',
+        email: lead.email_address || 'Not provided',
+        alertMessage: getAlertMessage(lead.source, lead.lead_status),
+        scheduleId: lead.schedule_id
       };
     });
   };
@@ -152,17 +185,18 @@ const BrokerLeads = () => {
   };
 
   const handleScheduleViewing = (lead: FormattedLead) => {
-    setSelectedLead({
-      name: lead.name,
-      propertyName: lead.propertyName
-    });
-    setModalOpen(true);
-    closeActionMenu(); // If action menu is open, close it
+    if (lead.scheduleId) {
+      setSelectedScheduleId(lead.scheduleId);
+      setModalOpen(true);
+      closeActionMenu();
+    } else {
+      alert('No schedule available for this lead');
+    }
   };
 
   const closeModal = () => {
     setModalOpen(false);
-    setSelectedLead(null);
+    setSelectedScheduleId(null);
   };
 
   // Loading state
@@ -226,14 +260,14 @@ const BrokerLeads = () => {
   return (
     <div>
       {/* Schedule View Modal */}
-      {selectedLead && (
-        <ScheduleViewModal
-          isOpen={modalOpen}
-          onClose={closeModal}
-          leadName={selectedLead.name}
-          propertyName={selectedLead.propertyName}
-        />
-      )}
+      <ScheduleViewModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        scheduleData={scheduleData}
+        isLoading={scheduleLoading}
+        isError={scheduleError}
+      />
+      
       <div className="space-y-4 relative">
         {leads.map((lead) => (
           <div key={lead.id} className="bg-white rounded-xl border border-gray-200 p-5 relative">
@@ -377,9 +411,10 @@ const BrokerLeads = () => {
               <button
                 onClick={() => handleScheduleViewing(lead)}
                 className="bg-[#126AD8] hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
+                disabled={!lead.scheduleId}
               >
                 <Calendar className="w-4 h-4" strokeWidth={2} />
-                Schedule Viewing
+                {lead.scheduleId ? 'View Schedule' : 'No Schedule'}
               </button>
             </div>
           </div>

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Clock, Calendar, Info, MoreVertical, MessageSquare} from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { MapPin, Clock, Calendar, Info, MoreVertical, MessageSquare } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Pagination from '@/components/ui/Pagination';
 import { useGetNewPropertyQuery } from '@/redux/features/broker/property/getNewPropertyApi';
+import { useCreateMessageMutation } from '@/redux/features/message/createMessageApi';
 interface PropertyOwner {
     id: string;
     full_name: string;
@@ -28,7 +29,7 @@ interface PropertyCardProps {
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); 
+    return date.toLocaleDateString('en-GB');
 };
 
 const getTimeAgo = (dateString: string) => {
@@ -70,8 +71,11 @@ const formatPrice = (price: string) => {
 };
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+    console.log(property)
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [createMessage] = useCreateMessageMutation();
+    const navigate = useNavigate();
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -97,134 +101,151 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         id
     } = property;
 
-    return (
-        <div className="w-full bg-white rounded-lg border border-gray-200 mb-4">
-            {/* Header */}
-            <div className="px-5 pt-5 pb-3">
-                <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-[17px] font-medium text-gray-900">{property_owner.full_name}</h3>
-                    <div className="relative -mt-1" ref={dropdownRef}>
-                        <button
-                            className="text-gray-400 hover:text-gray-600"
-                            onClick={() => setDropdownOpen(!dropdownOpen)}
-                        >
-                            <MoreVertical size={20} />
-                        </button>
 
-                        {/* Dropdown Menu */}
-                        {dropdownOpen && (
-                            <div className="absolute right-0 mt-1 w-22 bg-[#FDFEFF] border border-gray-200 rounded-lg shadow-lg z-10 flex justify-center">
-                                <div className="py-1">
-                                    <Link to={`${id}/view`}>
-                                        <button className="w-full py-2.5 text-center text-[#1D1F22] hover:bg-gray-50 text-sm font-medium">
-                                            View
-                                        </button>
-                                    </Link>
-                                    <Link to={`${id}`}>
-                                        <button className="w-full py-2.5 text-center text-[#1D1F22] hover:bg-gray-50 text-sm font-medium">
-                                            Edit
-                                        </button>
-                                    </Link>
-                                </div>
+    const handleCreateMessage = async () => {
+        try {
+            const res = await createMessage({ 
+                user_id: property?.property_owner?.id
+            }).unwrap();
+            navigate(`/broker-dashboard/messages`,{
+                state: { res }
+            });
+
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+return (
+    <div className="w-full bg-white rounded-lg border border-gray-200 mb-4">
+        {/* Header */}
+        <div className="px-5 pt-5 pb-3">
+            <div className="flex items-start justify-between mb-2">
+                <h3 className="text-[17px] font-medium text-gray-900">{property_owner.full_name}</h3>
+                <div className="relative -mt-1" ref={dropdownRef}>
+                    <button
+                        className="text-gray-400 hover:text-gray-600"
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                    >
+                        <MoreVertical size={20} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {dropdownOpen && (
+                        <div className="absolute right-0 mt-1 w-22 bg-[#FDFEFF] border border-gray-200 rounded-lg shadow-lg z-10 flex justify-center">
+                            <div className="py-1">
+                                <Link to={`${id}/view`}>
+                                    <button className="w-full py-2.5 text-center text-[#1D1F22] hover:bg-gray-50 text-sm font-medium">
+                                        View
+                                    </button>
+                                </Link>
+                                <Link to={`${id}`}>
+                                    <button className="w-full py-2.5 text-center text-[#1D1F22] hover:bg-gray-50 text-sm font-medium">
+                                        Edit
+                                    </button>
+                                </Link>
                             </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Property Details Row */}
-                <div className="flex items-center gap-4 text-[13px] text-gray-500">
-                    <div className="flex items-center gap-1.5">
-                        <MapPin size={14} strokeWidth={2} />
-                        <span>PRO{id.toString().padStart(3, '0')}: {location}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Clock size={14} strokeWidth={2} />
-                        <span>{getTimeAgo(created_at)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Calendar size={14} strokeWidth={2} />
-                        <span>{formatDate(created_at)}</span>
-                    </div>
-                    <div className='flex items-center gap-1.5'>
-                        <h1>Property Id: {id}</h1>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Info Banner */}
-            <div className="mx-5 mb-4 bg-blue-50 border border-blue-200 rounded-md px-3 py-2.5">
-                <div className="flex items-start gap-2">
-                    <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-[13px] text-blue-700">
-                        Property Information From Vendor. Ready to process quickly.
-                    </p>
+            {/* Property Details Row */}
+            <div className="flex items-center gap-4 text-[13px] text-gray-500">
+                <div className="flex items-center gap-1.5">
+                    <MapPin size={14} strokeWidth={2} />
+                    <span>PRO{id.toString().padStart(3, '0')}: {location}</span>
                 </div>
-            </div>
-
-            {/* Property Details Grid */}
-            <div className="px-5 pb-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mb-5">
-                    {/* Property Type */}
-                    <div>
-                        <div className="text-[13px] text-gray-500 mb-1">Property Type</div>
-                        <div className="text-[15px] text-gray-900 font-normal">
-                            {formatPropertyType(property_type)}
-                        </div>
-                    </div>
-
-                    {/* SQFT */}
-                    <div>
-                        <div className="text-[13px] text-gray-500 mb-1">SQFT</div>
-                        <div className="text-[15px] text-gray-900 font-normal">
-                            {parseFloat(built_area).toLocaleString()} sqft
-                        </div>
-                    </div>
-
-                    {/* Transaction */}
-                    <div>
-                        <div className="text-[13px] text-gray-500 mb-1">Transaction</div>
-                        <div className="text-[15px] text-gray-900 font-normal">
-                            {formatTransaction(transaction)}
-                        </div>
-                    </div>
-
-                    {/* Property Name */}
-                    <div className="md:col-span-3">
-                        <div className="text-[13px] text-gray-500 mb-1">Property Name</div>
-                        <div className="text-[15px] text-gray-900 font-normal">{property_name}</div>
-                    </div>
-
-                    {/* Estimated Price */}
-                    <div className="md:col-span-3">
-                        <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
-                        <div className="text-[15px] text-gray-900 font-normal">
-                            {formatPrice(estimated_price)}
-                        </div>
-                    </div>
+                <div className="flex items-center gap-1.5">
+                    <Clock size={14} strokeWidth={2} />
+                    <span>{getTimeAgo(created_at)}</span>
                 </div>
-
-                {/* Source and Buttons */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="text-[13px] text-gray-500 mb-1.5">Source</div>
-                        <button className="px-4 py-1.5 text-[13px] text-blue-600 font-medium border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors">
-                            From Vendor
-                        </button>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[14px] font-medium rounded-sm transition-colors">
-                            <MessageSquare size={18} strokeWidth={2} />
-                            Message Vendor
-                        </button>
-                        <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
-                            View and Update Details
-                        </button>
-                    </div>
+                <div className="flex items-center gap-1.5">
+                    <Calendar size={14} strokeWidth={2} />
+                    <span>{formatDate(created_at)}</span>
+                </div>
+                <div className='flex items-center gap-1.5'>
+                    <h1>Property Id: {id}</h1>
                 </div>
             </div>
         </div>
-    );
+
+        {/* Info Banner */}
+        <div className="mx-5 mb-4 bg-blue-50 border border-blue-200 rounded-md px-3 py-2.5">
+            <div className="flex items-start gap-2">
+                <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-[13px] text-blue-700">
+                    Property Information From Vendor. Ready to process quickly.
+                </p>
+            </div>
+        </div>
+
+        {/* Property Details Grid */}
+        <div className="px-5 pb-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mb-5">
+                {/* Property Type */}
+                <div>
+                    <div className="text-[13px] text-gray-500 mb-1">Property Type</div>
+                    <div className="text-[15px] text-gray-900 font-normal">
+                        {formatPropertyType(property_type)}
+                    </div>
+                </div>
+
+                {/* SQFT */}
+                <div>
+                    <div className="text-[13px] text-gray-500 mb-1">SQFT</div>
+                    <div className="text-[15px] text-gray-900 font-normal">
+                        {parseFloat(built_area).toLocaleString()} sqft
+                    </div>
+                </div>
+
+                {/* Transaction */}
+                <div>
+                    <div className="text-[13px] text-gray-500 mb-1">Transaction</div>
+                    <div className="text-[15px] text-gray-900 font-normal">
+                        {formatTransaction(transaction)}
+                    </div>
+                </div>
+
+                {/* Property Name */}
+                <div className="md:col-span-3">
+                    <div className="text-[13px] text-gray-500 mb-1">Property Name</div>
+                    <div className="text-[15px] text-gray-900 font-normal">{property_name}</div>
+                </div>
+
+                {/* Estimated Price */}
+                <div className="md:col-span-3">
+                    <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
+                    <div className="text-[15px] text-gray-900 font-normal">
+                        {formatPrice(estimated_price)}
+                    </div>
+                </div>
+            </div>
+
+            {/* Source and Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div className="text-[13px] text-gray-500 mb-1.5">Source</div>
+                    <button className="px-4 py-1.5 text-[13px] text-blue-600 font-medium border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors">
+                        From Vendor
+                    </button>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleCreateMessage}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[14px] font-medium rounded-sm transition-colors">
+                        <MessageSquare size={18} strokeWidth={2} />
+                        Message Vendor
+                    </button>
+                    <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
+                        View and Update Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+);
 };
 
 const PropertyApplication: React.FC = () => {
@@ -237,7 +258,7 @@ const PropertyApplication: React.FC = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchTerm(searchTerm);
-            setCurrentPage(1); 
+            setCurrentPage(1);
         }, 500);
 
         return () => clearTimeout(timer);
@@ -253,10 +274,8 @@ const PropertyApplication: React.FC = () => {
 
     const { data: listedProperty, isLoading, isError } = useGetNewPropertyQuery(queryParams);
 
-
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // Scroll to top when page changes
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 

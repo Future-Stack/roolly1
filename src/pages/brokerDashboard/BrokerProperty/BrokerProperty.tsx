@@ -10,8 +10,6 @@ const BrokerProperty: React.FC = () => {
     const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
     const {data:listedProperty} = useGetListedPropertyApiQuery(undefined);
     const {data:newProperty} = useGetNewPropertyQuery(undefined)
-    console.log(newProperty)
-
 
     const closeNewLeadModal = () => {
         setNewLeadModalOpen(false);
