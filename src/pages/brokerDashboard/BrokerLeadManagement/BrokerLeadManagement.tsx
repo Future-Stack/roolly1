@@ -3,7 +3,7 @@ import Pagination from '@/components/ui/Pagination';
 import { useGetBrokerLeadsListQuery } from '@/redux/features/broker/leads/getBrokerLeadsListApi';
 import { ArrowDown, Mail, MoreVertical, Phone, Plus, Search, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Lead {
   id: number;
@@ -37,6 +37,7 @@ const BrokerLeadManagement: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const navigate = useNavigate();
 
   // Debounce search input
   useEffect(() => {
@@ -70,8 +71,7 @@ const BrokerLeadManagement: React.FC = () => {
   } = useGetBrokerLeadsListQuery(queryParams, {
     refetchOnMountOrArgChange: true,
   });
-
-  // Extract data from response
+console.log('leads data',leadsData)
   const leads: Lead[] = leadsData?.results || [];
   const totalCount = leadsData?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -153,6 +153,14 @@ const BrokerLeadManagement: React.FC = () => {
     if (!selectedStatus) return 'Status';
     const status = statusOptions.find(opt => opt.value === selectedStatus);
     return status ? status.label : 'Status';
+  };
+
+  const handleEditLead = (leadId: string | number, leadData: any) => {
+    // Convert leadId to string if it's a number
+    const idString = typeof leadId === 'number' ? leadId.toString() : leadId;
+    navigate(`/broker-dashboard/update-lead/${idString}`, {
+      state: { leadData }
+    });
   };
 
   if (isLoading) {
@@ -359,23 +367,11 @@ const BrokerLeadManagement: React.FC = () => {
                               />
                               <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                                 <div className="p-2">
-                                  <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                                    Mark as Enquired
-                                  </button>
-                                  <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                                    Mark as Viewed
-                                  </button>
-                                  <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                                    Send Terms
-                                  </button>
-                                  <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                                    Move to Legal
-                                  </button>
-                                  <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                                    Mark as Completed
-                                  </button>
-                                  <button className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                                    Close Lead
+                                  <button 
+                                    onClick={() => handleEditLead(lead.id, lead)} 
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm"
+                                  >
+                                    Edit
                                   </button>
                                 </div>
                               </div>

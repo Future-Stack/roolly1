@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
-import BrokerAvailableLeads from '@/components/brokerDashboard/Overview/BrokerAvailableLeads';
 import LeadGenerationEnquiryForm from '@/components/brokerDashboard/BrokerLeads/LeadGenerationEnquiryForm';
 import BrokerScheduleLeads from '@/components/brokerDashboard/BrokerSchedule/BrokerScheduleLeads';
+import BrokerAvailableScheduleLeads from '@/components/brokerDashboard/BrokerSchedule/BrokerAvailableScheduleLeads';
 
 const BrokerSchedule: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my' | 'available'>('my');
   const [newLeadModalOpen, setNewLeadModalOpen] = useState(false); 
 
-
   const closeNewLeadModal = () => {
     setNewLeadModalOpen(false);
   };
 
-
   return (
     <div className="w-full bg-gray-50 min-h-screen">
-      {/* New Lead Modal */}
       <LeadGenerationEnquiryForm
         isOpen={newLeadModalOpen}
         onClose={closeNewLeadModal}
       />
-
 
       <div className="max-w-[1400px] mx-auto">
         {/* Header */}
@@ -60,7 +56,7 @@ const BrokerSchedule: React.FC = () => {
         </div>
 
         {/* Lead Cards */}
-        {activeTab === 'my' ? <BrokerScheduleLeads/> : <BrokerAvailableLeads />}
+        {activeTab === 'my' ? <BrokerScheduleLeads/> : <BrokerAvailableScheduleLeads/>}
       </div>
     </div>
   );

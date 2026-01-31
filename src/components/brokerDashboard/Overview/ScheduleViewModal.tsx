@@ -1,162 +1,157 @@
-import React, { useState } from 'react';
-import { X, Calendar, Clock, Send } from 'lucide-react';
+import { X, Calendar, Clock, Building, User } from 'lucide-react';
 
-interface ScheduleViewingModalProps {
-    isOpen?: boolean;
-    onClose?: () => void;
-    leadName:string;
-    propertyName:string;
+interface ScheduleData {
+  property_name: string;
+  viewing_date: string;
+  viewing_time: string;
+  broker: string;
 }
 
-const ScheduleViewModal: React.FC<ScheduleViewingModalProps> = ({
-    isOpen = true,
-    onClose
-}) => {
-    const [viewingDate, setViewingDate] = useState('');
-    const [viewingTime, setViewingTime] = useState('');
-    const [notes, setNotes] = useState('');
+interface ScheduleViewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  scheduleData?: ScheduleData;
+  isLoading: boolean;
+  isError: boolean;
+}
 
-    const handleSchedule = () => {
-        console.log('Schedule viewing:', { viewingDate, viewingTime, notes });
-    };
+const ScheduleViewModal = ({ 
+  isOpen, 
+  onClose, 
+  scheduleData,
+  isLoading,
+  isError 
+}: ScheduleViewModalProps) => {
+  if (!isOpen) return null;
 
-    if (!isOpen) return null;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-[1000px] w-full max-h-[90vh] overflow-y-auto shadow-xl">
-                {/* Header */}
-                <div className="flex items-start justify-between p-6 pb-4 border-gray-200">
-                    <div>
-                        <h2 className="text-[20px] font-semibold text-gray-900 mb-1">
-                            Schedule Property Viewing
-                        </h2>
-                        <p className="text-base text-gray-600">
-                            Set a date and time for the property viewing. A reminder will be sent 1 day before.
-                        </p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <X className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                    </button>
-                </div>
+  const formatTime = (timeString: string) => {
+    const time = new Date(`2000-01-01T${timeString}`);
+    return time.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
-                {/* Property Info Box */}
-               <div className='p-6'>
-                 <div className="border border-blue-200 rounded-lg  mb-6 bg-[#B6D1F3] p-4">
-                    <div className="space-y-2">
-                        <div className="flex gap-2">
-                            <span className="text-[13px] font-semibold text-gray-900">Property:</span>
-                            <span className="text-[13px] text-gray-900">PR001: Central Manchester Office Suite</span>
-                        </div>
-                        <div className="flex gap-2">
-                            <span className="text-[13px] font-semibold text-gray-900">Requester:</span>
-                            <span className="text-[13px] text-gray-900">Rachel Green</span>
-                        </div>
-                        <div className="flex gap-2">
-                            <span className="text-[13px] font-semibold text-gray-900">Contact:</span>
-                            <span className="text-[13px] text-gray-900">+44 7700 900654</span>
-                        </div>
-                    </div>
-                </div>
-               </div>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
 
-                {/* Content */}
-                <div className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div>
-                            {/* Viewing Date */}
-                            <div className="mb-5">
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Viewing Date
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="dd/mm/yy"
-                                        value={viewingDate}
-                                        onChange={(e) => setViewingDate(e.target.value)}
-                                        className="w-full h-[44px] px-4 pr-11 text-[14px] text-gray-900 placeholder-gray-400 bg-[#F3F3F5] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                    <Calendar className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" strokeWidth={2} />
-                                </div>
-                            </div>
-
-                            {/* Viewing Time */}
-                            <div className="mb-5">
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Viewing Time
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="--:--:--"
-                                        value={viewingTime}
-                                        onChange={(e) => setViewingTime(e.target.value)}
-                                        className="w-full h-[44px] px-4 pr-11 text-[14px] text-gray-900 placeholder-gray-400 bg-[#F3F3F5]  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                    <Clock className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" strokeWidth={2} />
-                                </div>
-                            </div>
-
-                            {/* Notes */}
-                            <div className="mb-5">
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Notes (Optional)
-                                </label>
-                                <textarea
-                                    placeholder="Add any special instructions or notes..."
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    rows={4}
-                                    className="w-full px-4 py-3 text-[14px] text-gray-900 placeholder-gray-400 bg-[#F3F3F5] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                                />
-                            </div>
-
-                            {/* SMS Reminder Notice */}
-                            <div className="bg-yellow-50 border border-[#FFD6A7] rounded-lg p-3.5">
-                                <div className="flex gap-2.5">
-                                    <p className="text-base text-[#7E2A0C] font-medium leading-relaxed">
-                                        📱 An SMS reminder will be automatically sent to Lisa Anderson one day before the viewing.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column - Preview */}
-                        <div className="flex items-center justify-center">
-                            <div className="border-2 border-dashed border-[#92BAED] rounded-lg p-8 w-full h-[400px] flex flex-col items-center justify-center">
-                                <Send className="w-16 h-16 text-gray-300 mb-4" strokeWidth={1.5} />
-                                <p className="text-[14px] text-gray-500 text-center">
-                                    Select a date and time to preview the<br />SMS reminder
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-end gap-3 px-6 py-4  border-gray-200">
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSchedule}
-                        className="px-5 py-3 text-base font-medium text-white bg-gray-400 rounded-md flex items-center gap-2 cursor-not-allowed"
-                        disabled
-                    >
-                        <Calendar className="w-4 h-4" strokeWidth={2} />
-                        Schedule Viewing
-                    </button>
-                </div>
-            </div>
+      {/* Modal */}
+      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">
+              Viewing Schedule
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
-    );
+
+        {/* Content */}
+        <div className="p-6">
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-8">
+              <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                <X className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-red-700 mb-2">
+                Error Loading Schedule
+              </h3>
+              <p className="text-gray-600">
+                Unable to load schedule details. Please try again.
+              </p>
+            </div>
+          ) : scheduleData ? (
+            <div className="space-y-6">
+              {/* Property Info */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Building className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-medium text-gray-900">Property</h3>
+                    <p className="text-gray-700 mt-1">{scheduleData.property_name}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Schedule Details */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                    <span className="text-gray-700">Date</span>
+                  </div>
+                  <span className="font-medium text-gray-900">
+                    {formatDate(scheduleData.viewing_date)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-gray-600" />
+                    <span className="text-gray-700">Time</span>
+                  </div>
+                  <span className="font-medium text-gray-900">
+                    {formatTime(scheduleData.viewing_time)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <User className="w-5 h-5 text-gray-600" />
+                    <span className="text-gray-700">Broker</span>
+                  </div>
+                  <span className="font-medium text-gray-900">
+                    {scheduleData.broker}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <Calendar className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                No Schedule Data
+              </h3>
+              <p className="text-gray-600">
+                No schedule information available for this lead.
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
 };
 
 export default ScheduleViewModal;

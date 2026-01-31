@@ -1,22 +1,204 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image } from 'lucide-react';
 import SecuritySettings from '@/components/vendorDashboard/Settings/SecuritySettings';
-import NotificationSettings from '@/components/vendorDashboard/Settings/NotificationSettings';
+import { useGetBrokerProfileQuery } from '@/redux/features/broker/settings/getBrokerProfileApi';
+import { useUpdateBrokerProfileMutation } from '@/redux/features/broker/settings/updateBrokerProfileApi';
+import { toast } from 'react-toastify';
+import BrokerNotificationSettings from '@/components/brokerDashboard/BrokerNotificationSettings/BrokerNotificationSettings';
+
+interface ProfileData {
+  image: string | null;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  is_deactivated: boolean;
+  id?: string;
+}
 
 const BrokerSettings: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'general'>('profile');
-    const [, setProfileImage] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<ProfileData>({
+        image: null,
+        full_name: '',
+        email: '',
+        phone_number: '',
+        is_deactivated: false
+    });
+    
+    const { data: profile, isLoading, isError, refetch } = useGetBrokerProfileQuery(undefined);
+    const [updateBrokerProfile, { isLoading: isUpdating }] = useUpdateBrokerProfileMutation();
+    
+
+    const [formData, setFormData] = useState({
+        full_name: '',
+        email: '',
+        phone_number: '',
+    });
+    
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+    const [isFormDirty, setIsFormDirty] = useState(false);
+
+    useEffect(() => {
+        if (profile) {
+            console.log('Profile Data:', profile);
+            setProfileData(profile);
+            setFormData({
+                full_name: profile.full_name || '',
+                email: profile.email || '',
+                phone_number: profile.phone_number || '',
+            });
+            setImagePreview(profile.image);
+            setIsFormDirty(false);
+        }
+    }, [profile]);
+
+    useEffect(() => {
+        const hasChanges = 
+            formData.full_name !== profileData.full_name ||
+            formData.email !== profileData.email ||
+            formData.phone_number !== profileData.phone_number ||
+            selectedImageFile !== null;
+        
+        setIsFormDirty(hasChanges);
+    }, [formData, profileData, selectedImageFile]);
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a valid image (jpg, png, jpeg)');
+                return;
+            }
+            
+            setSelectedImageFile(file);
+            
             const reader = new FileReader();
             reader.onloadend = () => {
-                setProfileImage(reader.result as string);
+                setImagePreview(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
     };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSaveProfile = async () => {
+        try {
+            const formDataToSend = new FormData();
+            
+            // Add form fields
+            if (formData.full_name !== profileData.full_name) {
+                formDataToSend.append('full_name', formData.full_name);
+            }
+            if (formData.email !== profileData.email) {
+                formDataToSend.append('email', formData.email);
+            }
+            if (formData.phone_number !== profileData.phone_number) {
+                formDataToSend.append('phone_number', formData.phone_number);
+            }
+            
+
+            if (selectedImageFile) {
+                formDataToSend.append('image', selectedImageFile);
+            }
+            
+           
+            if (formDataToSend.entries().next().done) {
+                alert('No changes to save');
+                return;
+            }
+            
+            const result = await updateBrokerProfile(formDataToSend ).unwrap();
+            
+            console.log('Profile updated successfully:', result);
+            
+            setSelectedImageFile(null);
+            refetch();
+            toast.success('Profile updated successfully!');
+            
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            toast.error('Failed to update profile. Please try again.');
+        }
+    };
+
+    const handleCancel = () => {
+        // Reset form to original profile data
+        setFormData({
+            full_name: profileData.full_name || '',
+            email: profileData.email || '',
+            phone_number: profileData.phone_number || '',
+        });
+        setImagePreview(profileData.image);
+        setSelectedImageFile(null);
+        setIsFormDirty(false);
+    };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="w-full min-h-screen mb-5">
+                <div className="pb-6">
+                    <h1 className="text-[32px] font-bold text-gray-900 mb-1 leading-tight">
+                        Settings
+                    </h1>
+                    <p className="text-[15px] text-gray-600 font-normal">
+                        Manage your vendor profile and preferences
+                    </p>
+                </div>
+                <div className="space-y-4">
+                    <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+                        <div className="h-6 bg-gray-200 rounded w-48 mb-6"></div>
+                        <div className="h-48 bg-gray-100 rounded mb-6"></div>
+                        <div className="h-10 bg-gray-200 rounded w-32 mx-auto"></div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+                        <div className="h-6 bg-gray-200 rounded w-48 mb-6"></div>
+                        <div className="space-y-4">
+                            <div className="h-12 bg-gray-100 rounded"></div>
+                            <div className="h-12 bg-gray-100 rounded"></div>
+                            <div className="h-12 bg-gray-100 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (isError) {
+        return (
+            <div className="w-full min-h-screen mb-5">
+                <div className="pb-6">
+                    <h1 className="text-[32px] font-bold text-gray-900 mb-1 leading-tight">
+                        Settings
+                    </h1>
+                    <p className="text-[15px] text-gray-600 font-normal">
+                        Manage your vendor profile and preferences
+                    </p>
+                </div>
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+                    <h3 className="text-lg font-semibold text-red-700 mb-2">Error Loading Profile</h3>
+                    <p className="text-red-600 mb-4">Unable to load profile data. Please try again later.</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full min-h-screen mb-5">
@@ -76,12 +258,29 @@ const BrokerSettings: React.FC = () => {
                             {/* Upload Area */}
                             <div className="w-full max-w-md border border-gray-200 rounded-lg p-8 flex flex-col items-center justify-center mb-6">
                                 <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center">
-                                    <p className="text-[15px] text-gray-900 font-semibold mb-4">
-                                        Upload Profile image or logo
-                                    </p>
-                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                        <Image className="w-6 h-6 text-gray-400" strokeWidth={1.5} />
-                                    </div>
+                                    {imagePreview ? (
+                                        <>
+                                            <div className="mb-4">
+                                                <img 
+                                                    src={imagePreview} 
+                                                    alt="Profile Preview" 
+                                                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
+                                                />
+                                            </div>
+                                            <p className="text-[15px] text-gray-900 font-semibold mb-4">
+                                                Click to change profile image
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-[15px] text-gray-900 font-semibold mb-4">
+                                                Upload Profile image or logo
+                                            </p>
+                                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                                <Image className="w-6 h-6 text-gray-400" strokeWidth={1.5} />
+                                            </div>
+                                        </>
+                                    )}
                                     <p className="text-[13px] text-gray-500 mb-1">
                                         Image format - jpg png jpeg
                                     </p>
@@ -98,10 +297,16 @@ const BrokerSettings: React.FC = () => {
                                 </label>
                             </div>
 
-                            {/* Upload Button */}
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-[15px] font-medium transition-colors">
-                                Upload Profile
-                            </button>
+                            {/* Upload Button - Only show if image is selected */}
+                            {selectedImageFile && (
+                                <button 
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-[15px] font-medium transition-colors mb-4"
+                                    onClick={handleSaveProfile}
+                                    disabled={isUpdating}
+                                >
+                                    {isUpdating ? 'Uploading...' : 'Upload New Profile Picture'}
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -120,8 +325,11 @@ const BrokerSettings: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
-                                        defaultValue="PropLink Vendor"
+                                        name="full_name"
+                                        value={formData.full_name}
+                                        onChange={handleInputChange}
                                         className="w-full h-[48px] px-4 text-[15px] text-gray-900 bg-blue-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter your full name"
                                     />
                                 </div>
 
@@ -132,8 +340,11 @@ const BrokerSettings: React.FC = () => {
                                     </label>
                                     <input
                                         type="email"
-                                        defaultValue="vendor@gmail.com"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
                                         className="w-full h-[48px] px-4 text-[15px] text-gray-900 bg-blue-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter your email"
                                     />
                                 </div>
 
@@ -144,19 +355,30 @@ const BrokerSettings: React.FC = () => {
                                     </label>
                                     <input
                                         type="tel"
-                                        defaultValue="+44 7700 900000"
+                                        name="phone_number"
+                                        value={formData.phone_number}
+                                        onChange={handleInputChange}
                                         className="w-full h-[48px] px-4 text-[15px] text-gray-900 bg-blue-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter your phone number"
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className=''>
-                        <button className="border border-gray-200 text-black px-5 py-2.5 rounded-lg text-[15px] font-medium transition-colors ml-5 me-5 hover:bg-gray-200">
+                    <div className='flex justify-end mt-6'>
+                        <button 
+                            className="border border-gray-200 text-black px-5 py-2.5 rounded-lg text-[15px] font-medium transition-colors mr-3 hover:bg-gray-200"
+                            onClick={handleCancel}
+                            disabled={!isFormDirty || isUpdating}
+                        >
                             Cancel
                         </button>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-[15px] font-medium transition-colors">
-                            Upload Profile
+                        <button 
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-[15px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleSaveProfile}
+                            disabled={!isFormDirty || isUpdating}
+                        >
+                            {isUpdating ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>
                 </div>
@@ -172,7 +394,7 @@ const BrokerSettings: React.FC = () => {
             {/* General Settings Content */}
             {activeTab === 'general' && (
                 <div>
-                    <NotificationSettings />
+                    <BrokerNotificationSettings />
                 </div>
             )}
         </div>

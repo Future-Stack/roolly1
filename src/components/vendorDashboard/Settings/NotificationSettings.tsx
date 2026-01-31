@@ -39,8 +39,6 @@ const NotificationSettings: React.FC = () => {
             apiField: 'broker_alert'
         }
     ]);
-
-    // Update local state when settings data loads from backend
     useEffect(() => {
         if (settings) {
             setNotifications(prev => prev.map(notif => ({
