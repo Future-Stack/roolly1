@@ -37,6 +37,7 @@ import ForgotPasswordReq from "@/auth/ForgotPasswordReq/ForgotPasswordReq";
 import AddProperty from "@/pages/vendorDashboard/AddProperty/AddProperty";
 import UpdateVendorProperty from "@/pages/vendorDashboard/UpdateVendorProperty/UpdateVendorProperty";
 import CreateNewLead from "@/pages/brokerDashboard/CreateNewLead/CreateNewLead";
+import UpdateLead from "@/pages/brokerDashboard/UpdateLead/UpdateLead";
 
 
 const routes = createBrowserRouter([
@@ -132,6 +133,10 @@ const routes = createBrowserRouter([
       {
         path:'leads',
         element:<BrokerLeadManagement/>
+      },
+      {
+        path:'update-lead/:id',
+        element:<UpdateLead/>
       },
       {
         path:'schedule',

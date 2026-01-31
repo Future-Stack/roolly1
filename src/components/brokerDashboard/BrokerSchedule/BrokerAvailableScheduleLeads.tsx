@@ -1,9 +1,9 @@
-import { useGetScheduleListQuery } from '@/redux/features/broker/schedule/getScheduleList';
 import { Calendar, Clock, Info, Mail, MapPin, MoreVertical, Phone } from 'lucide-react';
 import { useState } from 'react';
 import ScheduleViewModal from '../Overview/ScheduleViewModal';
 import { useMakeCompleteScheduleMutation } from '@/redux/features/broker/schedule/makeCompleteScheduleApi';
 import { useMakeCancelScheduleMutation } from '@/redux/features/broker/schedule/makeCancelScheduleApi';
+import { useGetPastScheduleListQuery } from '@/redux/features/broker/schedule/getPastScheduleList';
 
 export interface Property {
     property_name: string;
@@ -34,19 +34,19 @@ export interface LeadResponse {
     status: "pending" | "complete" | "cancel" | string;
 }
 
-const BrokerScheduleLeads = () => {
+const BrokerAvailableScheduleLeads = () => {
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedSchedule, setSelectedSchedule] = useState<{
-        property_name: string;
-        viewing_date: string;
+    const [selectedSchedule, setSelectedSchedule] = useState<{ 
+        property_name: string; 
+        viewing_date: string; 
         viewing_time: string;
-        broker: string;
+        broker: string; // You need to add broker information to your data
     } | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    const { data: scheduleData, isLoading, error, refetch } = useGetScheduleListQuery(undefined);
+    const { data: scheduleData, isLoading, error, refetch } = useGetPastScheduleListQuery(undefined);
     const [makeCompleteSchedule, { isLoading: isCompleting }] = useMakeCompleteScheduleMutation();
     const [makeCancelSchedule, { isLoading: isCancelling }] = useMakeCancelScheduleMutation();
 
@@ -65,11 +65,13 @@ const BrokerScheduleLeads = () => {
 
     // Function to open modal with schedule data
     const openScheduleModal = (lead: LeadResponse) => {
+        // You need to get the broker information from somewhere
+        // For now, I'll use a placeholder or the client name
         const scheduleData = {
             property_name: lead.lead.property.property_name,
             viewing_date: lead.viewing_date,
             viewing_time: lead.viewing_time,
-            broker: lead.lead.client_name || "Unknown Broker"
+            broker: lead.lead.client_name || "Unknown Broker" // Using client name as placeholder
         };
         setSelectedSchedule(scheduleData);
         setModalOpen(true);
@@ -154,7 +156,7 @@ const BrokerScheduleLeads = () => {
     const handleCompleteSchedule = async (scheduleId: number) => {
         try {
             await makeCompleteSchedule(scheduleId).unwrap();
-            refetch();
+            refetch(); 
             closeActionMenu();
         } catch (error) {
             console.error('Failed to complete schedule:', error);
@@ -204,13 +206,13 @@ const BrokerScheduleLeads = () => {
 
     return (
         <div>
-            {/* Schedule View Modal - Updated to match the component's expected props */}
+            {/* Schedule View Modal - Fixed to match the component's expected props */}
             <ScheduleViewModal
                 isOpen={modalOpen}
                 onClose={closeModal}
                 scheduleData={selectedSchedule || undefined}
-                isLoading={false}
-                isError={false}
+                isLoading={false} // You might want to manage loading state separately
+                isError={false} // You might want to manage error state separately
             />
 
             {leadsData.length === 0 ? (
@@ -229,7 +231,7 @@ const BrokerScheduleLeads = () => {
                                     {/* Lead Header */}
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <h3
+                                            <h3 
                                                 className="text-[16px] font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
                                                 onClick={() => openScheduleModal(lead)}
                                             >
@@ -460,4 +462,4 @@ const BrokerScheduleLeads = () => {
     );
 };
 
-export default BrokerScheduleLeads;
+export default BrokerAvailableScheduleLeads;

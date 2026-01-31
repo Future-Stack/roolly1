@@ -251,18 +251,13 @@ const ListedProperty: React.FC = () => {
         search: debouncedSearchTerm || undefined,
     };
 
-    // Fetch data with pagination and search
     const { data: listedProperty, isLoading, isError } = useGetListedPropertyApiQuery(queryParams);
 
-    // Handle page change
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // Scroll to top when page changes
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-
-    // Clear search
     const handleClearSearch = () => {
         setSearchTerm('');
         if (searchInputRef.current) {
@@ -270,13 +265,11 @@ const ListedProperty: React.FC = () => {
         }
     };
 
-    // Calculate pagination values
     const totalPages = listedProperty?.count ? Math.ceil(listedProperty.count / pageSize) : 0;
     const totalItems = listedProperty?.count || 0;
     const startItem = totalItems > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const endItem = Math.min(currentPage * pageSize, totalItems);
 
-    // Loading state
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -285,7 +278,6 @@ const ListedProperty: React.FC = () => {
         );
     }
 
-    // Error state
     if (isError) {
         return (
             <div className="min-h-screen bg-gray-50 p-4">
