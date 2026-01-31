@@ -8,24 +8,33 @@ import LocationSelectionModal from './LocationSelectModal';
 import ExploreCityModal from './ExploreCityModal';
 import SurveyModal from './SurveyModal';
 import ChatInterface from './ChatInterface ';
+import BrokerFAQ from './BrokerFAQ';
 
 const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
     const [showLocationModal, setShowLocationModal] = useState(false);
     const [showExploreModal, setShowExploreModal] = useState(false);
     const [showSurveyModal, setShowSurveyModal] = useState(false);
-    const [showChatInterface, setShowChatInterface] = useState(false); 
+    const [showChatInterface, setShowChatInterface] = useState(false);
+    const [showFAQ, setShowFAQ] = useState(false);
     const [selectedCity, setSelectedCity] = useState<any>(null);
-    
+
     const messages = [
         'I am researching real estate marketing platforms.',
-        'I\'m looking to speak to a broker about a property.',
         'I heard about Broker 360 & want to learn more.',
         'Show property by location.',
+        'I\'m looking for customer support.',
     ];
 
     const handleMessageClick = (message: string) => {
         if (message === 'Show property by location.') {
             setShowLocationModal(true);
+        } else if (message === 'I\'m looking for customer support.') {
+            setShowSurveyModal(true);
+        } else if (message === 'I am researching real estate marketing platforms.') {
+            setShowSurveyModal(true);
+        }
+         else if (message === 'I heard about Broker 360 & want to learn more.') {
+            setShowFAQ(true);
         }
     };
 
@@ -49,94 +58,126 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         setShowLocationModal(false);
         setShowExploreModal(false);
         setShowSurveyModal(false);
-        setShowChatInterface(false); 
+        setShowChatInterface(false);
+        setShowFAQ(false);
         onClose();
     };
 
-    // If showChatInterface is true, return ChatInterface
+    // Common Wrapper to maintain consistency and responsiveness
+    const ChatWindow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+        <div className="fixed inset-0 sm:inset-auto sm:right-6 sm:bottom-6 z-50 flex items-end justify-center sm:block p-4 sm:p-0">
+            <div className="w-full sm:w-[400px] bg-[#FDFEFF] rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[85vh] sm:h-[600px] border border-gray-100 transition-all duration-300 ease-in-out">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <img src={chatbotLogo} alt="Logo" className="w-8 h-8 object-contain" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <img src={mainLogo} alt="Broker 360" className="h-5 object-contain" />
+                        </div>
+                    </div>
+
+                    <button
+                        className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
+                        onClick={onClose}
+                    >
+                        <Minus size={18} strokeWidth={2.5} className="text-gray-600" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+
     if (showChatInterface) {
-        return <ChatInterface onClose={handleCloseAll} />;
-    }
-
-    // If showSurveyModal is true, return SurveyModal
-    if (showSurveyModal) {
-        return <SurveyModal onClose={handleCloseAll} />;
-    }
-
-    // If showExploreModal is true, return ExploreCityModal
-    if (showExploreModal && selectedCity) {
         return (
-            <ExploreCityModal 
-                onClose={handleCloseAll}
-                selectedCity={selectedCity}
-                onBack={handleBackToLocations}
-                onViewDetails={handleViewDetails}
-            />
+            <ChatWindow>
+                <ChatInterface onClose={handleCloseAll} />
+            </ChatWindow>
         );
     }
 
-    // If showLocationModal is true, return LocationSelectionModal
+    if (showFAQ) {
+        return (
+            <ChatWindow>
+                <BrokerFAQ onBack={() => setShowFAQ(false)} />
+            </ChatWindow>
+        );
+    }
+
+    if (showSurveyModal) {
+        return (
+            <ChatWindow>
+                <SurveyModal onClose={handleCloseAll} />
+            </ChatWindow>
+        );
+    }
+
+    if (showExploreModal && selectedCity) {
+        return (
+            <ChatWindow>
+                <ExploreCityModal
+                    onClose={handleCloseAll}
+                    selectedCity={selectedCity}
+                    onBack={handleBackToLocations}
+                    onViewDetails={handleViewDetails}
+                />
+            </ChatWindow>
+        );
+    }
+
     if (showLocationModal) {
         return (
-            <LocationSelectionModal 
-                onClose={handleCloseAll}
-                onSelectCity={handleSelectCity}
-            />
+            <ChatWindow>
+                <LocationSelectionModal    
+                    onClose={handleCloseAll}
+                    onSelectCity={handleSelectCity}
+                />
+            </ChatWindow>
         );
     }
 
     return (
-        <div className="flex items-start justify-center p-4">
-            <div className="w-full max-w-md bg-[#FDFEFF] rounded-2xl shadow-sm h-[520px]">
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        {/* Bot Icon */}
-                        <div className="relative">
-                            <img src={chatbotLogo} alt="" />
-                        </div>
-
-                        {/* Logo */}
-                        <div className="flex items-center gap-1">
-                            <img src={mainLogo} alt="" />
+        <ChatWindow>
+            <div className='flex flex-col p-5'>
+                <div className="flex items-start gap-3 mb-6">
+                    <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
+                            <img src={chatbot} alt="chatbot" className="w-6 h-6 object-contain" />
                         </div>
                     </div>
-
-                    {/* Minimize Button */}
-                    <button className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-900 hover:bg-gray-50 transition-colors" onClick={onClose}>
-                        <Minus size={18} strokeWidth={2.5} className="text-gray-900" />
-                    </button>
+                    <div className="bg-white p-4 shadow-sm border border-gray-100 rounded-2xl rounded-tl-none">
+                        <p className="text-[#2F3237] text-sm leading-relaxed">
+                            Hi! I'm your Broker 360 assistant. How can I help you today?
+                        </p>
+                    </div>
                 </div>
 
-                <div className='flex gap-1'>
-                    <div className="flex-shrink-0 mt-1 px-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                            <img src={chatbot} alt="chatbot" />
-                        </div>
-                    </div>
-
-                    {/* Chat Messages */}
-                    <div className="px-3 py-5 space-y-4">
-                        {messages.map((message, index) => (
-                            <div 
-                                key={index} 
-                                className={`flex items-start gap-3 bg-[#FFFFFF] p-4 shadow-md rounded-r-2xl rounded-l-2xl rounded-tl-none cursor-pointer transition-all hover:bg-blue-50 hover:shadow-lg ${
-                                    message === 'Show property by location.' ? 'border border-blue-200' : ''
+                <div className="space-y-3">
+                    {messages.map((message, index) => (
+                        <div
+                            key={index}
+                            className={`group flex items-center justify-between bg-white px-5 py-4 border border-gray-100 rounded-2xl cursor-pointer transition-all hover:bg-blue-50 hover:border-blue-200 hover:shadow-md active:scale-[0.98] ${message === 'Show property by location.' || message === 'I\'m looking for customer support.' ? 'border-blue-100' : ''
                                 }`}
-                                onClick={() => handleMessageClick(message)}
-                            >
-                                {/* Message Bubble */}
-                                <div className="flex-1">
-                                    <p className="text-md text-[#0D4B99] leading-relaxed">
-                                        {message}
-                                    </p>
-                                </div>
+                            onClick={() => handleMessageClick(message)}
+                        >
+                            <p className="text-sm font-medium text-[#0D4B99]">
+                                {message}
+                            </p>
+                            <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             </div>
-        </div>
+        </ChatWindow>
     );
 };
 
