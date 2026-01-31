@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './features/auth/authSlice'
 import { baseApi } from './api/baseApi'
+import { aiBaseApi } from './features/ai/aiCustomerSupport'
 import storage from "redux-persist/lib/storage";
 import {
   persistStore, 
@@ -24,6 +25,7 @@ const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 export const store = configureStore({
   reducer: {
     [baseApi.reducerPath] : baseApi.reducer,
+    [aiBaseApi.reducerPath] : aiBaseApi.reducer,
     auth: persistedAuthReducer
   },
   middleware : getDefaultMiddlewares => getDefaultMiddlewares({
@@ -31,7 +33,7 @@ export const store = configureStore({
       ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
   }
 
-  }).concat(baseApi.middleware)
+  }).concat(baseApi.middleware, aiBaseApi.middleware)
 })
 
 export type RootState = ReturnType<typeof store.getState>
