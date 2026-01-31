@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Phone, Mail, Info, MessageSquare, Trash2, User, AlertCircle } from 'lucide-react';
+import { Search, Phone, Mail,Trash2, User, AlertCircle } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import AddBrokerModal from '@/components/AdminDashboard/Broker/AddBrokerModal';
 import { useGetAllBrokerQuery } from '@/redux/features/admin/broker-management/getAllBrokerApi';
@@ -15,7 +15,7 @@ interface BrokerData {
     phone_number: string;
     image: string | null;
     last_activity: string;
-    is_active: boolean;
+    is_deactivated: boolean;
     joining_date: string;
     active_leads: number;
     close_deals: number;
@@ -28,10 +28,8 @@ interface UserCardProps {
     email: string;
     activeLeads: number;
     closedDeals: number;
-    avgResponse: string;
     memberSince: string;
     lastActive: string;
-    assignedTo: string;
     isActive: boolean;
     onStatusChange: (id: string, newStatus: boolean) => void;
     onDelete: (id: string, name: string) => void;
@@ -46,10 +44,8 @@ const UserCard: React.FC<UserCardProps> = ({
     email,
     activeLeads,
     closedDeals,
-    avgResponse,
     memberSince,
     lastActive,
-    assignedTo,
     isActive,
     onStatusChange,
     onDelete,
@@ -66,12 +62,14 @@ const UserCard: React.FC<UserCardProps> = ({
     };
 
     const handleStatusToggle = () => {
+
         onStatusChange(id, !isActive);
     };
 
     const handleDeleteClick = () => {
         onDelete(id, name);
     };
+
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4 relative">
@@ -104,12 +102,12 @@ const UserCard: React.FC<UserCardProps> = ({
                     <button
                         onClick={handleStatusToggle}
                         disabled={isChangingStatus || isDeleting}
-                        className={`text-gray-700 text-sm font-medium px-3 py-1 border ${isActive ? 'border-gray-300' : 'border-green-300'} rounded hover:bg-gray-50 transition-colors ${isChangingStatus || isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`text-gray-700 text-sm font-medium px-3 py-1 border ${isActive ? 'border-red-300' : 'border-green-300'} rounded hover:bg-gray-50 transition-colors ${isChangingStatus || isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {isActive ? 'Deactivate' : 'Activate'}
                     </button>
                     <div className='w-full flex justify-center py-1 border border-gray-300 rounded'>
-                        <button 
+                        <button
                             onClick={handleDeleteClick}
                             className="text-red-500 hover:text-red-600 transition-colors"
                             disabled={isChangingStatus || isDeleting}
@@ -131,38 +129,27 @@ const UserCard: React.FC<UserCardProps> = ({
                     <div className="text-gray-900 font-semibold text-base">{closedDeals.toString().padStart(2, '0')}</div>
                 </div>
                 <div>
-                    <div className="text-gray-500 text-sm mb-1">Avg Response</div>
-                    <div className="text-blue-600 font-semibold text-base">{avgResponse}</div>
-                </div>
-                <div>
                     <div className="text-gray-500 text-sm mb-1">Member Since</div>
                     <div className="text-gray-900 font-semibold text-base">{memberSince}</div>
+                </div>
+                <div>
+                    <div className="text-gray-500 text-sm mb-1">Status</div>
+                    <div className={`${isActive ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white text-sm font-medium px-3 py-1 rounded text-center`}>
+                        {isActive ? 'Active' : 'Inactive'}
+                    </div>
                 </div>
             </div>
 
             <div className="text-gray-500 text-sm mb-4">Last active: {lastActive}</div>
 
-            {/* Assigned Leads Section */}
-            <div className="bg-blue-50 border border-blue-100 rounded-sm p-3 flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <Info size={16} className="text-blue-600" />
-                    <span className="text-gray-700 text-sm">
-                        <span className="font-medium">Currently Assigned Leads:</span> {assignedTo}
-                    </span>
-                </div>
-                <div className={`${isActive ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'} text-white text-sm font-medium px-4 py-1 rounded transition-colors`}>
-                    {isActive ? 'Active' : 'Inactive'}
-                </div>
-            </div>
-
             {/* Message Broker Button */}
-            <button 
+            {/* <button
                 className={`${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 hover:bg-gray-500'} text-white text-sm font-medium px-4 py-2 rounded flex items-center gap-2 transition-colors ${!isActive || isChangingStatus || isDeleting ? 'cursor-not-allowed' : ''}`}
                 disabled={!isActive || isChangingStatus || isDeleting}
             >
                 <MessageSquare size={16} />
                 Message Broker
-            </button>
+            </button> */}
         </div>
     );
 };
@@ -172,23 +159,24 @@ const Broker: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-    const itemsPerPage = 5; // Changed from 10 to 5
-    
+    const itemsPerPage = 5;
+
     const [statusChangingId, setStatusChangingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
-    const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
-    const [confirmDelete, setConfirmDelete] = useState<{id: string, name: string} | null>(null);
-    
-    // Query params for the API - 5 brokers per page
+    const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState<{ id: string, name: string } | null>(null);
+
+
+    // Query params for the API
     const queryParams = {
         page: currentPage,
-        page_size: itemsPerPage, // Now 5 per page
+        page_size: itemsPerPage,
         search: debouncedSearchTerm || undefined
     };
 
     // Fetch data with pagination and search
     const { data: brokersData, isLoading, error, refetch } = useGetAllBrokerQuery(queryParams);
-    
+
     const [activeBroker] = useActiveBrokerMutation();
     const [deactiveBroker] = useDeactiveBrokerMutation();
     const [deleteBroker] = useDeleteBrokerMutation();
@@ -197,7 +185,7 @@ const Broker: React.FC = () => {
     const debouncedSearch = useCallback(
         debounce((value: string) => {
             setDebouncedSearchTerm(value);
-            setCurrentPage(1); // Reset to first page when searching
+            setCurrentPage(1);
         }, 500),
         []
     );
@@ -225,23 +213,23 @@ const Broker: React.FC = () => {
     };
 
     // Handle status change
-    const handleStatusChange = async (id: string, newStatus: boolean) => {
+    const handleStatusChange = async (id: string, shouldBeActive: boolean) => {
         setStatusChangingId(id);
-        
+
         try {
-            if (newStatus) {
-                // Activate broker
+            if (shouldBeActive) {
+                // Activate broker: set is_deactivated to false
                 await activeBroker({ id }).unwrap();
                 showNotification('success', 'Broker activated successfully');
             } else {
-                // Deactivate broker
+
                 await deactiveBroker({ id }).unwrap();
                 showNotification('success', 'Broker deactivated successfully');
             }
-            
+
             // Refresh the data
             refetch();
-            
+
         } catch (err) {
             console.error('Failed to update broker status:', err);
             showNotification('error', 'Failed to update broker status');
@@ -258,9 +246,9 @@ const Broker: React.FC = () => {
     // Confirm delete
     const confirmDeleteBroker = async () => {
         if (!confirmDelete) return;
-        
+
         setDeletingId(confirmDelete.id);
-        
+
         try {
             await deleteBroker(confirmDelete.id).unwrap();
             showNotification('success', `Broker "${confirmDelete.name}" deleted successfully`);
@@ -297,7 +285,6 @@ const Broker: React.FC = () => {
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit',
             hour12: false
         }).replace(',', '');
     };
@@ -310,11 +297,10 @@ const Broker: React.FC = () => {
         email: broker.email,
         activeLeads: broker.active_leads,
         closedDeals: broker.close_deals,
-        avgResponse: '1.8h', 
         memberSince: formatDate(broker.joining_date),
         lastActive: formatDateTime(broker.last_activity),
-        assignedTo: 'Mike Chen',
-        isActive: broker.is_active,
+        // isActive is the inverse of is_deactivated
+        isActive: !broker.is_deactivated,
         onStatusChange: handleStatusChange,
         onDelete: handleDelete,
         isChangingStatus: statusChangingId === broker.id,
@@ -324,14 +310,14 @@ const Broker: React.FC = () => {
     // Calculate pagination values from API response
     const totalUsers = brokersData?.count || 0;
     const totalPages = Math.ceil(totalUsers / itemsPerPage);
-    
-    // Get current page data - now API returns exactly 5 brokers per page
+
+    // Get current page data
     const currentUsers = allUsers;
 
     const handleBrokerAdded = () => {
         refetch();
         showNotification('success', 'Broker added successfully');
-        setCurrentPage(1); // Go back to first page after adding new broker
+        setCurrentPage(1);
     };
 
     const handlePageChange = (page: number) => {
@@ -393,7 +379,7 @@ const Broker: React.FC = () => {
                     <span className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
                         {notification.message}
                     </span>
-                    <button 
+                    <button
                         onClick={() => setNotification(null)}
                         className="ml-4 text-gray-400 hover:text-gray-600"
                     >
@@ -407,9 +393,8 @@ const Broker: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={handleBrokerAdded}
             />
-            
+
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                {/* Left Content */}
                 <div>
                     <h1 className="text-[24px] sm:text-[28px] lg:text-[32px] font-bold text-gray-900 leading-tight">
                         Broker Team Management
@@ -419,7 +404,6 @@ const Broker: React.FC = () => {
                     </p>
                 </div>
 
-                {/* Right Button */}
                 <div className="self-start sm:self-auto">
                     <button
                         onClick={() => setIsModalOpen(true)}
@@ -519,10 +503,10 @@ const Broker: React.FC = () => {
                 </div>
             </div>
 
-            {/* Pagination - Show if we have more than 5 brokers */}
+            {/* Pagination */}
             {!isLoading && !error && totalPages > 1 && (
                 <div className='flex flex-col items-center my-8'>
-                    <Pagination 
+                    <Pagination
                         totalPages={totalPages}
                         currentPage={currentPage}
                         onPageChange={handlePageChange}

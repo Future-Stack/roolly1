@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { logout } from "@/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/redux/hook";
-import { LogOut, Settings, HelpCircle } from "lucide-react";
+import { LogOut, Settings} from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ProfileDropdownProps {
@@ -48,16 +48,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
         <span className="text-base font-medium text-gray-900">Settings</span>
       </Link>
 
-      {/* Help */}
-      <button
-        onClick={onClose}
-        className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
-      >
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#0F766E33] flex items-center justify-center">
-          <HelpCircle className="w-5 h-5 text-[#0F766E]" strokeWidth={2} />
-        </div>
-        <span className="text-base font-medium text-gray-900">Help & Support</span>
-      </button>
 
       {/* Logout */}
       <button

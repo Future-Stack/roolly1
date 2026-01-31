@@ -5,7 +5,8 @@ import axios from "axios";
 import logo from '../../../assets/logo.png'
 import { useCurrentToken } from "@/redux/features/auth/authSlice";
 import { useAppSelector } from "@/redux/hook";
-import AdminProfileDropdown from "@/components/AdminDashboard/AdminLayout/AdminProfileDropdown";
+import { useGetVendorProfileQuery } from "@/redux/features/vendor/getVendorProfileApi";
+import ProfileDropdown from "./ProfileDropdown";
 
 // Notification Types
 interface Notification {
@@ -178,6 +179,7 @@ const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+    const {data:profile} = useGetVendorProfileQuery(undefined)
 
   const token = useAppSelector(useCurrentToken);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
@@ -616,13 +618,13 @@ const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
               aria-label="Profile"
             >
               <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+                src={profile?.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'}
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
                 alt="Profile"
               />
             </button>
 
-            <AdminProfileDropdown
+            <ProfileDropdown
               isOpen={isProfileDropdownOpen}
               onClose={() => setIsProfileDropdownOpen(false)}
               dropdownRef={profileDropdownRef}

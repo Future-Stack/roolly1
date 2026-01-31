@@ -71,7 +71,6 @@ const formatPrice = (price: string) => {
 };
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
-    console.log(property)
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [createMessage] = useCreateMessageMutation();

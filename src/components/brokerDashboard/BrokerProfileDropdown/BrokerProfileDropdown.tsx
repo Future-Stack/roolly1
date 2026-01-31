@@ -4,7 +4,7 @@ import { useAppDispatch } from "@/redux/hook";
 import { LogOut, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const AdminProfileDropdown = ({
+const BrokerProfileDropdown = ({
   isOpen,
   onClose,
   dropdownRef
@@ -38,7 +38,7 @@ const AdminProfileDropdown = ({
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#4F46E51A] flex items-center justify-center">
           <Settings className="w-5 h-5 text-[#4338CA]" strokeWidth={2} />
         </div>
-        <Link to='/admin-dashboard/settings'>
+        <Link to='/broker-dashboard/settings'>
           <span className="text-base font-medium text-gray-900">Settings</span>
         </Link>
       </button>
@@ -57,4 +57,4 @@ const AdminProfileDropdown = ({
   );
 };
 
-export default AdminProfileDropdown;
+export default BrokerProfileDropdown;

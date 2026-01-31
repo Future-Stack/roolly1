@@ -1,3 +1,4 @@
+import { useGetAdminProfileQuery } from '@/redux/features/admin/settings/getAdminProfileApi';
 import {
   BarChart3,
   Building2,
@@ -17,13 +18,14 @@ interface BrokerSidebarProps {
 
 const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
   const location = useLocation();
+  const {data:profile} = useGetAdminProfileQuery(undefined)
 
   const menuItems = [
     { icon: LayoutGrid, label: 'Overview', path: '/admin-dashboard', badge: null },
-    { icon: Users, label: 'Leads', path: '/admin-dashboard/leads', badge: 2 },
-    { icon: Building2, label: 'Property', path: '/admin-dashboard/property', badge: 2 },
-    { icon: UserCog , label: 'Broker Management', path: '/admin-dashboard/broker', badge: 2 },
-    { icon: MessageSquare, label: 'Messages', path: '/admin-dashboard/messages', badge: 2 },
+    { icon: Users, label: 'Leads', path: '/admin-dashboard/leads', badge: null },
+    { icon: Building2, label: 'Property', path: '/admin-dashboard/property', badge: null },
+    { icon: UserCog , label: 'Broker Management', path: '/admin-dashboard/broker', badge: null },
+    { icon: MessageSquare, label: 'Messages', path: '/admin-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/admin-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/admin-dashboard/settings', badge: null },
   ];
@@ -44,13 +46,13 @@ const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
       {/* User Profile */}
       <div className="flex items-center gap-3 px-4 py-4 border border-[#F1F5F9] rounded-sm">
         <img
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+          src={profile?.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
-          <span className="text-lg font-semibold text-[#0F172A]">Mark wins</span>
-          <span className="text-lg text-[#A9ACAF] mt-0.5">vendor@vendor.com</span>
+          <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>
+          <span className="text-lg text-[#A9ACAF] mt-0.5">{profile?.email}</span>
         </div>
       </div>
 

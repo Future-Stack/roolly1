@@ -1,3 +1,4 @@
+import { useGetBrokerProfileQuery } from '@/redux/features/broker/settings/getBrokerProfileApi';
 import {
   BarChart3,
   Building2,
@@ -17,13 +18,14 @@ interface BrokerSidebarProps {
 
 const BrokerSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
   const location = useLocation();
+  const {data:profile} = useGetBrokerProfileQuery(undefined);
 
   const menuItems = [
     { icon: LayoutGrid, label: 'Overview', path: '/broker-dashboard', badge: null },
-    { icon: Users, label: 'Leads', path: '/broker-dashboard/leads', badge: 2 },
-    { icon: CalendarDays, label: 'Schedule Viewing', path: '/broker-dashboard/schedule', badge: 2 },
-    { icon: Building2, label: 'Property', path: '/broker-dashboard/property', badge: 2 },
-    { icon: MessageSquare, label: 'Messages', path: '/broker-dashboard/messages', badge: 2 },
+    { icon: Users, label: 'Leads', path: '/broker-dashboard/leads', badge: null },
+    { icon: CalendarDays, label: 'Schedule Viewing', path: '/broker-dashboard/schedule', badge: null },
+    { icon: Building2, label: 'Property', path: '/broker-dashboard/property', badge: null },
+    { icon: MessageSquare, label: 'Messages', path: '/broker-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/broker-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/broker-dashboard/settings', badge: null },
   ];
@@ -44,13 +46,13 @@ const BrokerSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
       {/* User Profile */}
       <div className="flex items-center gap-3 px-4 py-4 border border-[#F1F5F9] rounded-sm">
         <img
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+          src={profile?.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
-          <span className="text-lg font-semibold text-[#0F172A]">Mark wins</span>
-          <span className="text-lg text-[#A9ACAF] mt-0.5">vendor@vendor.com</span>
+          <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>
+          <span className="text-lg text-[#A9ACAF] mt-0.5">{profile?.email}</span>
         </div>
       </div>
 

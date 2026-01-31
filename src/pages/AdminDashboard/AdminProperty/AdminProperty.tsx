@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, MapPin, Clock, Calendar, Info, MessageSquare, ArrowDown, Mail, Phone } from 'lucide-react';
 import { useGetAllPropertyQuery } from '@/redux/features/admin/proper-management/getAllPropertyApi';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '@/components/ui/Pagination';
+import { useCreateMessageMutation } from '@/redux/features/message/createMessageApi';
 
 interface PropertyOwner {
     id: string;
@@ -17,6 +18,7 @@ interface Broker {
     phone_number: string;
     email: string;
 }
+
 interface PropertyData {
     id: number;
     property_onwer: PropertyOwner;
@@ -30,6 +32,7 @@ interface PropertyData {
     transaction: string;
     is_listed: boolean;
 }
+
 interface PropertyCard {
     id: number;
     name: string;
@@ -46,6 +49,7 @@ interface PropertyCard {
     brokerPhone: string;
     propertyData: PropertyData;
 }
+
 const AdminProperty: React.FC = () => {
     const [selectedPropertyType, setSelectedPropertyType] = useState('All');
     const [selectedBroker, setSelectedBroker] = useState('All Brokers');
@@ -53,46 +57,53 @@ const AdminProperty: React.FC = () => {
     const [brokerFilterOpen, setBrokerFilterOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredBrokers, setFilteredBrokers] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1); 
-    const itemsPerPage = 5; 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
     const navigate = useNavigate();
+    const [createMessage] = useCreateMessageMutation();
 
-    // Build query params based on filters with pagination
-    const queryParams: Record<string, string> = {
-        page: currentPage.toString(),
-        page_size: itemsPerPage.toString(),
-    };
-    
-    if (selectedPropertyType !== 'All') {
-        queryParams.property_type = selectedPropertyType.toLowerCase();
-    }
-    if (selectedBroker !== 'All Brokers') {
-        queryParams.broker__full_name = selectedBroker;
-    }
-    if (searchTerm) {
-        queryParams.search = searchTerm;
-    }
+    // Use useMemo for queryParams to prevent unnecessary re-renders
+    const queryParams = useMemo(() => {
+        const params: Record<string, string> = {
+            page: currentPage.toString(),
+            page_size: itemsPerPage.toString(),
+        };
 
-    const { data: propertyResponse, isLoading, error, refetch } = useGetAllPropertyQuery(queryParams);
+        if (selectedPropertyType !== 'All') {
+            params.property_type = selectedPropertyType.toLowerCase();
+        }
+        if (selectedBroker !== 'All Brokers') {
+            params.broker__full_name = selectedBroker;
+        }
+        if (searchTerm) {
+            params.search = searchTerm;
+        }
 
-    // Extract properties from response
-    const propertiesData: PropertyData[] = propertyResponse?.results || propertyResponse || [];
+        return params;
+    }, [currentPage, selectedPropertyType, selectedBroker, searchTerm]);
+
+    const { data: propertyResponse, isLoading, error } = useGetAllPropertyQuery(queryParams, {
+    });
+
+    const propertiesData: PropertyData[] = useMemo(() =>
+        propertyResponse?.results || propertyResponse || []
+        , [propertyResponse]);
 
     // Calculate pagination values
     const totalProperties = propertyResponse?.count || 0;
     const totalPages = Math.ceil(totalProperties / itemsPerPage);
 
     // Calculate display range
-    const getDisplayRange = () => {
+    const getDisplayRange = useCallback(() => {
         const start = ((currentPage - 1) * itemsPerPage) + 1;
         const end = Math.min(currentPage * itemsPerPage, totalProperties);
         return { start, end };
-    };
+    }, [currentPage, itemsPerPage, totalProperties]);
 
     const { start, end } = getDisplayRange();
 
     // Helper function to format time ago
-    const getTimeAgo = (dateString: string): string => {
+    const getTimeAgo = useCallback((dateString: string): string => {
         const createdDate = new Date(dateString);
         const now = new Date();
         const diffInMinutes = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60));
@@ -105,20 +116,20 @@ const AdminProperty: React.FC = () => {
 
         const diffInDays = Math.floor(diffInHours / 24);
         return `${diffInDays}d ago`;
-    };
+    }, []);
 
     // Helper function to format date
-    const formatDate = (dateString: string): string => {
+    const formatDate = useCallback((dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-GB', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
         });
-    };
+    }, []);
 
     // Helper function to format property type
-    const formatPropertyType = (type: string): string => {
+    const formatPropertyType = useCallback((type: string): string => {
         const typeMap: Record<string, string> = {
             'house': 'House',
             'land': 'Land',
@@ -128,20 +139,20 @@ const AdminProperty: React.FC = () => {
             'other': 'Other'
         };
         return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1);
-    };
+    }, []);
 
     // Helper function to format transaction type
-    const formatTransaction = (transaction: string): string => {
+    const formatTransaction = useCallback((transaction: string): string => {
         const transactionMap: Record<string, string> = {
             'sale': 'Sale',
             'rent': 'Rent',
             'lease': 'Lease'
         };
         return transactionMap[transaction] || transaction.charAt(0).toUpperCase() + transaction.slice(1);
-    };
+    }, []);
 
     // Helper function to format price
-    const formatPrice = (price: string): string => {
+    const formatPrice = useCallback((price: string): string => {
         const priceNum = parseFloat(price);
         if (isNaN(priceNum)) return '£0';
 
@@ -152,18 +163,18 @@ const AdminProperty: React.FC = () => {
         } else {
             return `£${priceNum.toFixed(2)}`;
         }
-    };
+    }, []);
 
     // Helper function to format area
-    const formatArea = (area: string): string => {
+    const formatArea = useCallback((area: string): string => {
         const areaNum = parseFloat(area);
         if (isNaN(areaNum)) return '0 sqft';
 
         return `${areaNum.toLocaleString('en-US', { maximumFractionDigits: 2 })} sqft`;
-    };
+    }, []);
 
     // Generate alert message based on property status
-    const getAlertMessage = (property: PropertyData): string => {
+    const getAlertMessage = useCallback((property: PropertyData): string => {
         if (!property.is_listed) {
             return 'Property is not listed. Needs review before publishing.';
         }
@@ -176,13 +187,16 @@ const AdminProperty: React.FC = () => {
         } else {
             return 'Property information from vendor. Ready to process quickly.';
         }
-    };
+    }, []);
 
     // Extract unique brokers for filter
     useEffect(() => {
         if (propertiesData && propertiesData.length > 0) {
             const uniqueBrokers = Array.from(
-                new Set(propertiesData.map(p => p.broker?.full_name))
+                new Set(propertiesData
+                    .map(p => p.broker?.full_name)
+                    .filter((name): name is string => !!name) // Filter out undefined/null
+                )
             );
             setFilteredBrokers(uniqueBrokers);
         } else {
@@ -191,86 +205,97 @@ const AdminProperty: React.FC = () => {
     }, [propertiesData]);
 
     // Transform API data to PropertyCard format
-    const properties: PropertyCard[] = propertiesData.map((property: PropertyData) => ({
-        id: property.id,
-        name: property.property_onwer?.full_name,
-        location: property.location,
-        timeAgo: getTimeAgo(property.created_at),
-        date: formatDate(property.created_at),
-        alertMessage: getAlertMessage(property),
-        propertyType: formatPropertyType(property.property_type),
-        estimatedPrice: formatPrice(property.estimated_price),
-        sqft: formatArea(property.built_area),
-        transaction: formatTransaction(property.transaction),
-        broker: property.broker?.full_name,
-        brokerEmail: property.broker?.email,
-        brokerPhone: property.broker?.phone_number,
-        propertyData: property
-    }));
+    const properties: PropertyCard[] = useMemo(() =>
+        propertiesData.map((property: PropertyData) => ({
+            id: property.id,
+            name: property.property_onwer?.full_name || 'Unknown Owner',
+            location: property.location,
+            timeAgo: getTimeAgo(property.created_at),
+            date: formatDate(property.created_at),
+            alertMessage: getAlertMessage(property),
+            propertyType: formatPropertyType(property.property_type),
+            estimatedPrice: formatPrice(property.estimated_price),
+            sqft: formatArea(property.built_area),
+            transaction: formatTransaction(property.transaction),
+            broker: property.broker?.full_name || 'Unassigned',
+            brokerEmail: property.broker?.email || '',
+            brokerPhone: property.broker?.phone_number || '',
+            propertyData: property
+        }))
+        , [propertiesData, getTimeAgo, formatDate, getAlertMessage, formatPropertyType, formatPrice, formatArea, formatTransaction]);
 
-    const togglePropertyTypeFilter = () => {
-        setPropertyTypeFilterOpen(!propertyTypeFilterOpen);
+    const togglePropertyTypeFilter = useCallback(() => {
+        setPropertyTypeFilterOpen(prev => !prev);
         setBrokerFilterOpen(false);
-    };
+    }, []);
 
-    const toggleBrokerFilter = () => {
-        setBrokerFilterOpen(!brokerFilterOpen);
+    const toggleBrokerFilter = useCallback(() => {
+        setBrokerFilterOpen(prev => !prev);
         setPropertyTypeFilterOpen(false);
-    };
+    }, []);
 
-    const closeAllDropdowns = () => {
+    const closeAllDropdowns = useCallback(() => {
         setPropertyTypeFilterOpen(false);
         setBrokerFilterOpen(false);
-    };
+    }, []);
 
-    const handlePropertyTypeSelect = (option: string) => {
+    const handlePropertyTypeSelect = useCallback((option: string) => {
         setSelectedPropertyType(option);
         setPropertyTypeFilterOpen(false);
-        setCurrentPage(1); 
-    };
+        setCurrentPage(1);
+    }, []);
 
-    const handleBrokerSelect = (option: string) => {
+    const handleBrokerSelect = useCallback((option: string) => {
         setSelectedBroker(option);
         setBrokerFilterOpen(false);
-        setCurrentPage(1); 
-    };
+        setCurrentPage(1);
+    }, []);
 
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
-    };
+    }, []);
 
-    const handleClearSearch = () => {
+    const handleClearSearch = useCallback(() => {
         setSearchTerm('');
-        setCurrentPage(1); 
-    };
+        setCurrentPage(1);
+    }, []);
 
-    const handleClearFilters = () => {
+    const handleClearFilters = useCallback(() => {
         setSelectedPropertyType('All');
         setSelectedBroker('All Brokers');
         setSearchTerm('');
-        setCurrentPage(1); 
-    };
+        setCurrentPage(1);
+    }, []);
 
-    const handleEditListing = (propertyId: number) => {
-        console.log('Edit property:', propertyId);
-        navigate(`/admin/property/edit/${propertyId}`);
-    };
+    // const handleEditListing = useCallback((propertyId: number) => {
+    //     console.log('Edit property:', propertyId);
+    //     navigate(`/admin/property/edit/${propertyId}`);
+    // }, [navigate]);
 
-    const handleMessageBroker = (brokerEmail: string, brokerPhone: string) => {
-        console.log('Message broker:', brokerEmail, brokerPhone);
-        
-    };
 
-    const handlePageChange = (page: number) => {
+    const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    }, []);
 
-    const propertyTypeOptions = ['All', 'House', 'Land', 'Industrial', 'Office', 'Retail', 'Other'];
-    
-    useEffect(() => {
-        refetch();
-    }, [queryParams, refetch]);
+    const propertyTypeOptions = useMemo(() =>
+        ['All', 'House', 'Land', 'Industrial', 'Office', 'Retail', 'Other']
+        , []);
+
+    const handleCreateMessage = useCallback(async (ownerId: string) => {
+        console.log('Owner ID:', ownerId);
+        try {
+            const res = await createMessage({
+                user_id: ownerId
+            }).unwrap();
+            navigate(`/admin-dashboard/messages`, {
+                state: { res }
+            });
+
+        } catch (err) {
+            console.log('Error creating message:', err);
+        }
+    }, [createMessage]);
 
     return (
         <div>
@@ -507,8 +532,8 @@ const AdminProperty: React.FC = () => {
                                                             <span>{property.date}</span>
                                                         </div>
                                                         <div className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${property.propertyData.is_listed
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-yellow-100 text-yellow-800'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-yellow-100 text-yellow-800'
                                                             }`}>
                                                             {property.propertyData.is_listed ? 'Listed' : 'Unlisted'}
                                                         </div>
@@ -520,17 +545,17 @@ const AdminProperty: React.FC = () => {
                                         {/* Alert Message */}
                                         <div className='px-5'>
                                             <div className={`px-5 py-3 border rounded-sm ${property.propertyData.is_listed
-                                                    ? 'bg-blue-50 border-[#92BAED]'
-                                                    : 'bg-yellow-50 border-yellow-200'
+                                                ? 'bg-blue-50 border-[#92BAED]'
+                                                : 'bg-yellow-50 border-yellow-200'
                                                 }`}>
                                                 <div className="flex items-start gap-2">
                                                     <Info className={`w-4 h-4 mt-0.5 flex-shrink-0 ${property.propertyData.is_listed
-                                                            ? 'text-blue-600'
-                                                            : 'text-yellow-600'
+                                                        ? 'text-blue-600'
+                                                        : 'text-yellow-600'
                                                         }`} />
                                                     <p className={`text-sm ${property.propertyData.is_listed
-                                                            ? 'text-blue-700'
-                                                            : 'text-yellow-700'
+                                                        ? 'text-blue-700'
+                                                        : 'text-yellow-700'
                                                         }`}>
                                                         {property.alertMessage}
                                                     </p>
@@ -613,18 +638,18 @@ const AdminProperty: React.FC = () => {
                                                 {/* Action Buttons */}
                                                 <div className="flex gap-3 md:ml-auto md:pt-5">
                                                     <button
-                                                        onClick={() => handleMessageBroker(property.brokerEmail, property.brokerPhone)}
+                                                        onClick={() => handleCreateMessage(property.propertyData.property_onwer?.id)}
                                                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-medium transition-colors"
                                                     >
                                                         <MessageSquare className="w-4 h-4" />
                                                         <span>Message Broker</span>
                                                     </button>
-                                                    <button
+                                                    {/* <button
                                                         onClick={() => handleEditListing(property.id)}
                                                         className="flex-1 sm:flex-none px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
                                                     >
                                                         Edit Listing
-                                                    </button>
+                                                    </button> */}
                                                 </div>
                                             </div>
                                         </div>

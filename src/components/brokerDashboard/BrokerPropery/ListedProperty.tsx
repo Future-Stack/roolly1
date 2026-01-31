@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Clock, Calendar, Info, MoreVertical, MessageSquare} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useGetListedPropertyApiQuery } from '@/redux/features/broker/property/getListedPropertyApi';
 import Pagination from '@/components/ui/Pagination';
+import { useGetListedPropertyApiQuery } from '@/redux/features/broker/property/getListedPropertyApi';
+import { useCreateMessageMutation } from '@/redux/features/message/createMessageApi';
+import { Calendar, Clock, Info, MapPin, MessageSquare, MoreVertical } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface PropertyOwner {
     id: string;
@@ -56,6 +57,8 @@ const formatPropertyType = (type: string) => {
     return type.charAt(0).toUpperCase() + type.slice(1);
 };
 
+
+
 // Helper function to format transaction type
 const formatTransaction = (transaction: string) => {
     return transaction.charAt(0).toUpperCase() + transaction.slice(1);
@@ -75,6 +78,22 @@ const formatPrice = (price: string) => {
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [createMessage] = useCreateMessageMutation();
+    const navigate = useNavigate()
+
+    const handleCreateMessage = async () => {
+        try {
+            const res = await createMessage({
+                user_id: property?.property_owner?.id
+            }).unwrap();
+            navigate(`/broker-dashboard/messages`, {
+                state: { res }
+            });
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -213,7 +232,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     </div>
 
                     <div className="flex gap-3">
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[14px] font-medium rounded-sm transition-colors">
+                        <button
+                            onClick={handleCreateMessage}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[14px] font-medium rounded-sm transition-colors">
                             <MessageSquare size={18} strokeWidth={2} />
                             Message Vendor
                         </button>

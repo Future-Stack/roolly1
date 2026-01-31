@@ -1,8 +1,11 @@
-import { MapPin, Clock, Calendar, Phone, Mail, MoreVertical, Info } from 'lucide-react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { MapPin, Clock, Calendar, Phone, Mail, MoreVertical, Info, UserCheck } from 'lucide-react';
 import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
 import { useGetSingleScheduleQuery } from '@/redux/features/broker/schedule/getSingleScheduleApi';
 import { useGetAvailableLeadsQuery } from '@/redux/features/broker/leads/getAvailableLeadsApi';
+import { useMakeGrabLeadMutation } from '@/redux/features/broker/leads/makeGrabLeadApi';
+import { toast } from 'react-toastify';
 
 interface Lead {
   id: string;
@@ -18,6 +21,7 @@ interface Lead {
   property_name?: string;
   property_type?: string;
   location?: string;
+  is_grabbed?: boolean;
 }
 
 interface FormattedLead {
@@ -37,14 +41,19 @@ interface FormattedLead {
   email: string;
   alertMessage: string;
   scheduleId: string | null;
+  isGrabbed: boolean;
+  originalId: string;
 }
 
 const BrokerAvailableLeads = () => {
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
-  const { data: brokerLeadsData, isLoading, isError } = useGetAvailableLeadsQuery(undefined);
-  console.log('API Data:', brokerLeadsData);
+  const [grabbingLeadId, setGrabbingLeadId] = useState<string | null>(null);
+  
+  const { data: brokerLeadsData, isLoading, isError, refetch } = useGetAvailableLeadsQuery(undefined);
+  
+  const [makeGrabLead] = useMakeGrabLeadMutation();
   
   const { 
     data: scheduleData, 
@@ -90,7 +99,10 @@ const BrokerAvailableLeads = () => {
     return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const getAlertMessage = (source: string, status: string) => {
+  const getAlertMessage = (source: string, status: string, isGrabbed: boolean) => {
+    if (isGrabbed) {
+      return 'Lead already grabbed. You are assigned to this lead.';
+    }
     if (source.toLowerCase() === 'ai') {
       return 'New AI chat lead. Ready to proceed quickly.';
     } else if (source.toLowerCase() === 'whatsapp') {
@@ -144,11 +156,13 @@ const BrokerAvailableLeads = () => {
         businessType: formatBusinessType(lead.property_type),
         budget,
         source: lead.source.charAt(0).toUpperCase() + lead.source.slice(1),
-        financials: 'Not provided', // Since financials_details is not in the new API response
+        financials: 'Not provided', 
         phone: lead.phone_number || 'Not provided',
         email: lead.email_address || 'Not provided',
-        alertMessage: getAlertMessage(lead.source, lead.lead_status),
-        scheduleId: lead.schedule_id || null
+        alertMessage: getAlertMessage(lead.source, lead.lead_status, lead.is_grabbed || false),
+        scheduleId: lead.schedule_id || null,
+        isGrabbed: lead.is_grabbed || false,
+        originalId: lead.id
       };
     });
   };
@@ -170,6 +184,38 @@ const BrokerAvailableLeads = () => {
       closeActionMenu();
     } else {
       alert('No schedule available for this lead');
+    }
+  };
+
+  const handleGrabLead = async (leadId: string) => {
+    try {
+      // Find the original ID from the formatted lead
+      const lead = leads.find(l => l.id === leadId);
+      if (!lead) {
+        toast.error('Lead not found');
+        return;
+      }
+
+      if (lead.isGrabbed) {
+        toast.error('This lead has already been grabbed');
+        return;
+      }
+
+      // Set loading state for this specific lead
+      setGrabbingLeadId(leadId);
+
+      const result = await makeGrabLead(lead.originalId).unwrap();
+      
+      if (result) {
+        toast.success('Lead grabbed successfully!');
+        refetch();
+      }
+    } catch (error: any) {
+      console.error('Error grabbing lead:', error);
+      toast.error(error?.data?.message || 'Failed to grab lead. Please try again.');
+    } finally {
+      // Clear loading state
+      setGrabbingLeadId(null);
     }
   };
 
@@ -248,156 +294,193 @@ const BrokerAvailableLeads = () => {
       />
       
       <div className="space-y-4 relative">
-        {leads.map((lead) => (
-          <div key={lead.id} className="bg-white rounded-xl border border-gray-200 p-5 relative">
-            {/* Lead Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h3 className="text-[16px] font-semibold text-gray-900">{lead.name}</h3>
-                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
-                  lead.status === 'Green' ? 'bg-green-500 text-white' :
-                  lead.status === 'Blue' ? 'bg-blue-600 text-white' :
-                  lead.status === 'Red' ? 'bg-red-500 text-white' :
-                  'bg-amber-500 text-white'
-                }`}>
-                  {lead.status}
-                </span>
-                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
-                  lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('enquired') ? 'bg-blue-600 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
-                  'bg-gray-600 text-white'
-                }`}>
-                  {lead.secondaryStatus}
-                </span>
-              </div>
-              <div className="relative">
-                <button
-                  onClick={() => handleMoreClick(lead.id)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                >
-                  <MoreVertical className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                </button>
+        {leads.map((lead) => {
+          const isThisLeadGrabbing = grabbingLeadId === lead.id;
+          
+          return (
+            <div key={lead.id} className="bg-white rounded-xl border border-gray-200 p-5 relative">
+              {/* Lead Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-[16px] font-semibold text-gray-900">{lead.name}</h3>
+                  <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
+                    lead.status === 'Green' ? 'bg-green-500 text-white' :
+                    lead.status === 'Blue' ? 'bg-blue-600 text-white' :
+                    lead.status === 'Red' ? 'bg-red-500 text-white' :
+                    'bg-amber-500 text-white'
+                  }`}>
+                    {lead.status}
+                  </span>
+                  <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
+                    lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
+                    lead.secondaryStatus.toLowerCase().includes('enquired') ? 'bg-blue-600 text-white' :
+                    lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
+                    lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
+                    lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
+                    'bg-gray-600 text-white'
+                  }`}>
+                    {lead.secondaryStatus}
+                  </span>
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => handleMoreClick(lead.id)}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                  </button>
 
-                {/* Action Menu Popup - Exact same design as image */}
-                {openActionMenuId === lead.id && (
-                  <>
-                    {/* Backdrop */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={closeActionMenu}
-                    />
+                  {/* Action Menu Popup - Exact same design as image */}
+                  {openActionMenuId === lead.id && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={closeActionMenu}
+                      />
 
-                    {/* Menu */}
-                    <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                      {/* Menu */}
+                      <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
 
-                      {/* Menu Items */}
-                      <div className="p-2">
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Enquired
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Viewed
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Terms sent
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          In legal
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Completed
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Closed
-                        </button>
+                        {/* Menu Items */}
+                        <div className="p-2">
+                          <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
+                            Enquired
+                          </button>
+                          <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
+                            Viewed
+                          </button>
+                          <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
+                            Terms sent
+                          </button>
+                          <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
+                            In legal
+                          </button>
+                          <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
+                            Completed
+                          </button>
+                          <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
+                            Closed
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Property Info */}
-            <div className="flex items-center gap-4 text-[13px] text-gray-600 mb-4">
-              <div className="flex items-center gap-1.5 text-[#717182]">
-                <MapPin className="w-4 h-4" strokeWidth={2} />
-                <span>{lead.propertyId}: {lead.propertyName}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[#717182]">
-                <Clock className="w-4 h-4" strokeWidth={2} />
-                <span>{lead.timeAgo}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[#717182]">
-                <Calendar className="w-4 h-4" strokeWidth={2} />
-                <span>{lead.date}</span>
-              </div>
-            </div>
-
-            {/* Alert Message */}
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-5">
-              <div className="flex gap-2">
-                <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                <p className="text-[13px] text-blue-800 font-medium">{lead.alertMessage}</p>
-              </div>
-            </div>
-
-            {/* Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-5">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Business Type</p>
-                <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Budget</p>
-                <p className="text-[14px] text-gray-900 font-normal">{lead.budget}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Source</p>
-                <span className="inline-block px-3 py-1 bg-white border border-orange-500 text-orange-600 rounded text-sm font-medium">
-                  {lead.source}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Financials Details</p>
-                <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${
-                  lead.financials === 'Provided' 
-                    ? 'border-orange-500 text-orange-600' 
-                    : 'border-gray-400 text-gray-600'
-                }`}>
-                  {lead.financials}
-                </span>
-              </div>
-            </div>
-
-            {/* Client Information */}
-            <div className="flex items-end justify-between pt-4 border-gray-200 bg-[#F9FAFB] p-3 rounded-lg">
-              <div>
-                <h4 className="text-base font-semibold text-gray-900 mb-3">Client Information</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[13px] text-gray-700">
-                    <Phone className="w-4 h-4 text-gray-500" strokeWidth={2} />
-                    <span className='font-medium'>{lead.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[13px] text-gray-700">
-                    <Mail className="w-4 h-4 text-gray-500" strokeWidth={2} />
-                    <span className='font-medium'>{lead.email}</span>
-                  </div>
+                    </>
+                  )}
                 </div>
               </div>
-              <button
-                onClick={() => handleScheduleViewing(lead)}
-                className="bg-[#126AD8] hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
-                disabled={!lead.scheduleId}
-              >
-                <Calendar className="w-4 h-4" strokeWidth={2} />
-                {lead.scheduleId ? 'View Schedule' : 'No Schedule'}
-              </button>
+
+              {/* Property Info */}
+              <div className="flex items-center gap-4 text-[13px] text-gray-600 mb-4">
+                <div className="flex items-center gap-1.5 text-[#717182]">
+                  <MapPin className="w-4 h-4" strokeWidth={2} />
+                  <span>{lead.propertyId}: {lead.propertyName}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[#717182]">
+                  <Clock className="w-4 h-4" strokeWidth={2} />
+                  <span>{lead.timeAgo}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[#717182]">
+                  <Calendar className="w-4 h-4" strokeWidth={2} />
+                  <span>{lead.date}</span>
+                </div>
+              </div>
+
+              {/* Alert Message */}
+              <div className={`border rounded-md p-3 mb-5 ${
+                lead.isGrabbed ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
+              }`}>
+                <div className="flex gap-2">
+                  <Info className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                    lead.isGrabbed ? 'text-green-600' : 'text-blue-600'
+                  }`} strokeWidth={2} />
+                  <p className={`text-[13px] font-medium ${
+                    lead.isGrabbed ? 'text-green-800' : 'text-blue-800'
+                  }`}>
+                    {lead.alertMessage}
+                  </p>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-5">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Business Type</p>
+                  <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Budget</p>
+                  <p className="text-[14px] text-gray-900 font-normal">{lead.budget}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Source</p>
+                  <span className="inline-block px-3 py-1 bg-white border border-orange-500 text-orange-600 rounded text-sm font-medium">
+                    {lead.source}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Financials Details</p>
+                  <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${
+                    lead.financials === 'Provided' 
+                      ? 'border-orange-500 text-orange-600' 
+                      : 'border-gray-400 text-gray-600'
+                  }`}>
+                    {lead.financials}
+                  </span>
+                </div>
+              </div>
+
+              {/* Client Information */}
+              <div className="flex items-end justify-between pt-4 border-gray-200 bg-[#F9FAFB] p-3 rounded-lg">
+                <div>
+                  <h4 className="text-base font-semibold text-gray-900 mb-3">Client Information</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[13px] text-gray-700">
+                      <Phone className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                      <span className='font-medium'>{lead.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[13px] text-gray-700">
+                      <Mail className="w-4 h-4 text-gray-500" strokeWidth={2} />
+                      <span className='font-medium'>{lead.email}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  {/* Schedule Viewing Button */}
+                  <button
+                    onClick={() => handleScheduleViewing(lead)}
+                    className={`px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors ${
+                      lead.scheduleId 
+                        ? 'bg-[#126AD8] hover:bg-blue-700 text-white' 
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                    disabled={!lead.scheduleId}
+                  >
+                    <Calendar className="w-4 h-4" strokeWidth={2} />
+                    {lead.scheduleId ? 'View Schedule' : 'No Schedule'}
+                  </button>
+                  
+                  {/* Grab Lead Button */}
+                  <button
+                    onClick={() => handleGrabLead(lead.id)}
+                    disabled={lead.isGrabbed || isThisLeadGrabbing}
+                    className={`px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors ${
+                      lead.isGrabbed
+                        ? 'bg-green-600 text-white cursor-default'
+                        : isThisLeadGrabbing
+                        ? 'bg-blue-400 text-white cursor-wait'
+                        : 'bg-orange-500 hover:bg-orange-600 text-white'
+                    }`}
+                  >
+                    <UserCheck className="w-4 h-4" strokeWidth={2} />
+                    {lead.isGrabbed ? 'Grabbed' : isThisLeadGrabbing ? 'Grabbing...' : 'Grab Lead'}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
