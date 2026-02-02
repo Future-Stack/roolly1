@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseApi } from "@/redux/api/baseApi";
 
 const getAllUsersPropertyApi = baseApi.injectEndpoints({
@@ -6,7 +7,7 @@ const getAllUsersPropertyApi = baseApi.injectEndpoints({
             query: (params?: {
                 search?: string;
                 property_type?: string;
-                transaction?: 'sale' | 'lease';
+                transaction?:any;
                 page?: number;
                 page_size?: number;
                 ordering?: string;
