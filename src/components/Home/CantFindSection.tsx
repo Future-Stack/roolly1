@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Link } from 'react-router-dom';
 import finImg from '../../assets/cantFindsec.svg';
 import clock from '../../assets/clock.svg';
 import easy from '../../assets/easycan.svg';
@@ -73,9 +74,11 @@ const CantFindSection: React.FC = () => {
               </p>
 
               {/* Explore Button */}
-              <button className="w-full sm:w-auto px-8 py-3 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[8px] text-base font-semibold transition-colors duration-300">
-                Explore
-              </button>
+              <Link to='/all-properties'>
+                <button className="w-full sm:w-auto px-8 py-3 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[8px] text-base font-semibold transition-colors duration-300">
+                  Explore
+                </button>
+              </Link>
             </div>
 
             {/* Feature Cards */}

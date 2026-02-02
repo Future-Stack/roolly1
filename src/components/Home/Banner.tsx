@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState} from 'react';
 import bannerImg from '../../assets/bnnnerImg.svg';
 import chatbotImg from '../../assets/chatbot-img.png';
 import ChatbotMain from './chatbot/ChatbotMain';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Banner: React.FC = () => {
+  const navigate = useNavigate();
   // States
   const [propertyType, setPropertyType] = useState('');
   const [transaction, setTransaction] = useState('');
@@ -18,28 +19,82 @@ const Banner: React.FC = () => {
   const [isSqftOpen, setIsSqftOpen] = useState(false);
 
   // Options
-  const propertyOptions = ['Industrial', 'Land', 'Office', 'Retail'];
-  const transactionOptions = ['Rent', 'Purchase'];
+  const propertyOptions = [
+    { label: 'Industrial', value: 'industrial' },
+    { label: 'Land', value: 'land' },
+    { label: 'Office', value: 'office' },
+    { label: 'Retail', value: 'retail' },
+    { label: 'House', value: 'house' },
+    { label: 'Other', value: 'other' }
+  ];
+  
+  const transactionOptions = [
+    { label: 'Lease', value: 'lease' },
+    { label: 'Sale', value: 'sale' }
+  ];
+  
   const sqftOptions = [
-    'Upto 1,000 sq ft',
-    '1,000-2,000 sq ft',
-    '2,000-4,000 sq ft',
-    '4,000-8,000 sq ft',
-    '8,000-15,000 sq ft',
-    '15,000-30,000 sq ft',
-    '30,000-60,000 sq ft',
-    '60,000+ sq ft',
+    { label: '1,000-2,000 sq ft', gte: 1000, lte: 2000 },
+    { label: '2,000-4,000 sq ft', gte: 2000, lte: 4000 },
+    { label: '4,000-8,000 sq ft', gte: 4000, lte: 8000 },
+    { label: '8,000-15,000 sq ft', gte: 8000, lte: 15000 },
+    { label: '15,000-30,000 sq ft', gte: 15000, lte: 30000 },
+    { label: '30,000-60,000 sq ft', gte: 30000, lte: 60000 },
   ];
 
   const handleSearch = () => {
-    console.log({ searchQuery, propertyType, transaction, sqft });
+    const queryParams = new URLSearchParams();
+    
+    // Add search query
+    if (searchQuery) {
+      queryParams.append('search', searchQuery);
+    }
+    
+    // Add sqft range
+    if (sqft) {
+      const selectedSqft = sqftOptions.find(opt => opt.label === sqft);
+      if (selectedSqft) {
+        queryParams.append('built_area__gte', selectedSqft.gte.toString());
+        queryParams.append('built_area__lte', selectedSqft.lte.toString());
+      }
+    }
+    
+    // Add property type
+    if (propertyType) {
+      const selectedProp = propertyOptions.find(opt => opt.label === propertyType);
+      if (selectedProp) {
+        queryParams.append('property_type', selectedProp.value);
+      }
+    }
+    
+    // Add transaction type
+    if (transaction) {
+      const selectedTrans = transactionOptions.find(opt => opt.label === transaction);
+      if (selectedTrans) {
+        queryParams.append('transaction', selectedTrans.value);
+      }
+    }
+    
+
+    queryParams.append('page', '1');
+    
+    navigate(`/all-properties?${queryParams.toString()}`);
   };
 
-  // Close dropdowns when clicking outside
   const handleClickOutside = () => {
     setIsPropertyOpen(false);
     setIsTransactionOpen(false);
     setIsSqftOpen(false);
+  };
+
+  const getPropertyValue = (label: string) => {
+    const option = propertyOptions.find(opt => opt.label === label);
+    return option ? option.value : '';
+  };
+
+  const getTransactionValue = (label: string) => {
+    const option = transactionOptions.find(opt => opt.label === label);
+    return option ? option.value : '';
   };
 
   return (
@@ -85,6 +140,11 @@ const Banner: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#82868A] placeholder-[#82868A] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
               />
             </div>
 
@@ -110,15 +170,15 @@ const Banner: React.FC = () => {
                 <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl mt-1 shadow-lg z-20">
                   {propertyOptions.map((option) => (
                     <div
-                      key={option}
+                      key={option.value}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setPropertyType(option);
+                        setPropertyType(option.label);
                         setIsPropertyOpen(false);
                       }}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
-                      {option}
+                      {option.label}
                     </div>
                   ))}
                 </div>
@@ -147,15 +207,15 @@ const Banner: React.FC = () => {
                 <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl mt-1 shadow-lg z-20">
                   {transactionOptions.map((option) => (
                     <div
-                      key={option}
+                      key={option.value}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setTransaction(option);
+                        setTransaction(option.label);
                         setIsTransactionOpen(false);
                       }}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
-                      {option}
+                      {option.label}
                     </div>
                   ))}
                 </div>
@@ -182,15 +242,15 @@ const Banner: React.FC = () => {
                 <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl mt-1 shadow-lg z-20">
                   {sqftOptions.map((option) => (
                     <div
-                      key={option}
+                      key={option.label}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSqft(option);
+                        setSqft(option.label);
                         setIsSqftOpen(false);
                       }}
                       className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
-                      {option}
+                      {option.label}
                     </div>
                   ))}
                 </div>
@@ -204,14 +264,63 @@ const Banner: React.FC = () => {
                   e.stopPropagation();
                   handleSearch();
                 }}
-                className="w-full px-6 py-3 text-base bg-[#126AD8] text-white border border-[#0D4B99] font-medium rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full px-6 py-3 text-base bg-[#126AD8] text-white border border-[#0D4B99] font-medium rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700"
               >
-                <Link to='/all-properties'>
                 <span>Search</span>
-                </Link>
               </button>
             </div>
           </div>
+          
+          {/* Selected Filters Display */}
+          {(propertyType || transaction || sqft || searchQuery) && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className="text-sm text-gray-600">Selected filters:</div>
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                  Search: {searchQuery}
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {propertyType && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                  Property: {propertyType} ({getPropertyValue(propertyType)})
+                  <button 
+                    onClick={() => setPropertyType('')}
+                    className="text-green-500 hover:text-green-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {transaction && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
+                  Transaction: {transaction} ({getTransactionValue(transaction)})
+                  <button 
+                    onClick={() => setTransaction('')}
+                    className="text-purple-500 hover:text-purple-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {sqft && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">
+                  SQFT: {sqft}
+                  <button 
+                    onClick={() => setSqft('')}
+                    className="text-amber-500 hover:text-amber-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Chat Button */}
