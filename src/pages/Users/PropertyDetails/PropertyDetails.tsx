@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useGetUserSinglePropertyQuery } from "@/redux/features/users/getUserSinglePropertyApi";
 import { useParams } from "react-router-dom";
 import { 
-  Loader2, MapPin, Building, Ruler, Car, Phone,Check, X, 
+  Loader2, MapPin, Building, Ruler, Phone,Check, X, 
   AlertCircle, Calendar, Zap, Layers, Warehouse,
   Maximize2, Shield, ParkingCircle, TreePine,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useGetPropertyDetailsQuery } from "@/redux/features/broker/property/getPropertyDetailsApi";
 
 const PropertyDetails = () => {
   const { id } = useParams();
-  const { data: property, isLoading, error } = useGetUserSinglePropertyQuery(id);
+  const { data: property, isLoading, error } = useGetPropertyDetailsQuery(id);
 
   if (isLoading) {
     return (
@@ -37,18 +37,6 @@ const PropertyDetails = () => {
     return transaction === 'sale' ? 'For Sale' : 'For Rent';
   };
 
-  const formatRiskLevel = (risk: string) => {
-    const colors = {
-      low: 'bg-blue-100 text-blue-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-red-100 text-red-800'
-    };
-    return (
-      <span className={`px-3 py-1 rounded-full text-sm font-medium ${colors[risk as keyof typeof colors] || 'bg-gray-100 text-gray-800'}`}>
-        {risk.charAt(0).toUpperCase() + risk.slice(1)} Risk
-      </span>
-    );
-  };
 
   const formatPropertyType = (type: string) => {
     const types: Record<string, string> = {
@@ -110,7 +98,6 @@ const PropertyDetails = () => {
                   <span className="inline-block px-4 py-2 bg-blue-600 text-white text-lg font-semibold rounded-lg mb-2">
                     {formatTransaction(property.transaction)}
                   </span>
-                  {formatRiskLevel(property.risk_level)}
                 </div>
               </div>
 
@@ -260,7 +247,7 @@ const PropertyDetails = () => {
             </div>
 
             {/* Permitted Uses */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            {/* <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Permitted Uses</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {[
@@ -291,7 +278,7 @@ const PropertyDetails = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Related Properties */}
             {property.related_properties && property.related_properties.length > 0 && (
@@ -403,7 +390,6 @@ const PropertyDetails = () => {
                   
                   <div className="flex items-start">
                     <div className="w-5 h-5 mr-3 mt-0.5 flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-500 font-bold">WA</span>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">WhatsApp Number</p>
@@ -434,7 +420,6 @@ const PropertyDetails = () => {
                     rel="noopener noreferrer"
                     className="w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
                   >
-                    <span className="font-bold mr-2">WA</span>
                     WhatsApp
                   </a>
                 </div>

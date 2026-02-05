@@ -39,6 +39,7 @@ import CreateNewLead from "@/pages/brokerDashboard/CreateNewLead/CreateNewLead";
 import UpdateLead from "@/pages/brokerDashboard/UpdateLead/UpdateLead";
 import LeadManagement from "@/pages/vendorDashboard/LeadManagement/LeadManagement";
 import PropertyDetails from "@/pages/Users/PropertyDetails/PropertyDetails";
+import BrokerPropertyDetails from "@/pages/brokerDashboard/PropertyDetails/BrokerPropertyDetails";
 
 
 const routes = createBrowserRouter([
@@ -161,7 +162,7 @@ const routes = createBrowserRouter([
       },
       {
         path:'property/:id/view',
-        element:<PropertyDetails/>
+        element:<BrokerPropertyDetails/>
       },
       {
         path:'messages',

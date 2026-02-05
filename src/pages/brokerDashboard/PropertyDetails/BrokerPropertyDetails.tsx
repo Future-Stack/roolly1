@@ -60,7 +60,7 @@ interface PropertyDetailsType {
     user: string;
 }
 
-const PropertyDetails: React.FC = () => {
+const BrokerPropertyDetails: React.FC = () => {
     const { id } = useParams();
     const [currentImage, setCurrentImage] = useState(0);
     const { data: property, isLoading, isError } = useGetPropertyDetailsQuery(id);
@@ -525,4 +525,4 @@ const PropertyDetails: React.FC = () => {
     );
 };
 
-export default PropertyDetails;
+export default BrokerPropertyDetails;
