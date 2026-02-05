@@ -40,6 +40,8 @@ import UpdateLead from "@/pages/brokerDashboard/UpdateLead/UpdateLead";
 import LeadManagement from "@/pages/vendorDashboard/LeadManagement/LeadManagement";
 import PropertyDetails from "@/pages/Users/PropertyDetails/PropertyDetails";
 import BrokerPropertyDetails from "@/pages/brokerDashboard/PropertyDetails/BrokerPropertyDetails";
+import PrivacyPolicy from "@/components/Home/PrivecyPolicy";
+import Terms from "@/components/Home/Terms";
 
 
 const routes = createBrowserRouter([
@@ -74,7 +76,15 @@ const routes = createBrowserRouter([
       {
         path:'/forgot-password-req',
         element:<ForgotPasswordReq/>
-      }
+      },
+      {
+        path:'/privecy-policy',
+        element:<PrivacyPolicy/>
+      },
+      {
+        path:'/terms',
+        element:<Terms/>
+      },
     ],
   },
 

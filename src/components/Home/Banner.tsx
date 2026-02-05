@@ -326,14 +326,14 @@ const Banner: React.FC = () => {
         {/* Chat Button */}
         <button
           onClick={() => setIsChatbotOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 mb-[68px] mr-[61px] rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 mb-[68px] mr-[61px] rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 cursor-pointer z-50"
         >
           <img src={chatbotImg} alt="chatbot_img" />
         </button>
 
         {/* Chatbot Modal */}
         {isChatbotOpen && (
-          <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-60 p-4">
             <div className="w-full max-w-md">
               <ChatbotMain onClose={() => setIsChatbotOpen(false)} />
             </div>

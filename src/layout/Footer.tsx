@@ -2,8 +2,10 @@ import { Instagram, Mail } from 'lucide-react';
 import React from 'react';
 import footerImg from '../assets/footerImg.png';
 import logoImg from '../assets/logo.svg';
+import { useNavigate } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate()
   return (
     <footer
       className="relative w-full bg-cover bg-center bg-no-repeat"
@@ -50,7 +52,7 @@ const Footer: React.FC = () => {
 
 
         {/* Logo and Social */}
-        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
           <img src={logoImg} alt="Logo" className="w-24 sm:w-32" />
 
           <div className="flex flex-col items-center gap-1 sm:gap-2">
@@ -78,8 +80,8 @@ const Footer: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center text-white text-sm sm:text-base gap-2 sm:gap-0">
             <p>© 2025 All Rights Reserved</p>
             <div className="flex gap-4">
-              <p>Privacy Policy</p>
-              <p>Terms of Use</p>
+              <button onClick={()=> navigate('/privecy-policy')} className='cursor-pointer'>Privacy Policy</button>
+              <button onClick={()=> navigate('/terms')} className='cursor-pointer'>Terms of Use</button>
             </div>
           </div>
         </div>
