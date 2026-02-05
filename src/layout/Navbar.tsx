@@ -11,7 +11,6 @@ const Broker360Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isDetailsPage = location.pathname === `/details/${id}`;
-
   return (
     <header className={`${isDetailsPage ? 'bg-white shadow-md' : 'bg-[#0000002E]'} w-full fixed top-0 left-0 right-0 z-50`}>
       <div className="px-4 sm:px-6 lg:px-[200px] py-2.5 sm:py-3">
@@ -40,7 +39,6 @@ const Broker360Header: React.FC = () => {
             </Link>
           </div>
 
-          {/* Desktop Buttons (Right side - hidden on mobile) */}
           <div className="hidden lg:flex items-center gap-4">
             <Link to="/all-properties">
               <button className="px-6 py-2.5 text-black text-lg border font-inter border-[#444A50] rounded-md transition duration-150 hover:bg-gray-100 whitespace-nowrap">
@@ -76,7 +74,7 @@ const Broker360Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+
       {isMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
           {/* Backdrop */}
@@ -102,7 +100,6 @@ const Broker360Header: React.FC = () => {
               </button>
             </div>
 
-            {/* Navigation Links */}
             <div className="p-4 space-y-4">
               <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <div className="py-3 px-4 rounded-lg hover:bg-gray-100 transition duration-150">
