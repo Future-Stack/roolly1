@@ -16,6 +16,7 @@ interface ImageUpload {
 interface FormData {
     property_name: string;
     transaction: string;
+    postcode: number;
     property_type: string;
     location: string;
     estimated_price: string;
@@ -31,6 +32,8 @@ interface FormData {
     shutters_height_width: string;
     lighting_type: string;
     epc_rating: string;
+    // ev-chnaging: string;
+    // solar-panels: string;
     any_further_details: string;
     yard_space: boolean;
     yard_area: string;
@@ -58,6 +61,7 @@ const AddProperty: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
         property_name: '',
         transaction: 'sale',
+        postcode: 1,
         property_type: 'industrial',
         location: '',
         estimated_price: '',
@@ -229,11 +233,13 @@ const AddProperty: React.FC = () => {
     const transactionOptions = ['sale', 'lease'];
     const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
-    const riskLevelOptions = ['low', 'medium', 'high'];
-    const phaseOptions = ['1', '2', '3'];
-    const lightingTypeOptions = ['1', '2', '3'];
-    const epcRatingOptions = ['1', '2', '3', '4', '5', '6', '7'];
-
+    // const riskLevelOptions = ['low', 'medium', 'high'];
+    const phaseOptions = ['Single phase','Three Phase',];
+    const lightingTypeOptions = ['Halogen', 'LED', ];
+    
+    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+    const evChanging = ['yes', 'no', ];
+    const solarPanel = ['yes', 'no', ];
     return (
         <div className="w-full min-h-screen">
             <div>
@@ -293,6 +299,22 @@ const AddProperty: React.FC = () => {
                                     </select>
                                 </div>
 
+                                    <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Post Code *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="post_code "
+                                        value={formData.postcode}
+                                        onChange={handleInputChange}
+                                        placeholder="Post Code "
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+
+
                                 {/* Property Type */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
@@ -332,10 +354,10 @@ const AddProperty: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Estimated Price ($) *
+                                       Price (£) *
                                     </label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         name="estimated_price"
                                         value={formData.estimated_price}
                                         onChange={handleInputChange}
@@ -350,7 +372,7 @@ const AddProperty: React.FC = () => {
                                 {/* lease Duration */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Lease Duration (years)
+                                        Minimum lease duration (years)
                                     </label>
                                     <input
                                         type="number"
@@ -368,7 +390,7 @@ const AddProperty: React.FC = () => {
                             {/* Description */}
                             <div className="mt-5">
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Description
+                                    Location Description
                                 </label>
                                 <textarea
                                     name="description"
@@ -403,6 +425,68 @@ const AddProperty: React.FC = () => {
                                     />
                                 </div>
 
+                                {/* add new filed */}
+                             
+                             <div className="">
+    <label className="block text-base text-gray-900 mb-1.5">
+        Built Area (sq m)
+    </label>
+    <input
+        type="text"
+        readOnly
+       
+        value={
+            formData.built_area 
+            ? (parseFloat(formData.built_area) / 10.76).toFixed(2) 
+            : ""
+        }
+        placeholder="Calculated automatically"
+        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-gray-100 rounded-md cursor-not-allowed border border-gray-200"
+    />
+</div>
+
+
+{/* Eaves Height  */}
+<div className="">
+    <label className="block text-base text-gray-900 mb-1.5">
+        Eaves height (m)
+    </label>
+    <input
+        type="text"
+        name="eaves_height"
+        placeholder="e.g., 6.5"
+        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    />
+</div>
+
+{/* Height to apex/pitch */}
+<div className="">
+    <label className="block text-base text-gray-900 mb-1.5">
+        Height to apex/pitch
+    </label>
+    <input
+        type="text"
+        name="height_apex_pitch"
+        placeholder="Enter height"
+        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    />
+</div>
+
+{/* Power capacity  */}
+<div className="">
+    <label className="block text-base text-gray-900 mb-1.5">
+        Power capacity (Amps or KVA)
+    </label>
+    <input
+        type="text"
+        name="power_capacity"
+        placeholder="e.g., 100 Amps"
+        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    />
+</div>
+
+
+
                                 {/* Roller Shutter Type */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
@@ -410,6 +494,21 @@ const AddProperty: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
+                                        name="roller_shutter_type"
+                                        value={formData.roller_shutter_type}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Manual"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                       Number of roller shutters
+                                    </label>
+                                    <input
+                                        type="number"
                                         name="roller_shutter_type"
                                         value={formData.roller_shutter_type}
                                         onChange={handleInputChange}
@@ -436,7 +535,7 @@ const AddProperty: React.FC = () => {
                                 {/* Shutters Height & Width */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Height & width of shutters
+                                        Dimensions of roller shutter
                                     </label>
                                     <input
                                         type="text"
@@ -516,6 +615,45 @@ const AddProperty: React.FC = () => {
                                     </select>
                                 </div>
 
+
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                    EV charging
+                                    </label>
+                                    <select 
+                                        name="ev-chnaging"
+                                        // value={formData.}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {evChanging.map(option => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                     Solar Panels
+                                    </label>
+                                    <select 
+                                        name="ev-chnaging"
+                                        // value={formData.}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        {solarPanel.map(option => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+
+
                                 {/* Power Capacity */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
@@ -532,9 +670,9 @@ const AddProperty: React.FC = () => {
                                 </div>
 
                                 {/* Phase */}
-                                <div>
+                                {/* <div>
                                     <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-                                        Phase
+                                        Electricity supply
                                     </label>
                                     <select 
                                         name="phase"
@@ -544,11 +682,32 @@ const AddProperty: React.FC = () => {
                                     >
                                         {phaseOptions.map(option => (
                                             <option key={option} value={option}>
-                                                {option} Phase
+                                                {option} 
                                             </option>
                                         ))}
                                     </select>
-                                </div>
+                                </div> */}
+
+
+                              
+<div>
+    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+        Electricity supply
+    </label>
+    <select 
+        name="phase"
+        value={formData.phase}
+        onChange={handleInputChange}
+        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    >
+        <option value="">Select supply type</option> 
+        {phaseOptions.map(option => (
+            <option key={option} value={option}>
+                {option}
+            </option>
+        ))}
+    </select>
+</div>
 
                                 {/* Any further details */}
                                 <div>
@@ -611,7 +770,7 @@ const AddProperty: React.FC = () => {
                                 {/* Area of yard */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Area of yard (sq ft)
+                                      Area of yard (sq ft or acres)
                                     </label>
                                     <input
                                         type="text"
@@ -657,7 +816,7 @@ const AddProperty: React.FC = () => {
                         </div>
 
                         {/* Risk Level */}
-                        <div className="mb-6">
+                        {/* <div className="mb-6">
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Risk Level
                             </h2>
@@ -673,7 +832,7 @@ const AddProperty: React.FC = () => {
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                        </div> */}
 
                         {/* Contact Information */}
                         <div className="mb-8">
@@ -691,7 +850,7 @@ const AddProperty: React.FC = () => {
                                         name="phone_number"
                                         value={formData.phone_number}
                                         onChange={handleInputChange}
-                                        placeholder="e.g., +8801996629397"
+                                        placeholder="e.g., +447911123456"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         required
                                     />
@@ -706,7 +865,7 @@ const AddProperty: React.FC = () => {
                                         name="whatsapp_number"
                                         value={formData.whatsapp_number}
                                         onChange={handleInputChange}
-                                        placeholder="e.g., +8801712345678"
+                                        placeholder="e.g., +447911123456"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
@@ -777,7 +936,7 @@ const AddProperty: React.FC = () => {
                                         {/* Text + Button Section */}
                                         <div className="text-center sm:text-left w-full">
                                             <p className="text-md text-gray-600 font-semibold">
-                                                Please upload Brochure, PDF less than 100KB
+                                                Please upload Brochure, PDF less than 100KB 
                                             </p>
 
                                             <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
@@ -818,7 +977,7 @@ const AddProperty: React.FC = () => {
                                         {/* Text + Button Section */}
                                         <div className="text-center sm:text-left w-full">
                                             <p className="text-md text-gray-600 font-semibold">
-                                                Please upload Video, less than 100MB
+                                                Please upload Video, less than 100MB (approx. 1 minute duration)
                                             </p>
 
                                             <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
