@@ -1,4 +1,4 @@
-import { useGetAnalyticsQuery } from '@/redux/features/vendor/getAnalyticsApi';
+import { useGetAnalyticsQuery, useGetLeadSourcesQuery, useGetPropertyTypePerformanceQuery } from '@/redux/features/vendor/analyticsApi';
 import { useGetVendorMonthlyPerformQuery } from '@/redux/features/vendor/vendorMonthlyPerformApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -33,7 +33,9 @@ interface MonthlyPerformanceData {
 const AnalyticsReporting: React.FC = () => {
     const { data: analytics, isLoading, isError } = useGetAnalyticsQuery(undefined);
     const { data: monthlyPerformance, isLoading: isLoadingMonthly } = useGetVendorMonthlyPerformQuery(undefined);
-    
+    const { data: leadData } = useGetLeadSourcesQuery(undefined);
+    const { data: performanceData } = useGetPropertyTypePerformanceQuery(undefined);
+
     const analyticsData = analytics as AnalyticsData;
     const monthlyPerformanceData = monthlyPerformance as MonthlyPerformanceData;
     
@@ -53,19 +55,49 @@ const AnalyticsReporting: React.FC = () => {
       conversions: item.completed_leads
     })) || [];
 
-    const propertyTypeData = [
-        { type: 'Industrial', views: 165000, enquiries: 30000 },
-        { type: 'Land', views: 110000, enquiries: 52000 },
-        { type: 'Office', views: 200000, enquiries: 85000 },
-        { type: 'Retail', views: 160000, enquiries: 55000 }
-    ];
+    const propertyTypeData = performanceData?.map((item: any) => ({
+        type: item.property_type.charAt(0).toUpperCase() + item.property_type.slice(1).toLowerCase(),
+        views: item.total_views,
+        enquiries: item.total_enquiries
+    })) || [];
 
-    const leadSources = [
-        { name: 'AI Chat', leads: 20, percentage: 53, color: 'bg-orange-500' },
-        { name: 'Message', leads: 4, percentage: 23, color: 'bg-yellow-500' },
-        { name: 'Whatsapp', leads: 2, percentage: 14, color: 'bg-green-500' },
-        { name: 'Call', leads: 1, percentage: 10, color: 'bg-pink-500' }
-    ];
+    // const leadSources = [
+    //     { name: 'AI Chat', leads: 20, percentage: 53, color: 'bg-orange-500' },
+    //     { name: 'Message', leads: 4, percentage: 23, color: 'bg-yellow-500' },
+    //     { name: 'Whatsapp', leads: 2, percentage: 14, color: 'bg-green-500' },
+    //     { name: 'Call', leads: 1, percentage: 10, color: 'bg-pink-500' }
+    // ];
+
+    const getSourceColor = (name: string) => {
+        switch (name.toLowerCase()) {
+            case 'ai chat':
+            case 'ai':
+                return 'bg-orange-500';
+            case 'message':
+                return 'bg-yellow-500';
+            case 'whatsapp':
+                return 'bg-green-500';
+            case 'call':
+                return 'bg-pink-500';
+            default:
+                return 'bg-gray-500';
+        }
+    };
+
+    const getRawSources = (data: any) => {
+        if (Array.isArray(data)) return data;
+        if (data?.sources) return Array.isArray(data.sources) ? data.sources : [data.sources];
+        if (data?.source) return [data];
+        return [];
+    };
+
+    const leadSources = getRawSources(leadData).map((item: any) => ({
+        name: item.source || item.name || 'Unknown',
+        leads: item.leads || 0,
+        percentage: item.percentage || 0,
+        color: getSourceColor(item.source || item.name || '')
+    }));
+    // console .log(leadSources);
 
     // Determine subtitle color based on value
     const getSubtitleColor = (value: number | string) => {
@@ -219,7 +251,7 @@ const AnalyticsReporting: React.FC = () => {
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <h2 className="text-[17px] font-semibold text-gray-900 mb-6">Lead Sources</h2>
                     <div className="space-y-6">
-                        {leadSources.map((source, index) => (
+                        {leadSources?.map((source:any, index:any) => (
                             <div key={index}>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-[14px] text-gray-900 font-normal">{source.name}</span>

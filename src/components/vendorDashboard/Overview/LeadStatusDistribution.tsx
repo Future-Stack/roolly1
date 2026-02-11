@@ -1,11 +1,16 @@
 import { useState } from "react";
 import StatusCard from "./StatusCard";
+import { useGetLeadStatusCountsQuery } from "@/redux/features/vendor/overview";
 
 interface LeadStatusDistributionProps {
   onFilterChange?: (selectedStatuses: string[]) => void;
 }
 
 const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilterChange }) => {
+  const { data, isLoading, isError } = useGetLeadStatusCountsQuery(undefined);
+  
+  console.log('Lead Status Data:', data);
+
   // ✅ State to track selected filters (all selected by default)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([
     'PrimeLeads',
@@ -15,15 +20,15 @@ const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilte
 
   const statuses = [
     {
-      count: 5,
-      label: 'Prime Leads', // ✅ UPDATED: Added space
+      count: data?.green ?? 0,
+      label: 'Prime Leads',
       value: 'PrimeLeads',
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-600',
       borderColor: 'border-blue-200'
     },
     {
-      count: 28,
+      count: data?.amber ?? 0,
       label: 'Warm Lead',
       value: 'WarmLead',
       bgColor: 'bg-[#FEFCE8]',
@@ -31,7 +36,7 @@ const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilte
       borderColor: 'border-[#CA8A04]'
     },
     {
-      count: 85,
+      count: data?.red ?? 0,
       label: 'Cold Lead',
       value: 'ColdLead',
       bgColor: 'bg-[#FFEDD5]',
