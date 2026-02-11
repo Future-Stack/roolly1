@@ -1,25 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { MapPin, Minus } from 'lucide-react';
-import chatbotLogo from '../../../assets/logo2.png';
-import mainLogo from '../../../assets/main-logo.png';
+import { MapPin } from 'lucide-react';
 import chatbot from '../../../assets/chatbot-img.png';
-
+import locImg1 from '../../../assets/searchLocation1.jpg'
+import locImg2 from '../../../assets/searchLocation2.jpg'
+import locImg3 from '../../../assets/searchLocation3.jpg'
+import locImg4 from '../../../assets/searchLocation4.jpg'
 const LocationSelectionModal: React.FC<{ 
   onClose: any;
   onSelectCity: (cityData: any) => void;
-}> = ({ onClose, onSelectCity }) => {
+}> = ({ onSelectCity }) => {
     const locations = [
         {
-            name: 'Manchester',
-            image: 'https://images.unsplash.com/photo-1560969184-10fe8719e047?w=400&h=500&fit=crop'
+            name: 'Dhaka',
+            image: locImg1
         },
         {
             name: 'Liverpool',
-            image: 'https://images.unsplash.com/photo-1523906630133-f6934a1ab2b9?w=400&h=500&fit=crop'
+            image: locImg2
         },
         {
-            name: 'London',
-            image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=500&fit=crop'
+            name: 'Lancashire',
+            image: locImg3
+        },
+        {
+            name: 'North Wales',
+            image: locImg4
         }
     ];
 
@@ -28,90 +32,60 @@ const LocationSelectionModal: React.FC<{
     };
 
     return (
-        <div className="flex items-start justify-center p-4">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden h-[520px]">
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        {/* Bot Icon */}
-                        <div>
-                            <img src={chatbotLogo} alt="" />
-                        </div>
+        <div className="p-5 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {/* User Choice (Simulated chat) */}
+            <div className="flex justify-end">
+                <div className="bg-[#0446DE] text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-md shadow-blue-100 max-w-[80%] flex items-center gap-2">
+                    <span className="text-sm font-medium">Show property by location.</span>
+                    <MapPin size={16} />
+                </div>
+            </div>
 
-                        {/* Logo */}
-                       <div>
-                        <img src={mainLogo} alt="" />
-                       </div>
+            {/* Bot Response */}
+            <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-100">
+                        <img src={chatbot} alt="chatbot" className="w-6 h-6 object-contain" />
                     </div>
-                    <button
-                        className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-900 hover:bg-gray-50 transition-colors"
-                        onClick={onClose}
+                </div>
+                <div className="bg-white p-4 shadow-sm border border-gray-100 rounded-2xl rounded-tl-none max-w-[80%]">
+                    <p className="text-[#2F3237] text-sm leading-relaxed">
+                        Here is the locations.. Choose your preferred location:
+                    </p>
+                </div>
+            </div>
+
+            {/* Location Cards */}
+            <div className="grid grid-cols-1 gap-4 pb-4">
+                {locations.map((location, index) => (
+                    <div
+                        key={index}
+                        className="relative rounded-2xl overflow-hidden cursor-pointer group h-40 shadow-sm hover:shadow-xl transition-all duration-300"
                     >
-                        <Minus size={18} strokeWidth={2.5} className="text-gray-900" />
-                    </button>
-                </div>
+                        {/* Background Image */}
+                        <img
+                            src={location.image}
+                            alt={location.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
 
-                {/* Content - Scrollable area */}
-                <div className="p-5 h-[calc(520px-80px)] overflow-y-auto">
-                    {/* Show property by location link */}
-                    <div className="flex items-center justify-end gap-2 mb-5">
-                        <div className='bg-white p-2 rounded-md shadow-xs'>
-                            <span className="text-[#0D4B99] text-sm font-medium">Show property by location.</span>
-                        </div>
-                        <MapPin size={20} className="text-[#0D4B99]" />
-                    </div>
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
-                    {/* Location instruction */}
-                    <div className="flex items-start gap-3 mb-6">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                            <img src={chatbot} alt="chatbot-img" />
-                        </div>
-                        <div className='bg-white p-2 rounded-md shadow-sm'>
-                            <p className="text-gray-900 text-base leading-relaxed">
-                                Here is the locations..
-                            </p>
-                            <p className="text-gray-900 text-base leading-relaxed">
-                                Choose your preferred location:
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Location Cards */}
-                    <div className="grid grid-cols-2 gap-4 sm:gap-3 pb-4">
-                        {locations.map((location, index) => (
-                            <div
-                                key={index}
-                                className="relative rounded-2xl overflow-hidden cursor-pointer group h-56"
+                        {/* Content */}
+                        <div className="absolute inset-0 flex items-end justify-between p-5 mt-auto">
+                            <h3 className="text-white text-lg font-bold tracking-wide">
+                                {location.name}
+                            </h3>
+                            <button 
+                                className="px-6 py-2 bg-white text-[#0D4B99] text-sm font-bold rounded-xl hover:bg-blue-600 hover:text-white transition-all transform active:scale-95 shadow-lg"
+                                onClick={() => handleExploreClick(location)}
                             >
-                                {/* Background Image */}
-                                <img
-                                    src={location.image}
-                                    alt={location.name}
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                />
-
-                                {/* Gradient Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60"></div>
-
-                                {/* Content */}
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
-                                    {/* Explore Button */}
-                                    <button 
-                                        className="px-6 py-2 text-white text-sm font-medium rounded-sm hover:bg-white hover:text-black transition-colors shadow-lg border border-white"
-                                        onClick={() => handleExploreClick(location)}
-                                    >
-                                        Explore
-                                    </button>
-
-                                    {/* Location Name */}
-                                    <h3 className="text-white text-xl font-semibold tracking-wide">
-                                        {location.name}
-                                    </h3>
-                                </div>
-                            </div>
-                        ))}
+                                Explore
+                            </button>
+                        </div>
                     </div>
-                </div>
+                ))}
             </div>
         </div>
     );

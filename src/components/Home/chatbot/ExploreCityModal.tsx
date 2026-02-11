@@ -1,21 +1,51 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ArrowLeft, MapPin, Minus } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import chatbot from '../../../assets/chatbot-img.png';
-import chatbotLogo from '../../../assets/logo2.png';
-import mainLogo from '../../../assets/main-logo.png';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useGetPublicPropertiesQuery } from '@/redux/features/public/publicPropertyApi';
+import PropertyCard from './components/PropertyCard';
 
 const ExploreCityModal: React.FC<{
     onClose: any;
     selectedCity: any;
     onBack?: () => void;
-    onViewDetails?: () => void; 
-}> = ({ onClose, selectedCity, onBack, onViewDetails }) => {
+    onViewDetails?: () => void;
+}> = ({ selectedCity, onViewDetails }) => {
     const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const [selectedPricing, setSelectedPricing] = useState<string | null>(null);
     const [showSearching, setShowSearching] = useState(false);
     const [showProperties, setShowProperties] = useState(false);
+
+    // Helper to map size labels to numeric ranges
+    const getAreaRange = (size: string | null) => {
+        if (!size) return { gte: undefined, lte: undefined };
+        const cleanSize = size.toLowerCase();
+        if (cleanSize.includes('upto 1,000')) return { gte: 0, lte: 1000 };
+        if (cleanSize.includes('1,000 - 2,000')) return { gte: 1000, lte: 2000 };
+        if (cleanSize.includes('2,000 - 4,000')) return { gte: 2000, lte: 4000 };
+        if (cleanSize.includes('4,000 - 8,000')) return { gte: 4000, lte: 8000 };
+        if (cleanSize.includes('8,000 - 15,000')) return { gte: 8000, lte: 15000 };
+        if (cleanSize.includes('15,000 - 30,000')) return { gte: 15000, lte: 30000 };
+        if (cleanSize.includes('30,000 - 60,000')) return { gte: 30000, lte: 60000 };
+        if (cleanSize.includes('60,000 sq ft. & above')) return { gte: 60000, lte: 1000000 };
+        return { gte: undefined, lte: undefined };
+    };
+
+    const areaRange = useMemo(() => getAreaRange(selectedPricing), [selectedPricing]);
+
+    // Prepare API search query
+    const transactionLabel = selectedMethod === 'Purchase' ? 'sale' : 'lease';
+    const { data: propertiesData, isFetching } = useGetPublicPropertiesQuery(
+        {
+            search: `${selectedCity?.name || ""} ${selectedProperty || ""} ${transactionLabel}`.trim(),
+            built_area__gte: areaRange.gte,
+            built_area__lte: areaRange.lte,
+            page_size: 10
+        },
+        {
+            skip: !selectedPricing 
+        }
+    );
 
     // Property size options
     const propertySizes = [
@@ -34,311 +64,196 @@ const ExploreCityModal: React.FC<{
         if (selectedPricing) {
             setShowSearching(true);
             setShowProperties(false);
-            
+
             const timer = setTimeout(() => {
                 setShowSearching(false);
                 setShowProperties(true);
-            }, 4000); // 4 seconds
+            }, 1500);
 
             return () => clearTimeout(timer);
         }
     }, [selectedPricing]);
 
-    const handleViewDetails = () => {
-        if (onViewDetails) {
-            onViewDetails();
-        }
-    };
+    const MessageWrapper: React.FC<{ children: React.ReactNode, type?: 'bot' | 'user' }> = ({ children, type = 'bot' }) => (
+        <div className={`flex ${type === 'user' ? 'justify-end' : 'justify-start'} mb-5 animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+            {type === 'bot' && (
+                <div className="flex-shrink-0 mr-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-100">
+                        <img src={chatbot} alt="chatbot" className="w-6 h-6 object-contain" />
+                    </div>
+                </div>
+            )}
+            <div className={`${type === 'user'
+                ? 'bg-[#0446DE] text-white rounded-tr-none'
+                : 'bg-white text-[#2F3237] border border-gray-100 rounded-tl-none'
+                } px-5 py-3 rounded-2xl shadow-sm max-w-[80%]`}>
+                {children}
+            </div>
+        </div>
+    );
 
     return (
-        <div className="flex items-start justify-center p-4">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden h-[520px]">
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        {/* Back Button */}
-                        {onBack && (
-                            <button
-                                onClick={onBack}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors mr-2"
-                            >
-                                <ArrowLeft size={20} className="text-gray-700" />
-                            </button>
-                        )}
-
-                        {/* Bot Icon */}
-                        <div>
-                            <img src={chatbotLogo} alt="" />
-                        </div>
-
-                        {/* Logo */}
-                        <div>
-                            <img src={mainLogo} alt="" />
-                        </div>
-                    </div>
-                    <button
-                        className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-900 hover:bg-gray-50 transition-colors"
-                        onClick={onClose}
-                    >
-                        <Minus size={18} strokeWidth={2.5} className="text-gray-900" />
-                    </button>
-                </div>
-
-                {/* Content - Scrollable area */}
-                <div className="p-5 h-[calc(520px-80px)] overflow-y-auto">
-                    {/* Show property by location link */}
-                    <div className="flex items-center justify-end gap-2 mb-5">
-                        <div className='bg-white p-2 rounded-md shadow-xs'>
-                            <span className="text-[#0D4B99] text-sm font-medium">Show property by location.</span>
-                        </div>
-                        <MapPin size={20} className="text-[#0D4B99]" />
-                    </div>
-
-                    {/* Location instruction */}
-                    <div className="flex items-start gap-3 mb-6">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                            <img src={chatbot} alt="chatbot-img" />
-                        </div>
-                        <div className='bg-white p-2 rounded-md shadow-sm'>
-                            <p className="text-gray-900 text-base leading-relaxed">
-                                Here is the locations..
-                            </p>
-                            <p className="text-gray-900 text-base leading-relaxed">
-                                Choose your preferred location:
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Selected City Card */}
-                    <div className="mb-6">
-                        <div className="relative rounded-2xl overflow-hidden cursor-pointer group h-56 w-50">
-                            {/* Background Image */}
-                            <img
-                                src={selectedCity.image}
-                                alt={selectedCity.name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-
-                            {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60"></div>
-
-                            {/* Content */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-end gap-3 p-4">
-                                {/* Location Name */}
-                                <h3 className="text-[#FDFEFF] text-xl font-semibold tracking-wide">
-                                    {selectedCity.name}
-                                </h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* New content */}
-                    <div className="flex items-start gap-3 mb-6">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                            <img src={chatbot} alt="chatbot-img" />
-                        </div>
-                        <div className='bg-white p-2 rounded-md shadow-sm'>
-                            <p className="text-gray-900 text-base leading-relaxed">
-                                What type of property are you looking for?
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* More content to show scroll */}
-                    <div className='flex gap-2 pl-12'>
-                        <button
-                            className={`rounded-md border px-2 py-1.5 hover:bg-gray-100 hover:text-black ${selectedProperty === 'Industrial'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-[#E7F0FB] border-[#B6D1F3] text-[#25292C]'
-                                }`}
-                            onClick={() => setSelectedProperty('Industrial')}
-                        >
-                            Industrial
-                        </button>
-                        <button
-                            className={`rounded-md border px-2 py-1.5 hover:bg-gray-100 hover:text-black  ${selectedProperty === 'Land'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-[#E7F0FB] border-[#B6D1F3] text-[#25292C]'
-                                }`}
-                            onClick={() => setSelectedProperty('Land')}
-                        >
-                            Land
-                        </button>
-                        <button
-                            className={`rounded-md border px-2 py-1.5 hover:bg-gray-100 hover:text-black  ${selectedProperty === 'Office'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-[#E7F0FB] border-[#B6D1F3] text-[#25292C]'
-                                }`}
-                            onClick={() => setSelectedProperty('Office')}
-                        >
-                            Office
-                        </button>
-                        <button
-                            className={`rounded-md border px-2 py-1.5 hover:bg-gray-100 hover:text-black  ${selectedProperty === 'Retail'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-[#E7F0FB] border-[#B6D1F3] text-[#25292C]'
-                                }`}
-                            onClick={() => setSelectedProperty('Retail')}
-                        >
-                            Retail
-                        </button>
-                    </div>
-
-                    {/* selection */}
-                    {selectedProperty && (
-                        <div className='mt-6'>
-                            <div className="flex items-start gap-3 mb-6">
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                    <img src={chatbot} alt="chatbot-img" />
-                                </div>
-                                <div className='bg-white p-2 rounded-md shadow-sm w-full'>
-                                    <p className="text-gray-900 text-base leading-relaxed">
-                                        Choose transaction type.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* More content to show scroll */}
-                            <div className='flex gap-2 pl-12'>
-                                <button
-                                    className={`rounded-md border px-2 py-1.5 ${selectedMethod === 'Rent'
-                                        ? 'bg-blue-600 text-white border-blue-600'
-                                        : 'bg-[#E7F0FB] border-[#B6D1F3] text-[#25292C] hover:bg-gray-100'
-                                        }`}
-                                    onClick={() => setSelectedMethod('Rent')}
-                                >
-                                    Rent
-                                </button>
-                                <button
-                                    className={`rounded-md border px-2 py-1.5 ${selectedMethod === 'Purchase'
-                                        ? 'bg-blue-600 text-white border-blue-600'
-                                        : 'bg-[#E7F0FB] border-[#B6D1F3] text-[#25292C] hover:bg-gray-100'
-                                        }`}
-                                    onClick={() => setSelectedMethod('Purchase')}
-                                >
-                                    Purchase
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-
-                    {/* pricing */}
-                    {selectedMethod && (
-                        <div className='mt-6'>
-                            <div className="flex items-start gap-3 mb-6">
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                    <img src={chatbot} alt="chatbot-img" />
-                                </div>
-                                <div className='bg-white p-2 rounded-md shadow-sm w-full'>
-                                    <p className="text-gray-900 text-base leading-relaxed">
-                                        What's your preferred property size?
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Property size options */}
-                            <div className='pl-12'>
-                                {selectedPricing ? (
-                                    // Show only selected button
-                                    <button
-                                        className='bg-blue-600 text-white rounded-md border border-blue-600 px-2 py-1.5 block'
-                                    >
-                                        {selectedPricing}
-                                    </button>
-                                ) : (
-                                    // Show all buttons
-                                    <>
-                                        {propertySizes.map((size, index) => (
-                                            <button
-                                                key={index}
-                                                className='bg-[#E7F0FB] rounded-md border border-[#B6D1F3] px-2 py-1.5 text-[#25292C] hover:bg-gray-100 mt-2 block w-full text-left'
-                                                onClick={() => setSelectedPricing(size)}
-                                            >
-                                                {size}
-                                            </button>
-                                        ))}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Searching message (shown for 4 seconds) */}
-                    {selectedPricing && showSearching && (
-                        <div className="flex items-start gap-3 mb-6 mt-4">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                <img src={chatbot} alt="chatbot-img" />
-                            </div>
-                            <div className='bg-white p-2 rounded-md shadow-sm w-full'>
-                                <p className="text-gray-900 text-base leading-relaxed">
-                                    Searching ...
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Properties (shown after 4 seconds) */}
-                    {selectedPricing && showProperties && (
-                        <div>
-                            <div className="flex items-start gap-3 mb-6 mt-4">
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                    <img src={chatbot} alt="chatbot-img" />
-                                </div>
-                                <div>
-                                    <div className='bg-white p-2 rounded-md shadow-sm w-full'>
-                                        <p className="text-gray-900 text-base leading-relaxed">
-                                            Here is your properties:
-                                        </p>
-                                    </div>
-
-                                    {/* property */}
-                                    <div className="mt-5 border border-[#E7F0FB] p-2 rounded-xl">
-                                        <div className="w-full bg-white rounded-xl shadow-md overflow-hidden">
-                                            {/* Property Image */}
-                                            <div className="relative">
-                                                <img
-                                                    src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&h=400&fit=crop"
-                                                    alt="Property"
-                                                    className="w-full h-48 object-cover"
-                                                />
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="p-4">
-                                                {/* POA and For Sale Badge */}
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <h2 className="text-[#0D4B99] text-lg font-bold">POA</h2>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <div className="w-2 h-2 rounded-full bg-[#10B981]"></div>
-                                                        <span className="text-[#10B981] text-sm font-medium">For Sale</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Property Title */}
-                                                <div className="mb-4">
-                                                    <h3 className="text-gray-900 text-base font-semibold leading-tight">
-                                                        Cotton Mill B9 TILEYARD
-                                                    </h3>
-                                                    <p className="text-gray-600 text-sm mt-1">P 6391</p>
-                                                </div>
-
-                                                {/* View Details Button */}
-                                                <button 
-                                                    className="w-full py-3 border-2 border-[#0D4B99] text-[#0D4B99] text-base font-semibold rounded-lg hover:bg-[#0D4B99] hover:text-white transition-colors"
-                                                    onClick={handleViewDetails}
-                                                >
-                                                    View Details
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+        <div className="p-5 flex flex-col gap-2 custom-scrollbar overflow-x-hidden">
+            {/* Initial Context */}
+            <div className="flex justify-end mb-4">
+                <div className="bg-[#0446DE] text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-md shadow-blue-100 max-w-[80%] flex items-center gap-2">
+                    <span className="text-sm font-medium">Show property by location.</span>
+                    <MapPin size={16} />
                 </div>
             </div>
+
+            <MessageWrapper>
+                <p className="text-sm leading-relaxed">
+                    Here is the locations.. Choose your preferred location:
+                </p>
+            </MessageWrapper>
+
+            {/* Selected City Display */}
+            <div className="mb-6 animate-in zoom-in-95 duration-300">
+                <div className="relative rounded-2xl overflow-hidden h-40 shadow-lg border border-gray-100">
+                    <img src={selectedCity.image} alt={selectedCity.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-5">
+                        <h3 className="text-[#FDFEFF] text-lg font-bold">{selectedCity.name}</h3>
+                    </div>
+                </div>
+            </div>
+
+            {/* Step 1: Property Type */}
+            <MessageWrapper>
+                <p className="text-sm leading-relaxed">What type of property are you looking for?</p>
+            </MessageWrapper>
+
+            <div className="flex flex-wrap gap-2 mb-6 ml-13">
+                {['industrial', 'land', 'office', 'retail'].map(type => (
+                    <button
+                        key={type}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm capitalize ${selectedProperty === type
+                            ? 'bg-blue-600 text-white shadow-blue-200'
+                            : 'bg-[#E7F0FB] text-[#0D4B99] hover:bg-blue-100 border border-blue-50'
+                            }`}
+                        onClick={() => setSelectedProperty(type)}
+                    >
+                        {type}
+                    </button>
+                ))}
+            </div>
+
+            {/* Step 2: Transaction Type */}
+            {selectedProperty && (
+                <>
+                    <div className="flex justify-end mb-5">
+                        <div
+                            onClick={() => {
+                                setSelectedProperty(null);
+                                setSelectedMethod(null);
+                                setSelectedPricing(null);
+                            }}
+                            className="bg-[#0446DE] text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-md shadow-blue-100 max-w-[80%] cursor-pointer hover:bg-blue-700 transition-colors group flex items-center gap-2"
+                        >
+                            <span className="text-sm font-medium">{selectedProperty}</span>
+                            <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">(Click to change)</span>
+                        </div>
+                    </div>
+                    <MessageWrapper>
+                        <p className="text-sm leading-relaxed">Choose transaction type.</p>
+                    </MessageWrapper>
+                    <div className="flex gap-2 mb-6 ml-13">
+                        {['Rent', 'Purchase'].map(method => (
+                            <button
+                                key={method}
+                                className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm ${selectedMethod === method
+                                    ? 'bg-blue-600 text-white shadow-blue-200'
+                                    : 'bg-[#E7F0FB] text-[#0D4B99] hover:bg-blue-100 border border-blue-50'
+                                    }`}
+                                onClick={() => setSelectedMethod(method)}
+                            >
+                                {method}
+                            </button>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {/* Step 3: Size */}
+            {selectedMethod && (
+                <>
+                    <div className="flex justify-end mb-5">
+                        <div
+                            onClick={() => {
+                                setSelectedMethod(null);
+                                setSelectedPricing(null);
+                            }}
+                            className="bg-[#0446DE] text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-md shadow-blue-100 max-w-[80%] cursor-pointer hover:bg-blue-700 transition-colors group flex items-center gap-2"
+                        >
+                            <span className="text-sm font-medium">{selectedMethod}</span>
+                            <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">(Click to change)</span>
+                        </div>
+                    </div>
+                    <MessageWrapper>
+                        <p className="text-sm leading-relaxed">What's your preferred property size?</p>
+                    </MessageWrapper>
+                    <div className="space-y-2 mb-6 ml-13">
+                        {selectedPricing ? (
+                            <div className="flex justify-end">
+                                <div
+                                    onClick={() => setSelectedPricing(null)}
+                                    className="bg-[#0446DE] text-white px-5 py-3 rounded-2xl rounded-tr-none shadow-md shadow-blue-100 max-w-[80%] cursor-pointer hover:bg-blue-700 transition-colors group flex items-center gap-2"
+                                >
+                                    <span className="text-sm font-medium">{selectedPricing}</span>
+                                    <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">(Click to change)</span>
+                                </div>
+                            </div>
+                        ) : (
+                            propertySizes.map(size => (
+                                <button
+                                    key={size}
+                                    className="w-full text-left px-5 py-3 bg-[#E7F0FB] text-[#0D4B99] rounded-xl text-sm font-semibold border border-blue-50 hover:bg-blue-100 transition-all shadow-sm"
+                                    onClick={() => setSelectedPricing(size)}
+                                >
+                                    {size}
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* Final States */}
+            {(showSearching || isFetching) && (
+                <MessageWrapper>
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce"></div>
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce [animation-delay:-.3s]"></div>
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce [animation-delay:-.5s]"></div>
+                        <span className="text-sm font-medium ml-2">Searching...</span>
+                    </div>
+                </MessageWrapper>
+            )}
+
+            {showProperties && !isFetching && (
+                <>
+                    <MessageWrapper>
+                        <p className="text-sm leading-relaxed">Here are your properties:</p>
+                    </MessageWrapper>
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                        {propertiesData?.results?.length > 0 ? (
+                            propertiesData.results.map((prop: any) => (
+                                <div key={prop.id} className="animate-in zoom-in-95 duration-500">
+                                    <PropertyCard
+                                        property={prop}
+                                        onNavigate={() => onViewDetails?.()}
+                                        onAskAbout={() => onViewDetails?.()} // Lead to Survey/Contact
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <div className="w-full text-center py-10 bg-gray-50 rounded-2xl border border-gray-100">
+                                <p className="text-gray-400 text-sm">No properties found with these filters.</p>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

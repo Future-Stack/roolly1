@@ -1,10 +1,20 @@
-import React from 'react';
-
+import React, { useState } from 'react';
 import finImg from '../../assets/cantFindsec.svg';
 import clock from '../../assets/clock.svg';
 import easy from '../../assets/easycan.svg';
+import { toast } from 'react-toastify';
 
 const CantFindSection: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    businessName: '',
+    email: '',
+    tel: '',
+    sqftRequired: '',
+    locations: ''
+  });
+
   const features = [
     {
       icon: clock,
@@ -43,6 +53,29 @@ const CantFindSection: React.FC = () => {
     },
   ];
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    toast.success('Submitted')
+    setIsModalOpen(false);
+    setFormData({
+      name: '',
+      businessName: '',
+      email: '',
+      tel: '',
+      sqftRequired: '',
+      locations: ''
+    });
+  };
+
   return (
     <div className="bg-white w-full mt-12">
       <div className="px-4 sm:px-6 md:px-0">
@@ -73,7 +106,10 @@ const CantFindSection: React.FC = () => {
               </p>
 
               {/* Explore Button */}
-              <button className="w-full sm:w-auto px-8 py-3 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[8px] text-base font-semibold transition-colors duration-300">
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="w-full sm:w-auto px-8 py-3 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[8px] text-base font-semibold transition-colors duration-300"
+              >
                 Explore
               </button>
             </div>
@@ -107,6 +143,167 @@ const CantFindSection: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 bg-opacity-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-semibold text-gray-800">Submit Your Requirements</h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Name */}
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+
+                {/* Business Name */}
+                <div>
+                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Name
+                  </label>
+                  <input
+                    type="text"
+                    id="businessName"
+                    name="businessName"
+                    value={formData.businessName}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    placeholder="Enter your business name"
+                  />
+                </div>
+
+                {/* Email and Tel in one row for larger screens */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Email */}
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+
+                  {/* Tel */}
+                  <div>
+                    <label htmlFor="tel" className="block text-sm font-medium text-gray-700 mb-1">
+                      Telephone *
+                    </label>
+                    <input
+                      type="tel"
+                      id="tel"
+                      name="tel"
+                      value={formData.tel}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </div>
+
+                {/* Sq ft required and Locations in one row for larger screens */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Sq ft required */}
+                  <div>
+                    <label htmlFor="sqftRequired" className="block text-sm font-medium text-gray-700 mb-1">
+                      Sq ft Required *
+                    </label>
+                    <input
+                      type="text"
+                      id="sqftRequired"
+                      name="sqftRequired"
+                      value={formData.sqftRequired}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      placeholder="e.g., 1000-2000 sq ft"
+                    />
+                  </div>
+
+                  {/* Locations */}
+                  <div>
+                    <label htmlFor="locations" className="block text-sm font-medium text-gray-700 mb-1">
+                      Preferred Locations *
+                    </label>
+                    <input
+                      type="text"
+                      id="locations"
+                      name="locations"
+                      value={formData.locations}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      placeholder="e.g., New York, Chicago"
+                    />
+                  </div>
+                </div>
+
+                {/* Additional Notes (Optional) */}
+                <div>
+                  <label htmlFor="additionalNotes" className="block text-sm font-medium text-gray-700 mb-1">
+                    Additional Notes (Optional)
+                  </label>
+                  <textarea
+                    id="additionalNotes"
+                    name="additionalNotes"
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+                    placeholder="Any additional requirements or comments..."
+                  ></textarea>
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-[#126AD8] hover:bg-blue-400 text-white font-semibold rounded-lg transition-colors duration-300"
+                  >
+                    Submit Requirements
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors duration-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

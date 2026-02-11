@@ -10,6 +10,16 @@ interface RiskCardProps {
     tags?: string[];
 }
 
+interface RiskProfileManagementProps {
+    vehicleRepairUse: boolean;
+    vehicleSaleUse: boolean;
+    subletting: boolean;
+    leisureUse: boolean;
+    petBusinessUse: boolean;
+    plasticRecyclingUse: boolean;
+    onRestrictionChange: (name: string, value: boolean) => void;
+}
+
 const RiskCard: React.FC<RiskCardProps> = ({
     icon,
     title,
@@ -97,7 +107,29 @@ const RiskCard: React.FC<RiskCardProps> = ({
     );
 };
 
-const RiskProfileManagement: React.FC = () => {
+const RiskProfileManagement: React.FC<RiskProfileManagementProps> = ({
+    vehicleRepairUse,
+    vehicleSaleUse,
+    subletting,
+    leisureUse,
+    petBusinessUse,
+    plasticRecyclingUse,
+    onRestrictionChange,
+}) => {
+    // You can now use these props in your component
+    // For example, you might want to display checkboxes for each restriction
+    // or use the values to conditionally render content
+    
+    // I'll add a simple example of how you might use these:
+    const restrictedUses = [];
+    
+    if (vehicleRepairUse) restrictedUses.push('Vehicle Repair');
+    if (vehicleSaleUse) restrictedUses.push('Vehicle Sale');
+    if (subletting) restrictedUses.push('Subletting');
+    if (leisureUse) restrictedUses.push('Leisure Use');
+    if (petBusinessUse) restrictedUses.push('Pet Business');
+    if (plasticRecyclingUse) restrictedUses.push('Plastic Recycling');
+
     return (
         <div className="bg-white">
             {/* Page Title */}
@@ -119,13 +151,81 @@ const RiskProfileManagement: React.FC = () => {
                         considerations="Limited financial buffer, cashflow monitoring needed, standard vetting required"
                     />
 
-                    {/* Restricted Uses Card */}
+                    {/* Restricted Uses Card - Now showing actual restricted uses */}
                     <RiskCard
                         icon="shield"
                         title="Restricted or Unauthorised Uses"
                         description=""
-                        tags={['Commercial Use', 'Short-Term Rentals / Airbnb']}
+                        tags={restrictedUses.length > 0 ? restrictedUses : ['No restricted uses selected']}
                     />
+
+                    {/* Optional: Add checkboxes to toggle restrictions */}
+                    <div className="mt-6 p-4 border border-gray-200 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            Toggle Restricted Uses
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={vehicleRepairUse}
+                                    onChange={(e) => onRestrictionChange('vehicle_repair_use', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span>Vehicle Repair Use</span>
+                            </label>
+                            
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={vehicleSaleUse}
+                                    onChange={(e) => onRestrictionChange('vehicle_sale_use', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span>Vehicle Sale Use</span>
+                            </label>
+                            
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={subletting}
+                                    onChange={(e) => onRestrictionChange('subletting', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span>Subletting</span>
+                            </label>
+                            
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={leisureUse}
+                                    onChange={(e) => onRestrictionChange('leisure_use', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span>Leisure Use</span>
+                            </label>
+                            
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={petBusinessUse}
+                                    onChange={(e) => onRestrictionChange('pet_business_use', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span>Pet Business Use</span>
+                            </label>
+                            
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={plasticRecyclingUse}
+                                    onChange={(e) => onRestrictionChange('plastic_recycling_use', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span>Plastic Recycling Use</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

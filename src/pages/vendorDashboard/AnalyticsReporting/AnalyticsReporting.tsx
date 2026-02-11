@@ -1,16 +1,57 @@
+import { useGetAnalyticsQuery } from '@/redux/features/vendor/getAnalyticsApi';
+import { useGetVendorMonthlyPerformQuery } from '@/redux/features/vendor/vendorMonthlyPerformApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
-import React from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+interface AnalyticsData {
+  total_leads: {
+    value: number;
+    sub_text: string;
+  };
+  active_properties: {
+    value: number;
+    sub_text: string;
+  };
+  conversion_rate: {
+    value: string;
+    sub_text: string;
+  };
+  total_views: {
+    value: number;
+    sub_text: string;
+  };
+}
+
+interface MonthlyPerformanceData {
+  leads_data: Array<{
+    month: number;
+    total_leads: number;
+    completed_leads: number;
+  }>;
+}
+
 const AnalyticsReporting: React.FC = () => {
-    const monthlyData = [
-        { month: 'Jan', leads: 150, conversions: 50 },
-        { month: 'Feb', leads: 175, conversions: 60 },
-        { month: 'Mar', leads: 210, conversions: 65 },
-        { month: 'Apr', leads: 250, conversions: 72 },
-        { month: 'May', leads: 275, conversions: 75 },
-        { month: 'Jun', leads: 300, conversions: 75 }
-    ];
+    const { data: analytics, isLoading, isError } = useGetAnalyticsQuery(undefined);
+    const { data: monthlyPerformance, isLoading: isLoadingMonthly } = useGetVendorMonthlyPerformQuery(undefined);
+    
+    const analyticsData = analytics as AnalyticsData;
+    const monthlyPerformanceData = monthlyPerformance as MonthlyPerformanceData;
+    
+    // Format month numbers to names
+    const getMonthName = (monthNumber: number): string => {
+      const monthNames = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      return monthNames[monthNumber - 1] || '';
+    };
+
+    // Transform backend monthly data for chart
+    const transformedMonthlyData = monthlyPerformanceData?.leads_data?.map(item => ({
+      month: getMonthName(item.month),
+      leads: item.total_leads,
+      conversions: item.completed_leads
+    })) || [];
 
     const propertyTypeData = [
         { type: 'Industrial', views: 165000, enquiries: 30000 },
@@ -25,6 +66,16 @@ const AnalyticsReporting: React.FC = () => {
         { name: 'Whatsapp', leads: 2, percentage: 14, color: 'bg-green-500' },
         { name: 'Call', leads: 1, percentage: 10, color: 'bg-pink-500' }
     ];
+
+    // Determine subtitle color based on value
+    const getSubtitleColor = (value: number | string) => {
+        if (typeof value === 'string') {
+            // For conversion rate percentage
+            const numericValue = parseFloat(value.replace('%', ''));
+            return numericValue > 0 ? 'text-green-600' : 'text-gray-600';
+        }
+        return value > 0 ? 'text-green-600' : 'text-gray-600';
+    };
 
     return (
         <div className="w-full min-h-screen">
@@ -47,8 +98,12 @@ const AnalyticsReporting: React.FC = () => {
                         <Users className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">3</p>
-                        <p className="text-[13px] text-green-600 font-medium">2 qualified</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">
+                            {isLoading ? '...' : isError || !analyticsData ? 'N/A' : analyticsData.total_leads.value}
+                        </p>
+                        <p className={`text-[13px] font-medium ${getSubtitleColor(analyticsData?.total_leads?.value || 0)}`}>
+                            {isLoading ? 'Loading...' : isError || !analyticsData ? 'Data unavailable' : analyticsData.total_leads.sub_text}
+                        </p>
                     </div>
                 </div>
 
@@ -59,8 +114,12 @@ const AnalyticsReporting: React.FC = () => {
                         <Building2 className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">2</p>
-                        <p className="text-[13px] text-gray-600 font-normal">2 available</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">
+                            {isLoading ? '...' : isError || !analyticsData ? 'N/A' : analyticsData.active_properties.value}
+                        </p>
+                        <p className={`text-[13px] font-normal ${getSubtitleColor(analyticsData?.active_properties?.value || 0)}`}>
+                            {isLoading ? 'Loading...' : isError || !analyticsData ? 'Data unavailable' : analyticsData.active_properties.sub_text}
+                        </p>
                     </div>
                 </div>
 
@@ -71,8 +130,12 @@ const AnalyticsReporting: React.FC = () => {
                         <TrendingUp className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">60%</p>
-                        <p className="text-[13px] text-gray-600 font-normal">+5.3% this month</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">
+                            {isLoading ? '...' : isError || !analyticsData ? 'N/A' : analyticsData.conversion_rate.value}
+                        </p>
+                        <p className={`text-[13px] font-normal ${getSubtitleColor(analyticsData?.conversion_rate?.value || '0%')}`}>
+                            {isLoading ? 'Loading...' : isError || !analyticsData ? 'Data unavailable' : analyticsData.conversion_rate.sub_text}
+                        </p>
                     </div>
                 </div>
 
@@ -83,8 +146,12 @@ const AnalyticsReporting: React.FC = () => {
                         <Eye className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">20000</p>
-                        <p className="text-[13px] text-gray-600 font-normal">+5.3% this month</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">
+                            {isLoading ? '...' : isError || !analyticsData ? 'N/A' : analyticsData.total_views.value}
+                        </p>
+                        <p className={`text-[13px] font-normal ${getSubtitleColor(analyticsData?.total_views?.value || 0)}`}>
+                            {isLoading ? 'Loading...' : isError || !analyticsData ? 'Data unavailable' : analyticsData.total_views.sub_text}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -94,41 +161,58 @@ const AnalyticsReporting: React.FC = () => {
                 {/* Monthly Performance */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <h2 className="text-[17px] font-semibold text-gray-900 mb-6">Monthly Performance</h2>
-                    <ResponsiveContainer width="100%" height={320}>
-                        <LineChart data={monthlyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis
-                                dataKey="month"
-                                tick={{ fontSize: 12, fill: '#6b7280' }}
-                                axisLine={{ stroke: '#e5e7eb' }}
-                            />
-                            <YAxis
-                                tick={{ fontSize: 12, fill: '#6b7280' }}
-                                axisLine={{ stroke: '#e5e7eb' }}
-                            />
-                            <Tooltip />
-                            <Legend
-                                wrapperStyle={{ fontSize: '13px' }}
-                                iconType="line"
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="leads"
-                                stroke="#3b82f6"
-                                strokeWidth={2}
-                                dot={{ fill: '#3b82f6', r: 4 }}
-                                name="leads"
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="conversions"
-                                stroke="#10b981"
-                                strokeWidth={2}
-                                dot={{ fill: '#10b981', r: 4 }}
-                                name="conversions"
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    <div className="h-[320px]">
+                        {isLoadingMonthly ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <div className="text-gray-500">Loading monthly data...</div>
+                            </div>
+                        ) : !monthlyPerformanceData?.leads_data?.length ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <div className="text-gray-500">No monthly data available</div>
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={transformedMonthlyData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                    <XAxis
+                                        dataKey="month"
+                                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                                        axisLine={{ stroke: '#e5e7eb' }}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                                        axisLine={{ stroke: '#e5e7eb' }}
+                                    />
+                                    <Tooltip 
+                                        formatter={(value) => [value, '']}
+                                        labelFormatter={(label) => `Month: ${label}`}
+                                    />
+                                    <Legend
+                                        wrapperStyle={{ fontSize: '13px' }}
+                                        iconType="line"
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="leads"
+                                        stroke="#3b82f6"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#3b82f6', r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                        name="Total Leads"
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="conversions"
+                                        stroke="#10b981"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#10b981', r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                        name="Completed Leads"
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
                 </div>
 
                 {/* Lead Sources */}

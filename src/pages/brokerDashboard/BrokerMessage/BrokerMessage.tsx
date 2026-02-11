@@ -1,5 +1,29 @@
-import React, { useState } from 'react';
-import { Search, Smile, MoreVertical, Plus, SendHorizontal, Menu, X } from 'lucide-react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCurrentToken } from '@/redux/features/auth/authSlice';
+import { useGetAllMessagesQuery } from '@/redux/features/message/getAllMessagesApi';
+import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingleUserMessageApi';
+import { useAppSelector } from '@/redux/hook';
+import { Check, CheckCheck, Clock, Menu, MoreVertical, Plus, RefreshCw, Search, SendHorizontal, Smile, Wifi, WifiOff, X } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+
+interface Conversation {
+  id: string;
+  other_user: {
+    id: string;
+    full_name: string;
+    image: string | null;
+    is_active: string;
+  };
+  created_at: string;
+  last_message: {
+    message: string;
+    message_id: string;
+    timestamp: string;
+    sender_id: string;
+    is_seen: boolean;
+  } | null;
+}
 
 interface ChatUser {
   id: string;
@@ -8,6 +32,9 @@ interface ChatUser {
   message: string;
   time: string;
   isOnline?: boolean;
+  lastSeen?: string;
+  isSeen?: boolean;
+  userId?: string;
 }
 
 interface Message {
@@ -16,232 +43,782 @@ interface Message {
   sender: 'user' | 'other';
   avatar: string;
   time?: string;
+  timestamp: string;
+  isSeen?: boolean;
+  senderId?: string;
+  conversationId?: string;
+  senderName?: string;
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
 }
 
-const chatUsers: ChatUser[] = [
-  {
-    id: '1',
-    name: 'Bill',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-    message: 'Can you Show  the property...',
-    time: '9:41 AM',
-    isOnline: true
-  },
-  {
-    id: '2',
-    name: 'Davis',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-    message: 'The new lens inventory...',
-    time: '9:16 AM'
-  },
-  {
-    id: '3',
-    name: 'Davis',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-    message: 'The new lens inventory...',
-    time: '9:16 AM'
-  },
-  {
-    id: '4',
-    name: 'Davis',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-    message: 'The new lens inventory...',
-    time: '9:16 AM'
-  },
-];
+interface WebSocketMessage {
+  type: string;
+  [key: string]: any;
+}
 
-// Different user lists for each tab
-const vendorUsers: ChatUser[] = [
-  {
-    id: 'v1',
-    name: 'Vendor Alex',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-    message: 'Regarding the property listing...',
-    time: '10:30 AM',
-    isOnline: true
-  },
-  {
-    id: 'v2',
-    name: 'Vendor Sarah',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-    message: 'Document submission completed...',
-    time: 'Yesterday',
-  },
-  {
-    id: 'v3',
-    name: 'Vendor Mike',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-    message: 'Payment confirmation needed...',
-    time: '2 days ago'
-  },
-  {
-    id: 'v4',
-    name: 'Vendor Emma',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
-    message: 'Meeting scheduled for tomorrow...',
-    time: '3 days ago'
-  },
-  {
-    id: 'v5',
-    name: 'Vendor John',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-    message: 'Property inspection report...',
-    time: '1 week ago'
-  },
-  {
-    id: 'v6',
-    name: 'Vendor Lisa',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop',
-    message: 'Contract discussion...',
-    time: '1 week ago'
-  },
-  {
-    id: 'v7',
-    name: 'Vendor Robert',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-    message: 'New property available...',
-    time: '2 weeks ago'
-  },
-  {
-    id: 'v8',
-    name: 'Vendor Maria',
-    avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop',
-    message: 'Feedback on last deal...',
-    time: '2 weeks ago'
-  },
-];
+interface ApiMessage {
+  id: string;
+  text: string;
+  is_read: boolean;
+  timestamp: string;
+  sender: {
+    id: string;
+    username: string;
+    avatar: string | null;
+  };
+}
 
-const adminUsers: ChatUser[] = [
-  {
-    id: 'a1',
-    name: 'Admin Support',
-    avatar: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=100&h=100&fit=crop',
-    message: 'System maintenance scheduled...',
-    time: 'Today',
-    isOnline: true
-  },
-  {
-    id: 'a2',
-    name: 'Technical Team',
-    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&h=100&fit=crop',
-    message: 'Bug fix deployed...',
-    time: 'Yesterday'
-  },
-  {
-    id: 'a3',
-    name: 'Billing Department',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop',
-    message: 'Invoice #12345 generated...',
-    time: '2 days ago'
-  },
-  {
-    id: 'a4',
-    name: 'Sales Manager',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-    message: 'Monthly report ready...',
-    time: '3 days ago'
-  },
-];
+interface PaginatedApiResponse {
+  next: string | null;
+  previous: string | null;
+  results: ApiMessage[];
+}
 
 const BrokerMessage: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'admin'>('chat');
-  const [selectedChat, setSelectedChat] = useState<ChatUser | null>(chatUsers[0]);
+  const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string>('');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
+  const [userStatus, setUserStatus] = useState<{ [key: string]: string }>({});
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [newConversations, setNewConversations] = useState<Conversation[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  console.log(setNewConversations)
 
-  // Messages for different tabs
-  const chatMessages: Message[] = [
-    {
-      id: '1',
-      text: 'Good news! I have a new, well-qualified lead, Mark C., who wants to see the Property.',
-      sender: 'other',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'
-    },
-    {
-      id: '2',
-      text: "Confirmed for Mark C. tomorrow at 3:30 PM. I'll text you immediately after the showing with his initial feedback. Thanks!",
-      sender: 'user',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
+  const location = useLocation();
+  const { res: initialConversation } = location.state || {};
+  const token = useAppSelector(useCurrentToken);
+
+  // Fetch all conversations
+  const {
+    data: conversationsData,
+    isLoading: isLoadingConversations
+  } = useGetAllMessagesQuery(undefined, {
+    skip: !token,
+  });
+
+  // Fetch single user messages
+  const {
+    data: singleUserMessagesData,
+    refetch: refetchSingleUserMessages,
+    isLoading: isLoadingSingleMessages
+  } = useGetSingleUserMessageQuery(selectedChat?.id || '', {
+    skip: !selectedChat?.id || !token,
+  });
+
+  const socketRef = useRef<WebSocket | null>(null);
+  const newConversationSocketRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Hardcoded user ID for testing - REPLACE THIS WITH YOUR ACTUAL USER ID
+  // Based on your API response, you seem to be "broker" user
+  const YOUR_USER_ID = 'f03b0e80-7b74-4304-b444-1401367aa090'; // broker user ID
+  // OR if you are "Md.Shishir"
+  // const YOUR_USER_ID = 'e30feddb-d33a-4062-8275-88b576fb9f66'; // Md.Shishir user ID
+
+  // Get current user ID
+  useEffect(() => {
+    console.log('🔑 Token:', token ? 'Present' : 'Missing');
+    
+    // First, check if we have a hardcoded ID
+    if (YOUR_USER_ID) {
+      console.log('✅ Using hardcoded User ID:', YOUR_USER_ID);
+      setCurrentUserId(YOUR_USER_ID);
+      localStorage.setItem('userId', YOUR_USER_ID);
+      return;
     }
-  ];
-
-  const vendorMessages: Message[] = [
-    {
-      id: 'v1',
-      text: 'Hello, regarding the property documents you requested, I have uploaded all necessary files to the portal.',
-      sender: 'other',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
-    },
-    {
-      id: 'v2',
-      text: 'Thank you for the update. I will review them and get back to you by tomorrow.',
-      sender: 'user',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
+    
+    // If not hardcoded, check localStorage
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      console.log('✅ Using User ID from localStorage:', storedUserId);
+      setCurrentUserId(storedUserId);
+      return;
     }
-  ];
-
-  const adminMessages: Message[] = [
-    {
-      id: 'a1',
-      text: 'System maintenance is scheduled for this weekend from 2 AM to 4 AM. The platform will be temporarily unavailable.',
-      sender: 'other',
-      avatar: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=100&h=100&fit=crop'
-    },
-    {
-      id: 'a2',
-      text: 'Noted. Will complete all pending tasks before the maintenance window.',
-      sender: 'user',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
+    
+    // If not in localStorage, try to extract from token
+    if (token) {
+      try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('🔍 Token payload:', payload);
+          
+          // Try different possible keys for user ID
+          const userId = payload.user_id || payload.userId || payload.sub || payload.id || '';
+          if (userId) {
+            console.log('✅ Extracted User ID from token:', userId);
+            setCurrentUserId(userId.toString());
+            localStorage.setItem('userId', userId.toString());
+          } else {
+            console.error('❌ No user ID found in token payload');
+          }
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
     }
-  ];
+  }, [token]);
 
-  const currentUser = {
-    name: activeTab === 'chat' ? 'Bill Kuphal' : 
-          activeTab === 'vendor' ? 'Vendor Alex' : 'Admin Support',
-    status: 'Online for 10 mins',
-    avatar: activeTab === 'chat' ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop' :
-            activeTab === 'vendor' ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' :
-            'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=100&h=100&fit=crop',
-    isOnline: true
+  // Activity tracking
+  const updateActivityTime = () => {
+    setLastActivityTime(Date.now());
   };
 
-  // Get current users based on active tab
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupWebSockets();
+    };
+  }, []);
+
+  // Load conversations from API
+  useEffect(() => {
+    if (conversationsData) {
+      let conversationsArray: Conversation[] = [];
+
+      if (Array.isArray(conversationsData)) {
+        conversationsArray = conversationsData;
+      } else if (conversationsData.results && Array.isArray(conversationsData.results)) {
+        conversationsArray = conversationsData.results;
+      } else if (conversationsData.data && Array.isArray(conversationsData.data)) {
+        conversationsArray = conversationsData.data;
+      }
+
+      setConversations(conversationsArray);
+
+      if (initialConversation) {
+        const chatUser = convertConversationToChatUser(initialConversation);
+        setSelectedChat(chatUser);
+      } else if (!selectedChat && conversationsArray.length > 0) {
+        const firstChat = conversationsArray[0];
+        const chatUser = convertConversationToChatUser(firstChat);
+        setSelectedChat(chatUser);
+      }
+    }
+  }, [conversationsData, selectedChat, initialConversation]);
+
+  // Load single user messages when chat is selected
+  useEffect(() => {
+    if (selectedChat?.id && singleUserMessagesData && currentUserId) {
+      console.log('📥 Loading messages with currentUserId:', currentUserId);
+      loadMessagesFromApi(singleUserMessagesData);
+    }
+  }, [selectedChat?.id, singleUserMessagesData, currentUserId]);
+
+  // Connect to WebSocket when chat is selected
+  useEffect(() => {
+    if (selectedChat?.id && token && currentUserId) {
+      console.log('🔗 Connecting WebSocket with User ID:', currentUserId);
+      cleanupWebSockets();
+      connectToConversation(selectedChat.id);
+    }
+
+    return () => {
+      cleanupWebSockets();
+    };
+  }, [selectedChat?.id, token, currentUserId]);
+
+  // Keep connection alive
+  useEffect(() => {
+    const activityCheck = setInterval(() => {
+      const timeSinceLastActivity = Date.now() - lastActivityTime;
+      if (timeSinceLastActivity > 30000 && isConnected && socketRef.current?.readyState === WebSocket.OPEN) {
+        sendPing();
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(activityCheck);
+    };
+  }, [lastActivityTime, isConnected]);
+
+  // Convert conversation to chat user
+  const convertConversationToChatUser = (conversation: Conversation): ChatUser => {
+    const otherUser = conversation.other_user;
+    const lastSeen = conversation.other_user.is_active === 'offline'
+      ? conversation.other_user.is_active
+      : 'online';
+
+    return {
+      id: conversation.id,
+      name: otherUser.full_name,
+      avatar: otherUser.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+      message: conversation.last_message?.message || 'Start a conversation',
+      time: conversation.last_message
+        ? formatTime(conversation.last_message.timestamp)
+        : formatTime(conversation.created_at),
+      isOnline: otherUser.is_active === 'online',
+      lastSeen: lastSeen,
+      isSeen: conversation.last_message?.is_seen || false,
+      userId: otherUser.id,
+    };
+  };
+
+  // Format time helper
+  const formatTime = (timestamp: string): string => {
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+      if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+      return date.toLocaleDateString();
+    } catch {
+      return 'Recently';
+    }
+  };
+
+  // Format time for message display
+  const formatMessageTime = (timestamp: string): string => {
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+
+  // Load messages from API response
+  const loadMessagesFromApi = (apiResponse: PaginatedApiResponse | any) => {
+    if (!apiResponse || !selectedChat || !currentUserId) {
+      console.log('❌ Cannot load messages: Missing data');
+      return;
+    }
+
+    console.log('📊 API Response:', apiResponse);
+    console.log('👤 Current User ID:', currentUserId);
+    console.log('👥 Chat User ID:', selectedChat.userId);
+
+    let messagesArray: ApiMessage[] = [];
+
+    if (apiResponse.results && Array.isArray(apiResponse.results)) {
+      messagesArray = apiResponse.results;
+    } else if (Array.isArray(apiResponse)) {
+      messagesArray = apiResponse;
+    } else {
+      setIsLoadingMessages(false);
+      return;
+    }
+
+    console.log(`📨 Found ${messagesArray.length} messages to process`);
+
+    const formattedMessages: Message[] = messagesArray.map((msg: ApiMessage, index: number) => {
+      // FIXED: sender is an object, so we need to check msg.sender.id
+      const senderId = msg.sender?.id;
+      const isUserMessage = senderId === currentUserId;
+      
+      console.log(`Message ${index + 1}:`, {
+        text: msg.text.substring(0, 30) + '...',
+        senderId: senderId,
+        currentUserId: currentUserId,
+        isUserMessage: isUserMessage,
+        alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
+        senderUsername: msg.sender?.username
+      });
+
+      // Avatars
+      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      const otherAvatar = msg.sender?.avatar || selectedChat.avatar;
+
+      return {
+        id: msg.id,
+        text: msg.text,
+        sender: isUserMessage ? 'user' : 'other', // 'user' = RIGHT, 'other' = LEFT
+        avatar: isUserMessage ? yourAvatar : otherAvatar,
+        time: formatMessageTime(msg.timestamp),
+        timestamp: msg.timestamp,
+        isSeen: msg.is_read,
+        senderId: senderId,
+        senderName: msg.sender?.username,
+        conversationId: selectedChat.id,
+        status: isUserMessage ? (msg.is_read ? 'read' : 'sent') : undefined,
+      };
+    });
+
+    // Sort by timestamp (newest first for display)
+    formattedMessages.sort((a, b) =>
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    // Log final distribution
+    const userMessages = formattedMessages.filter(m => m.sender === 'user').length;
+    const otherMessages = formattedMessages.filter(m => m.sender === 'other').length;
+    
+    console.log('✅ Final message distribution:', {
+      total: formattedMessages.length,
+      userMessages: userMessages,
+      otherMessages: otherMessages,
+      userSide: 'RIGHT',
+      otherSide: 'LEFT'
+    });
+
+    setMessages(formattedMessages);
+    setIsLoadingMessages(false);
+  };
+
+  // Send ping to keep connection alive
+  const sendPing = () => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        socketRef.current.send(JSON.stringify({ type: 'ping' }));
+        console.log('📡 Ping sent');
+      } catch (error) {
+        console.error('Error sending ping:', error);
+      }
+    }
+  };
+
+  // Setup ping interval
+  const setupPingInterval = () => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+    }
+
+    pingIntervalRef.current = setInterval(() => {
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        sendPing();
+      }
+    }, 25000);
+  };
+
+  // Cleanup WebSocket connections
+  const cleanupWebSockets = () => {
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+      pingIntervalRef.current = null;
+    }
+
+    if (socketRef.current) {
+      try {
+        socketRef.current.close(1000, 'Closing connection');
+      } catch (error) {
+        console.error('Error closing WebSocket:', error);
+      }
+      socketRef.current = null;
+    }
+
+    if (newConversationSocketRef.current) {
+      try {
+        newConversationSocketRef.current.close();
+      } catch (error) {
+        console.log(error);
+      }
+      newConversationSocketRef.current = null;
+    }
+
+    setIsConnected(false);
+    setConnectionStatus('disconnected');
+  };
+
+  // Connect to WebSocket
+  const connectToConversation = useCallback((conversationId: string) => {
+    if (!conversationId || !token || !currentUserId) {
+      console.log('❌ Missing data for WebSocket connection');
+      return;
+    }
+
+    cleanupWebSockets();
+
+    setConnectionStatus('connecting');
+    setConnectionError('');
+    setReconnectAttempts(0);
+
+    const wsUrl = `wss://broker360re.com/ws/conversation/${conversationId}/?token=${token}`;
+    console.log('🔗 Connecting to WebSocket:', wsUrl);
+
+    try {
+      const socket = new WebSocket(wsUrl);
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        console.log('✅ WebSocket connected');
+        setIsConnected(true);
+        setConnectionStatus('connected');
+        setConnectionError('');
+        setReconnectAttempts(0);
+
+        setupPingInterval();
+        updateActivityTime();
+      };
+
+      socket.onmessage = (event) => {
+        updateActivityTime();
+
+        try {
+          let data: WebSocketMessage;
+          if (typeof event.data === 'string') {
+            data = JSON.parse(event.data);
+          } else {
+            const decoder = new TextDecoder();
+            data = JSON.parse(decoder.decode(event.data));
+          }
+
+          console.log('📨 WebSocket message:', data);
+
+          if (data.type === 'pong') {
+            return;
+          }
+
+          switch (data.type) {
+            case 'chat_message':
+              handleChatMessage(data);
+              break;
+            case 'user_status':
+              handleUserStatus(data);
+              break;
+            case 'message_seen':
+              handleMessageSeen(data);
+              break;
+            case 'error':
+              handleError(data);
+              break;
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      socket.onerror = (error) => {
+        console.error('❌ WebSocket error:', error);
+        setConnectionStatus('error');
+        setConnectionError('Connection error');
+        setIsConnected(false);
+      };
+
+      socket.onclose = (event) => {
+        console.log(`🔌 WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
+        setIsConnected(false);
+        setConnectionStatus('disconnected');
+
+        if (pingIntervalRef.current) {
+          clearInterval(pingIntervalRef.current);
+          pingIntervalRef.current = null;
+        }
+
+        if (event.code !== 1000 && event.code !== 1001) {
+          scheduleReconnect(conversationId);
+        }
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to create WebSocket:', error);
+      setConnectionStatus('error');
+      setConnectionError('Failed to connect');
+      scheduleReconnect(conversationId);
+    }
+  }, [token, currentUserId]);
+
+  // Schedule reconnection
+  const scheduleReconnect = (conversationId: string) => {
+    if (reconnectAttempts >= 5) {
+      console.log('Max reconnection attempts reached');
+      setConnectionError('Unable to connect. Please refresh.');
+      return;
+    }
+
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+    console.log(`🔄 Reconnecting in ${delay/1000}s (Attempt ${reconnectAttempts + 1})`);
+
+    reconnectTimerRef.current = setTimeout(() => {
+      setReconnectAttempts(prev => prev + 1);
+      connectToConversation(conversationId);
+    }, delay);
+  };
+
+  // Manual reconnect
+  const manualReconnect = () => {
+    if (selectedChat?.id) {
+      cleanupWebSockets();
+      setReconnectAttempts(0);
+      connectToConversation(selectedChat.id);
+    }
+  };
+
+  // Handle incoming chat message
+  const handleChatMessage = (data: WebSocketMessage) => {
+    if (!currentUserId) {
+      console.error('❌ Cannot handle message: currentUserId not set');
+      return;
+    }
+
+    // FIXED: Check if sender ID matches current user ID
+    const senderId = data.sender?.id;
+    const isUserMessage = senderId === currentUserId;
+    
+    console.log('📨 Processing incoming message:', {
+      senderId: senderId,
+      currentUserId: currentUserId,
+      isUserMessage: isUserMessage,
+      alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
+      senderUsername: data.sender?.username
+    });
+
+    // Avatars
+    const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+    const otherAvatar = data.sender?.avatar || selectedChat?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop';
+
+    const newMessage: Message = {
+      id: data.message_id,
+      text: data.message,
+      sender: isUserMessage ? 'user' : 'other', // This determines side
+      avatar: isUserMessage ? yourAvatar : otherAvatar,
+      time: formatMessageTime(data.timestamp),
+      timestamp: data.timestamp,
+      senderId: senderId,
+      senderName: data.sender?.username,
+      isSeen: false,
+      conversationId: data.conversation_id || selectedChat?.id,
+      status: isUserMessage ? 'sent' : undefined,
+    };
+
+    // If it's your message, replace the temporary one
+    if (isUserMessage) {
+      setMessages(prev => prev.map(msg => 
+        msg.id.startsWith('temp-') ? { ...msg, ...newMessage, id: data.message_id, status: 'sent' } : msg
+      ));
+      console.log('✅ Updated temporary message to permanent');
+    } else {
+      setMessages(prev => [...prev, newMessage]);
+      console.log('✅ Added new message from other user');
+    }
+
+    // Refetch messages
+    if (selectedChat?.id) {
+      setTimeout(() => {
+        refetchSingleUserMessages();
+      }, 500);
+    }
+
+    // Scroll to bottom
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  // Handle user status
+  const handleUserStatus = (data: WebSocketMessage) => {
+    const userId = data.user_id;
+    const status = data.status;
+    setUserStatus(prev => ({ ...prev, [userId]: status }));
+  };
+
+  // Handle message seen
+  const handleMessageSeen = (data: WebSocketMessage) => {
+    const messageId = data.message_id;
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, isSeen: true, status: 'read' } : msg
+    ));
+  };
+
+  // Handle error
+  const handleError = (data: WebSocketMessage) => {
+    if (data.code === 'ACCOUNT_DEACTIVATED') {
+      setConnectionError('Your account has been deactivated');
+      setIsConnected(false);
+      setConnectionStatus('error');
+    } else {
+      setConnectionError(data.message || 'An error occurred');
+    }
+  };
+
+  // Send message
+  const sendMessage = () => {
+    const message = messageInput.trim();
+    if (!message || !socketRef.current || !isConnected) {
+      console.log('❌ Cannot send message');
+      return;
+    }
+
+    try {
+      const messageData = { message: message };
+      socketRef.current.send(JSON.stringify(messageData));
+
+      // Add temporary message on RIGHT side (your side)
+      const tempId = `temp-${Date.now()}`;
+      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      
+      const optimisticMessage: Message = {
+        id: tempId,
+        text: message,
+        sender: 'user', // ALWAYS 'user' for sent messages (RIGHT side)
+        avatar: yourAvatar,
+        time: formatMessageTime(new Date().toISOString()),
+        timestamp: new Date().toISOString(),
+        isSeen: false,
+        senderId: currentUserId,
+        conversationId: selectedChat?.id,
+        status: 'sending',
+      };
+
+      console.log('📤 Adding temporary message on RIGHT side:', optimisticMessage);
+
+      setMessages(prev => [...prev, optimisticMessage]);
+      setMessageInput('');
+      updateActivityTime();
+
+      // Remove "sending..." status after timeout
+      setTimeout(() => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempId && msg.status === 'sending' 
+            ? { ...msg, status: 'sent' } 
+            : msg
+        ));
+      }, 2000);
+
+      // Scroll to bottom
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+
+    } catch (error) {
+      console.error('❌ Error sending message:', error);
+      setConnectionError('Failed to send message');
+    }
+  };
+
+  // Handle Enter key
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    updateActivityTime();
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  // Handle chat selection
+  const handleChatSelect = (user: ChatUser) => {
+    console.log('💬 Selecting chat:', user.name);
+    setIsLoadingMessages(true);
+    setSelectedChat(user);
+    setIsChatListOpen(false);
+    setMessages([]);
+    updateActivityTime();
+  };
+
+  // Combine all conversations
+  const allChatUsers: ChatUser[] = [
+    ...conversations.map(convertConversationToChatUser),
+    ...newConversations.map(convertConversationToChatUser),
+  ];
+
+  // Get current user info
+  const currentUser = selectedChat ? {
+    name: selectedChat.name,
+    status: userStatus[selectedChat.userId || ''] === 'online'
+      ? 'Online now'
+      : selectedChat.lastSeen
+        ? `Last seen ${selectedChat.lastSeen === 'online' ? 'now' : selectedChat.lastSeen}`
+        : 'Offline',
+    avatar: selectedChat.avatar,
+    isOnline: userStatus[selectedChat.userId || ''] === 'online',
+  } : {
+    name: 'Select a chat',
+    status: 'Not connected',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+    isOnline: false,
+  };
+
+  // Tab counts
+  const tabCounts = {
+    chat: allChatUsers.length,
+    vendor: 0,
+    admin: 0
+  };
+
   const getCurrentUsers = () => {
     switch (activeTab) {
       case 'chat':
-        return chatUsers;
+        return allChatUsers;
       case 'vendor':
-        return vendorUsers;
+        return [];
       case 'admin':
-        return adminUsers;
+        return [];
       default:
-        return chatUsers;
+        return allChatUsers;
     }
   };
 
-  // Get current messages based on active tab
-  const getCurrentMessages = () => {
-    switch (activeTab) {
-      case 'chat':
-        return chatMessages;
-      case 'vendor':
-        return vendorMessages;
-      case 'admin':
-        return adminMessages;
+  // Get connection status
+  const getConnectionStatusInfo = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
+      case 'connecting':
+        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
+      case 'error':
+        return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
       default:
-        return chatMessages;
+        return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
     }
   };
 
-  // Tab count based on users length
-  const tabCounts = {
-    chat: chatUsers.length,
-    vendor: vendorUsers.length,
-    admin: adminUsers.length
+  const statusInfo = getConnectionStatusInfo();
+
+  // Scroll to bottom
+  useEffect(() => {
+    if (messages.length > 0 && !isLoadingMessages && !isLoadingSingleMessages) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [messages, isLoadingMessages, isLoadingSingleMessages]);
+
+  // Get read receipt icon
+  const getReadReceiptIcon = (status?: string, isSeen?: boolean) => {
+    if (status === 'sending') {
+      return <span className="text-xs text-gray-400">Sending...</span>;
+    }
+    
+    if (status === 'sent') {
+      return <Check size={12} className="text-gray-400" />;
+    }
+    
+    if (isSeen || status === 'read') {
+      return <CheckCheck size={12} className="text-blue-500" />;
+    }
+    
+    return null;
   };
 
   return (
-    <div className="w-full min-h-screen">
+    <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
+
+      {/* Connection Status */}
+      <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
+        {statusInfo.icon}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{statusInfo.text}</span>
+          {connectionError && (
+            <span className="text-xs mt-1 max-w-xs">{connectionError}</span>
+          )}
+          {connectionStatus !== 'connected' && selectedChat?.id && (
+            <button
+              onClick={manualReconnect}
+              className="text-xs underline mt-1 text-left"
+            >
+              Reconnect Now
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Header */}
       <div className="pb-4 md:pb-6">
         <div className="flex items-center justify-between md:block">
@@ -256,7 +833,9 @@ const BrokerMessage: React.FC = () => {
           </button>
         </div>
         <p className="text-sm md:text-[15px] text-gray-600 font-normal">
-          Integrated messaging & scheduling tools for seamless engagement
+          {connectionStatus === 'connected'
+            ? 'Real-time messaging system'
+            : connectionError || 'Establishing connection...'}
         </p>
       </div>
 
@@ -280,7 +859,7 @@ const BrokerMessage: React.FC = () => {
           z-10 md:z-auto
           shadow-lg md:shadow-none
         `}>
-          {/* Mobile header for chat list */}
+          {/* Mobile header */}
           <div className="flex items-center justify-between mb-4 md:hidden">
             <h2 className="text-lg font-semibold">Chats</h2>
             <button
@@ -297,7 +876,7 @@ const BrokerMessage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Search here"
+                placeholder="Search conversations"
                 className="w-full h-10 md:h-[44px] pl-10 pr-4 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -307,31 +886,28 @@ const BrokerMessage: React.FC = () => {
           <div className="mb-3 flex gap-3">
             <button
               onClick={() => setActiveTab('chat')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${
-                activeTab === 'chat'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'chat'
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
             >
               Chat <span className="ml-1">({tabCounts.chat})</span>
             </button>
             <button
               onClick={() => setActiveTab('vendor')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${
-                activeTab === 'vendor'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
             >
               Vendor <span className="ml-1">({tabCounts.vendor})</span>
             </button>
             <button
               onClick={() => setActiveTab('admin')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${
-                activeTab === 'admin'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
             >
               Admin <span className="ml-1">({tabCounts.admin})</span>
             </button>
@@ -339,48 +915,62 @@ const BrokerMessage: React.FC = () => {
 
           {/* Chat List */}
           <div className="flex-1 overflow-y-auto">
-            {getCurrentUsers().map((user) => (
-              <button
-                key={user.id}
-                onClick={() => {
-                  setSelectedChat(user);
-                  if (window.innerWidth < 768) {
-                    setIsChatListOpen(false);
-                  }
-                }}
-                className={`w-full flex items-center gap-3 px-3 md:px-4 py-3 hover:bg-blue-50 hover:rounded-sm transition-colors ${
-                  selectedChat?.id === user.id ? 'bg-blue-50' : ''
-                }`}
-              >
-                <div className="relative flex-shrink-0">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
-                  />
-                  {user.isOnline && (
-                    <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <h3 className="text-sm md:text-[15px] font-semibold text-gray-900 mb-0.5">
-                    {user.name}
-                  </h3>
-                  <p className="text-xs md:text-[13px] text-gray-500 truncate">
-                    {user.message}
-                  </p>
-                </div>
-                <span className="text-xs md:text-[13px] text-gray-500 flex-shrink-0">
-                  {user.time}
-                </span>
-              </button>
-            ))}
+            {isLoadingConversations ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : getCurrentUsers().length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No conversations found
+              </div>
+            ) : (
+              getCurrentUsers().map((user) => (
+                <button
+                  key={user.id}
+                  onClick={() => handleChatSelect(user)}
+                  className={`w-full flex items-center gap-3 px-3 md:px-4 py-3 hover:bg-blue-50 hover:rounded-sm transition-colors ${selectedChat?.id === user.id ? 'bg-blue-50' : ''
+                    }`}
+                >
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+                    />
+                    {user.isOnline && (
+                      <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm md:text-[15px] font-semibold text-gray-900">
+                        {user.name}
+                      </h3>
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {user.time}
+                      </span>
+                    </div>
+                    <p className="text-xs md:text-[13px] text-gray-500 truncate">
+                      {user.message}
+                    </p>
+                    {!user.isSeen && user.lastSeen && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Clock size={10} className="text-gray-400" />
+                        <span className="text-[10px] text-gray-500">
+                          {user.lastSeen === 'online' ? 'Online' : `Last seen ${user.lastSeen}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
         {/* Right Side - Chat Area */}
         <div className="flex-1 flex flex-col">
-          {/* Chat Header with back button for mobile */}
+          {/* Chat Header */}
           <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-200 bg-white">
             <div className="flex items-center gap-3">
               <button
@@ -396,7 +986,7 @@ const BrokerMessage: React.FC = () => {
                     alt={currentUser.name}
                     className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
                   />
-                  {currentUser.isOnline && (
+                  {currentUser.isOnline && connectionStatus === 'connected' && (
                     <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
                   )}
                 </div>
@@ -406,6 +996,7 @@ const BrokerMessage: React.FC = () => {
                   </h3>
                   <p className="text-xs md:text-[13px] text-gray-500">
                     {currentUser.status}
+                    {connectionStatus !== 'connected' && ' • Connection issue'}
                   </p>
                 </div>
               </div>
@@ -419,48 +1010,82 @@ const BrokerMessage: React.FC = () => {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-[#ECEDEE]">
-            {getCurrentMessages().map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-2 md:gap-3 ${
-                  message.sender === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {message.sender === 'other' && (
-                  <img
-                    src={message.avatar}
-                    alt="User"
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0"
-                  />
-                )}
-                <div
-                  className={`max-w-[85%] md:max-w-[600px] px-3 md:px-4 py-2 md:py-3 rounded-2xl ${
-                    message.sender === 'user'
-                      ? 'bg-blue-50 text-gray-900'
-                      : 'bg-white border border-gray-200 text-gray-900'
-                  }`}
-                >
-                  <p className="text-sm md:text-[14px] leading-relaxed">{message.text}</p>
-                </div>
-                {message.sender === 'user' && (
-                  <img
-                    src={message.avatar}
-                    alt="You"
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0"
-                  />
-                )}
-                {message.sender === 'other' && (
-                  <div className="flex items-start gap-1 md:gap-2 mt-2">
-                    <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                      <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
-                    </button>
-                    <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                      <MoreVertical className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
-                    </button>
-                  </div>
-                )}
+            {isLoadingMessages || isLoadingSingleMessages ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
-            ))}
+            ) : messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-500">
+                  <p className="text-lg font-medium mb-2">No messages yet</p>
+                  <p className="text-sm">Start the conversation</p>
+                  {connectionStatus !== 'connected' && (
+                    <p className="text-sm text-yellow-600 mt-2">
+                      Waiting for connection...
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} transition-all duration-200`}
+                >
+                  {/* LEFT SIDE: Other person's messages (RECEIVED) */}
+                  {message.sender === 'other' && (
+                    <div className="flex items-start gap-2 md:gap-3 max-w-[85%] md:max-w-[600px]">
+                      {/* Other person's avatar - ALWAYS ON LEFT */}
+                      <img
+                        src={message.avatar}
+                        alt="Other User"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                      />
+                      
+                      {/* Message bubble - LEFT */}
+                      <div className="flex flex-col">
+                        <div className="bg-white border border-gray-200 text-gray-900 px-3 md:px-4 py-2 md:py-3 rounded-2xl shadow-sm">
+                          <p className="text-sm md:text-[14px] leading-relaxed">{message.text}</p>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 ml-1">
+                          <span className="text-xs text-gray-500">
+                            {message.time}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* RIGHT SIDE: Your messages (SENT) */}
+                  {message.sender === 'user' && (
+                    <div className="flex items-start gap-2 md:gap-3 max-w-[85%] md:max-w-[600px]">
+                      {/* Message bubble - RIGHT */}
+                      <div className="flex flex-col items-end">
+                        <div className="bg-blue-50 text-gray-900 px-3 md:px-4 py-2 md:py-3 rounded-2xl shadow-sm">
+                          <p className="text-sm md:text-[14px] leading-relaxed">{message.text}</p>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 mr-1">
+                          <span className="text-xs text-gray-500">
+                            {message.time}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            {getReadReceiptIcon(message.status, message.isSeen)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Your avatar - ALWAYS ON RIGHT */}
+                      <img
+                        src={message.avatar}
+                        alt="You"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Message Input */}
@@ -472,19 +1097,39 @@ const BrokerMessage: React.FC = () => {
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  placeholder="Type your message"
+                  placeholder={connectionStatus === 'connected' ? "Type your message" : "Connecting..."}
                   value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  className="w-full h-10 md:h-[42px] px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => {
+                    setMessageInput(e.target.value);
+                    updateActivityTime();
+                  }}
+                  onKeyPress={handleKeyPress}
+                  disabled={connectionStatus !== 'connected' || !!connectionError}
+                  className={`w-full h-10 md:h-[42px] px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${connectionStatus === 'connected' && !connectionError
+                      ? 'border-gray-300 focus:ring-blue-500'
+                      : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
+                    }`}
                 />
                 <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
                   <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
                 </button>
               </div>
-              <button className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[#B4B7BB] hover:bg-gray-400 rounded-full transition-colors">
+              <button
+                onClick={sendMessage}
+                disabled={!messageInput.trim() || connectionStatus !== 'connected' || !!connectionError}
+                className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim() && connectionStatus === 'connected' && !connectionError
+                    ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                    : 'bg-gray-300 cursor-not-allowed'
+                  }`}
+              >
                 <SendHorizontal className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
               </button>
             </div>
+            {connectionStatus !== 'connected' && (
+              <p className="text-xs text-center text-gray-500 mt-2">
+                {connectionError || 'Trying to establish connection...'}
+              </p>
+            )}
           </div>
         </div>
       </div>

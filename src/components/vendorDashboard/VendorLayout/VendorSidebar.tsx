@@ -1,9 +1,11 @@
+import { useGetVendorProfileQuery } from '@/redux/features/vendor/getVendorProfileApi';
 import {
   BarChart3,
   Building2,
   LayoutGrid,
   MessageSquare,
   Settings,
+  Users,
   // Users,
   X
 } from 'lucide-react';
@@ -15,13 +17,14 @@ interface VendorSidebarProps {
 }
 
 const VendorSidebar: React.FC<VendorSidebarProps> = ({ onClose }) => {
+  const {data:profile} = useGetVendorProfileQuery(undefined)
   const location = useLocation();
 
   const menuItems = [
     { icon: LayoutGrid, label: 'Overview', path: '/vendor-dashboard/overview', badge: null },
-    // { icon: Users, label: 'Leads', path: '/vendor-dashboard/leads', badge: 2 },
+    { icon: Users, label: 'Leads', path: '/vendor-dashboard/leads', badge: null },
     { icon: Building2, label: 'Properties', path: '/vendor-dashboard/properties', badge: null },
-    { icon: MessageSquare, label: 'Messages', path: '/vendor-dashboard/messages', badge: 2 },
+    { icon: MessageSquare, label: 'Messages', path: '/vendor-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/vendor-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/vendor-dashboard/settings', badge: null },
   ];
@@ -42,13 +45,13 @@ const VendorSidebar: React.FC<VendorSidebarProps> = ({ onClose }) => {
       {/* User Profile */}
       <div className="flex items-center gap-3 px-4 py-4 border border-[#F1F5F9] rounded-sm">
         <img
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+          src={profile?.image || '/default-profile.png'}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
-          <span className="text-lg font-semibold text-[#0F172A]">Mark wins</span>
-          <span className="text-lg text-[#A9ACAF] mt-0.5">vendor@vendor.com</span>
+          <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>
+          <span className="text-lg text-[#A9ACAF] mt-0.5">{profile?.email}</span>
         </div>
       </div>
 

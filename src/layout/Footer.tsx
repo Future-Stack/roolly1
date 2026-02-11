@@ -2,8 +2,10 @@ import { Instagram, Mail } from 'lucide-react';
 import React from 'react';
 import footerImg from '../assets/footerImg.png';
 import logoImg from '../assets/logo.svg';
+import { useNavigate } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate()
   return (
     <footer
       className="relative w-full bg-cover bg-center bg-no-repeat"
@@ -11,68 +13,46 @@ const Footer: React.FC = () => {
         backgroundImage: `linear-gradient(0deg, rgba(0,0,0,0.60), rgba(0,0,0,0.60)), url(${footerImg})`,
       }}
     >
-      {/* Overlay */}
       <div className="absolute inset-0"></div>
 
-      {/* Main Container */}
       <div className="relative z-10 flex flex-col items-center justify-between min-h-full py-8 px-4 sm:px-8 lg:px-16 xl:px-28">
 
         {/* Title */}
         <h1 className="text-white text-center text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold mb-6 sm:mb-8 font-Inter">
           The future of commercial property
         </h1>
-
-        {/* Contact Section */}
         <div className="w-full max-w-md bg-transparent text-center mb-8">
           <h3 className="text-white text-lg sm:text-xl font-semibold mb-3 sm:mb-4 font-Inter">
             Contact Us
           </h3>
-
-          {/* Email */}
           <div className="flex flex-col items-center gap-2 mb-4 text-white">
             <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-400 p-2">
               <Mail size={18} />
             </div>
             <a href="mailto:rolo@mark30re.com" className="hover:text-gray-300 transition-colors">
-              rolo@mark30re.com
+              rob@broker360re.com
             </a>
             <a href="mailto:matthew@mark30re.com" className="hover:text-gray-300 transition-colors">
-              matthew@mark30re.com
+              Matt@broker360re.com
             </a>
           </div>
 
-          {/* Phone */}
           <div className="flex flex-col items-center gap-2 text-white">
             <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-400 p-2">
               <Mail size={18} />
             </div>
             <a href="tel:07717340048" className="hover:text-gray-300 transition-colors">
-              07717 340 048
+              07772425231
             </a>
             <a href="tel:07717678944" className="hover:text-gray-300 transition-colors">
-              07717 678 944
+              07717340059
             </a>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="mb-6 sm:mb-8">
-          <ul className="flex flex-wrap justify-center gap-4 sm:gap-6">
-            {["About", "Vendors", "Property", "Team"].map((item) => (
-              <li key={item}>
-                <a
-                  href={`#${item.toLowerCase()}`}
-                  className="text-white text-base sm:text-lg font-medium hover:text-gray-300 transition-colors"
-                >
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
 
         {/* Logo and Social */}
-        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
           <img src={logoImg} alt="Logo" className="w-24 sm:w-32" />
 
           <div className="flex flex-col items-center gap-1 sm:gap-2">
@@ -100,8 +80,8 @@ const Footer: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center text-white text-sm sm:text-base gap-2 sm:gap-0">
             <p>© 2025 All Rights Reserved</p>
             <div className="flex gap-4">
-              <p>Privacy Policy</p>
-              <p>Terms of Use</p>
+              <button onClick={()=> navigate('/privecy-policy')} className='cursor-pointer'>Privacy Policy</button>
+              <button onClick={()=> navigate('/terms')} className='cursor-pointer'>Terms of Use</button>
             </div>
           </div>
         </div>

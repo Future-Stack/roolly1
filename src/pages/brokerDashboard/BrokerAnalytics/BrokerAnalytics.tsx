@@ -1,4 +1,6 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useGetAnalyticsOverviewQuery } from '@/redux/features/broker/analytics/getAnalyticsOverviewApi';
+import { useGetLeadPerformanceQuery } from '@/redux/features/broker/analytics/getLeadPerformanceApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
 import React from 'react';
 import { Bar, BarChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -10,15 +12,16 @@ const properties = [
 ];
 
 const BrokerAnalytics: React.FC = () => {
-    const monthlyData = [
-        { month: 'Jan', leads: 150, conversions: 50 },
-        { month: 'Feb', leads: 175, conversions: 60 },
-        { month: 'Mar', leads: 210, conversions: 65 },
-        { month: 'Apr', leads: 250, conversions: 72 },
-        { month: 'May', leads: 275, conversions: 75 },
-        { month: 'Jun', leads: 300, conversions: 75 }
-    ];
-
+    const {data: analytisOverview} = useGetAnalyticsOverviewQuery(undefined);
+    const {data: leadPerformance} = useGetLeadPerformanceQuery(undefined);
+    
+    // Map backend lead performance data to chart format
+    const monthlyData = leadPerformance?.leads_data?.map((item:any) => ({
+        month: getMonthName(item.month),
+        leads: item.total_leads,
+        conversions: item.completed_leads
+    })) || [];
+    
     const propertyTypeData = [
         { type: 'Industrial', views: 165000, enquiries: 30000 },
         { type: 'Land', views: 110000, enquiries: 52000 },
@@ -47,6 +50,12 @@ const BrokerAnalytics: React.FC = () => {
         { name: 'Call', leads: 10, percentage: 10, color: 'bg-[#126AD8]' }
     ];
 
+    // Helper function to get month name from month number
+    function getMonthName(monthNumber: number): string {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months[monthNumber - 1] || '';
+    }
+
     return (
         <div className="w-full min-h-screen mb-6">
             {/* Header */}
@@ -68,8 +77,8 @@ const BrokerAnalytics: React.FC = () => {
                         <Users className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">3</p>
-                        <p className="text-[13px] text-green-600 font-medium">2 qualified</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytisOverview?.assigned_leads?.value}</p>
+                        <p className="text-[13px] text-green-600 font-medium">{analytisOverview?.assigned_leads?.sub_text}</p>
                     </div>
                 </div>
 
@@ -80,8 +89,8 @@ const BrokerAnalytics: React.FC = () => {
                         <Building2 className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">05</p>
-                        <p className="text-[13px] text-gray-600 font-normal">05 leads to handle</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytisOverview?.total_leads?.value}</p>
+                        <p className="text-[13px] text-gray-600 font-normal">{analytisOverview?.total_leads?.sub_text}</p>
                     </div>
                 </div>
 
@@ -92,8 +101,8 @@ const BrokerAnalytics: React.FC = () => {
                         <TrendingUp className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">60%</p>
-                        <p className="text-[13px] text-gray-600 font-normal">+5.3% this month</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytisOverview?.conversion_rate?.value}</p>
+                        <p className="text-[13px] text-gray-600 font-normal">{analytisOverview?.conversion_rate?.sub_text}</p>
                     </div>
                 </div>
 
@@ -104,8 +113,8 @@ const BrokerAnalytics: React.FC = () => {
                         <Eye className="w-5 h-5 text-blue-600" strokeWidth={2} />
                     </div>
                     <div>
-                        <p className="text-[32px] font-bold text-gray-900 mb-1">20000</p>
-                        <p className="text-[13px] text-gray-600 font-normal">+5.3% this month</p>
+                        <p className="text-[32px] font-bold text-gray-900 mb-1">{analytisOverview?.property_views?.value}</p>
+                        <p className="text-[13px] text-gray-600 font-normal">{analytisOverview?.property_views?.sub_text}</p>
                     </div>
                 </div>
             </div>

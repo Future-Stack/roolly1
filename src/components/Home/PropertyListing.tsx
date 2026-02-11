@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
-import { ChevronDown, Bed, Bath, Square } from 'lucide-react';
+import { useFeaturedPropertyQuery } from '@/redux/features/users/featuredPropertyApi';
+import { Bath, Bed, Square, Building } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+// Random image URLs for properties
+const randomImages = [
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=500&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=500&h=300&fit=crop'
+];
 
 interface PropertyCardProps {
+  id: number;
   image: string;
   price: number;
   period: string;
@@ -14,6 +29,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({
+  id,
   image,
   price,
   period,
@@ -68,85 +84,119 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
 
         {/* View Details Button */}
-        <button className="w-full py-2.5 border border-[#126AD8] rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-          View Details
-        </button>
+        <Link to={`/property-details/${id}`}>
+          <button className="w-full py-2.5 border border-[#126AD8] rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            View Details
+          </button>
+        </Link>
       </div>
     </div>
   );
 };
 
 const PropertyListing: React.FC = () => {
-  const [sortOpen, setSortOpen] = useState(false);
+  const { data: featuredProperty, isLoading } = useFeaturedPropertyQuery(undefined);
 
-  const properties: PropertyCardProps[] = [
-    {
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&h=300&fit=crop',
-      price: 2500,
-      period: 'year',
-      title: 'Premium Family House',
-      address: '6391 Elgin St. Celina, Delaware 10299',
-      bedrooms: 4,
-      bathrooms: 3,
-      privatePool: 1,
-      forRent: true,
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=500&h=300&fit=crop',
-      price: 2500,
-      period: 'year',
-      title: 'Premium Family House',
-      address: '6391 Elgin St. Celina, Delaware 10299',
-      bedrooms: 4,
-      bathrooms: 3,
-      privatePool: 1,
-      forRent: true,
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop',
-      price: 2500,
-      period: 'year',
-      title: 'Premium Family House',
-      address: '6391 Elgin St. Celina, Delaware 10299',
-      bedrooms: 4,
-      bathrooms: 3,
-      privatePool: 1,
-      forRent: true,
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500&h=300&fit=crop',
-      price: 2500,
-      period: 'year',
-      title: 'Premium Family House',
-      address: '6391 Elgin St. Celina, Delaware 10299',
-      bedrooms: 4,
-      bathrooms: 3,
-      privatePool: 1,
-      forRent: true,
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500&h=300&fit=crop',
-      price: 2500,
-      period: 'year',
-      title: 'Premium Family House',
-      address: '6391 Elgin St. Celina, Delaware 10299',
-      bedrooms: 4,
-      bathrooms: 3,
-      privatePool: 1,
-      forRent: true,
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=500&h=300&fit=crop',
-      price: 2500,
-      period: 'year',
-      title: 'Premium Family House',
-      address: '6391 Elgin St. Celina, Delaware 10299',
-      bedrooms: 4,
-      bathrooms: 3,
-      privatePool: 1,
-      forRent: true,
-    },
-  ];
+  // Helper function to get random image
+  const getRandomImage = (propertyId: number) => {
+    return randomImages[propertyId % randomImages.length];
+  };
+
+  // Helper function to generate random price based on property type
+  const generatePrice = (propertyType: string, transaction: string): number => {
+    const basePrices: Record<string, number> = {
+      industrial: transaction === 'sale' ? 500000 : 5000,
+      office: transaction === 'sale' ? 300000 : 3000,
+      retail: transaction === 'sale' ? 200000 : 2000,
+      land: transaction === 'sale' ? 150000 : 1500,
+      house: transaction === 'sale' ? 400000 : 4000,
+    };
+
+    const basePrice = basePrices[propertyType] || 250000;
+    const randomFactor = 0.8 + Math.random() * 0.4;
+    return Math.round(basePrice * randomFactor);
+  };
+
+  // Helper function to generate random features
+  const generateRandomFeatures = (propertyType: string) => {
+    if (propertyType === 'land') {
+      return { bedrooms: 0, bathrooms: 0, privatePool: 0 };
+    }
+
+    const bedrooms = propertyType === 'house' ?
+      Math.floor(Math.random() * 4) + 2 :
+      Math.floor(Math.random() * 3) + 1;
+
+    const bathrooms = Math.floor(Math.random() * 3) + 1;
+    const privatePool = Math.floor(Math.random() * 2);
+
+    return { bedrooms, bathrooms, privatePool };
+  };
+
+  // Transform API data to component data
+  const transformProperties = () => {
+    if (!featuredProperty || !Array.isArray(featuredProperty)) {
+      return [];
+    }
+
+    return featuredProperty.map((property) => {
+      const price = generatePrice(property.property_type, property.transaction);
+      const features = generateRandomFeatures(property.property_type);
+
+      return {
+        id: property.id,
+        image: property.image || getRandomImage(property.id),
+        price: price,
+        period: property.transaction === 'sale' ? 'total' : 'month',
+        title: property.property_name,
+        address: property.location,
+        bedrooms: features.bedrooms,
+        bathrooms: features.bathrooms,
+        privatePool: features.privatePool,
+        forRent: property.transaction === 'lease',
+      };
+    });
+  };
+
+  const properties = transformProperties();
+
+  // If loading, show skeleton or return null
+  if (isLoading) {
+    return (
+      <div className="w-full p-2">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded mb-4 w-1/3"></div>
+          <div className="h-4 bg-gray-200 rounded mb-6 w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-gray-100 p-1.5 rounded-lg">
+                <div className="h-36 bg-gray-200 rounded"></div>
+                <div className="p-1.5">
+                  <div className="h-6 bg-gray-200 rounded w-1/2 mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-10 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If no data, show empty state
+  if (!properties || properties.length === 0) {
+    return (
+      <div className="w-full p-2">
+        <div className="text-center py-8">
+          <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No featured properties available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -156,48 +206,15 @@ const PropertyListing: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Perfect Commercial Space Is Just a Pin Away
           </h1>
-          
-          <div className="flex items-center justify-between">
-            <p className="text-gray-700 text-base">220 results</p>
-            
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-2 text-gray-700 text-base hover:text-gray-900"
-              >
-                Sort for you
-                <ChevronDown size={20} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {sortOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
-                  <div className="py-1">
-                    <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Price: Low to High
-                    </button>
-                    <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Price: High to Low
-                    </button>
-                    <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Newest First
-                    </button>
-                    <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Most Popular
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Property Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {properties.map((property, index) => (
-            <PropertyCard key={index} {...property} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {properties.map((property) => (
+            <PropertyCard key={property.id} {...property} />
           ))}
         </div>
+
       </div>
     </div>
   );

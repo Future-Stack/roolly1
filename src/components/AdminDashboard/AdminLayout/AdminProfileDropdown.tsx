@@ -1,12 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { LogOut, Settings, HelpCircle } from "lucide-react";
+import { logout } from "@/redux/features/auth/authSlice";
+import { useAppDispatch } from "@/redux/hook";
+import { LogOut, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const AdminProfileDropdown = ({
   isOpen,
   onClose,
   dropdownRef
 }: any) => {
+  const dispatch = useAppDispatch();
+
   if (!isOpen) return null;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    onClose();
+  };
 
   return (
     <div
@@ -28,23 +38,14 @@ const AdminProfileDropdown = ({
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#4F46E51A] flex items-center justify-center">
           <Settings className="w-5 h-5 text-[#4338CA]" strokeWidth={2} />
         </div>
-        <span className="text-base font-medium text-gray-900">Settings</span>
-      </button>
-
-      {/* Help */}
-      <button
-        onClick={onClose}
-        className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
-      >
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#0F766E33] flex items-center justify-center">
-          <HelpCircle className="w-5 h-5 text-[#0F766E]" strokeWidth={2} />
-        </div>
-        <span className="text-base font-medium text-gray-900">Help & Support</span>
+        <Link to='/admin-dashboard/settings'>
+          <span className="text-base font-medium text-gray-900">Settings</span>
+        </Link>
       </button>
 
       {/* Logout */}
       <button
-        onClick={onClose}
+        onClick={handleLogout}
         className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#7E22CE33] flex items-center justify-center">
