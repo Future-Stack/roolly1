@@ -1,54 +1,71 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useGetAnalyticsOverviewQuery } from '@/redux/features/broker/analytics/getAnalyticsOverviewApi';
 import { useGetLeadPerformanceQuery } from '@/redux/features/broker/analytics/getLeadPerformanceApi';
+import { useGetBrokerPropertyTypePerformanceQuery } from '@/redux/features/broker/analytics/getPropertyTypePerformanceApi';
+import { useGetBrokerLeadSourceQuery } from '@/redux/features/broker/analytics/getLeadSourceApi';
+import { useGetBrokerPropertyAnalysisQuery } from '@/redux/features/broker/analytics/getPropertyAnalysisApi';
+import { useGetBrokerLeadsConversionQuery } from '@/redux/features/broker/analytics/getLeadsConversionApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
 import React from 'react';
 import { Bar, BarChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 
-const properties = [
-    { name: 'Leeds Industrial Park', location: 'Leeds, West Yorkshire', leads: 24 },
-    { name: 'Leeds Industrial Park', location: 'Leeds, West Yorkshire', leads: 19 },
-    { name: 'Leeds Industrial Park', location: 'Leeds, West Yorkshire', leads: 8 }
-];
 
 const BrokerAnalytics: React.FC = () => {
-    const {data: analytisOverview} = useGetAnalyticsOverviewQuery(undefined);
-    const {data: leadPerformance} = useGetLeadPerformanceQuery(undefined);
-    
+    const { data: analytisOverview } = useGetAnalyticsOverviewQuery(undefined);
+    const { data: leadPerformance } = useGetLeadPerformanceQuery(undefined);
+    const { data: propertyTypePerformance } = useGetBrokerPropertyTypePerformanceQuery(undefined);
+    const { data: brokerLeadSource } = useGetBrokerLeadSourceQuery(undefined);
+    const { data: brokerPropertyAnalysis } = useGetBrokerPropertyAnalysisQuery(undefined);
+    const { data: brokerLeadsConversion } = useGetBrokerLeadsConversionQuery(undefined);
+
     // Map backend lead performance data to chart format
-    const monthlyData = leadPerformance?.leads_data?.map((item:any) => ({
+    const monthlyData = leadPerformance?.leads_data?.map((item: any) => ({
         month: getMonthName(item.month),
         leads: item.total_leads,
         conversions: item.completed_leads
     })) || [];
-    
-    const propertyTypeData = [
-        { type: 'Industrial', views: 165000, enquiries: 30000 },
-        { type: 'Land', views: 110000, enquiries: 52000 },
-        { type: 'Office', views: 200000, enquiries: 85000 },
-        { type: 'Retail', views: 160000, enquiries: 55000 }
-    ];
 
-    const data = [
-        { month: 'Jan', value: 1.5 },
-        { month: 'Feb', value: 2.5 },
-        { month: 'Mar', value: 4 },
-        { month: 'Apr', value: 1 },
-        { month: 'May', value: 6.5 },
-        { month: 'Jun', value: 1.5 },
-        { month: 'Jul', value: 3 },
-        { month: 'Aug', value: 9.5 },
-        { month: 'Sep', value: 13.5 },
-        { month: 'Oct', value: 6.5 },
-        { month: 'Nov', value: 3 },
-        { month: 'Dec', value: 12 }
-    ];
+    const propertyTypeData = propertyTypePerformance?.map((item: any) => ({
+        type: item.property_type.charAt(0).toUpperCase() + item.property_type.slice(1),
+        views: item.total_views,
+        enquiries: item.total_enquiries
+    })) || [];
 
-    const leadSources = [
-        { name: 'Chat', leads: 20, percentage: 53, color: 'bg-[#126AD8]' },
-        { name: 'Whatsapp', leads: 70, percentage: 14, color: 'bg-[#126AD8]' },
-        { name: 'Call', leads: 10, percentage: 10, color: 'bg-[#126AD8]' }
-    ];
+
+    const getSourceColor = (name: string) => {
+        switch (name.toLowerCase()) {
+            case 'chat':
+            case 'ai':
+            case 'ai chat':
+                return 'bg-[#126AD8]';
+            case 'whatsapp':
+                return 'bg-[#126AD8]'; // Keeping consistent with broker theme or I can vary them
+            case 'call':
+                return 'bg-[#126AD8]';
+            default:
+                return 'bg-[#126AD8]';
+        }
+    };
+
+    const leadSources = brokerLeadSource?.map((source: any) => ({
+        name: source.source,
+        percentage: source.percentage,
+        color: getSourceColor(source.source)
+    })) || [];
+
+
+    // const propertyTypeData = [
+    //     { type: 'Industrial', views: 165000, enquiries: 30000 },
+    //     { type: 'Land', views: 110000, enquiries: 52000 },
+    //     { type: 'Office', views: 200000, enquiries: 85000 },
+    //     { type: 'Retail', views: 160000, enquiries: 55000 }
+    // ];
+
+    const leadsConversionData = brokerLeadsConversion?.map((item: any) => ({
+        month: getMonthName(item.month),
+        value: item.leads
+    })) || [];
+
 
     // Helper function to get month name from month number
     function getMonthName(monthNumber: number): string {
@@ -232,21 +249,21 @@ const BrokerAnalytics: React.FC = () => {
                         </p>
 
                         <div className="space-y-4">
-                            {properties.map((property, index) => (
+                            {brokerPropertyAnalysis?.map((property, index) => (
                                 <div
                                     key={index}
                                     className="bg-[#E8F1FD] rounded-lg px-5 py-3 flex items-center justify-between"
                                 >
                                     <div>
                                         <h3 className="text-gray-900 text-base font-semibold mb-1">
-                                            {property.name}
+                                            {property.property_name}
                                         </h3>
                                         <p className="text-gray-600 text-sm">
                                             {property.location}
                                         </p>
                                     </div>
                                     <div className="bg-[#00B327] text-white text-sm font-semibold px-3 py-1.5 rounded-sm whitespace-nowrap">
-                                        {property.leads} leads
+                                        {property.leads_count} leads
                                     </div>
                                 </div>
                             ))}
@@ -264,7 +281,7 @@ const BrokerAnalytics: React.FC = () => {
                     <div className="w-full h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={data}
+                                data={leadsConversionData}
                                 margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
                             >
                                 <CartesianGrid

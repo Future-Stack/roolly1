@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAddPropertyMutation } from '@/redux/features/vendor/addPropertyApi';
 import RiskProfileManagementForm from '@/components/vendorDashboard/Property/RiskProfileManagementForm';
+import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 interface ImageUpload {
     id: string;
@@ -13,91 +15,93 @@ interface ImageUpload {
     preview?: string;
 }
 
-interface FormData {
+interface PropertyFormData {
     property_name: string;
+    postcode: string;
     transaction: string;
-    postcode: number;
     property_type: string;
     location: string;
     estimated_price: string;
-    lease_duration: string;
+    lease_duration: number;
     description: string;
     built_area: string;
     length_width: string;
     office_space: string;
     eaves_height: string;
     power_capacity: string;
-    phase: string;
+    electricity_supply: string;
     roller_shutter_type: string;
-    shutters_height_width: string;
+    roller_shutters: string;
     lighting_type: string;
-    epc_rating: string;
-    // ev-chnaging: string;
-    // solar-panels: string;
+    epc_rating: number;
+    ev_chaging: boolean;
+    solar_panels: boolean;
     any_further_details: string;
     yard_space: boolean;
     yard_area: string;
     yard_surface: string;
-    parking_include: string;
+    parking_include: number;
     key_specification: string;
-    risk_level: string;
+    brochure_pdf_url?: string | null;
+    brochure_video_url?: string | null;
     vehicle_repair_use: boolean;
     vehicle_sale_use: boolean;
     subletting: boolean;
     leisure_use: boolean;
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
-    whatsapp_number: string;
-    phone_number: string;
-    images: File[];
-    brochure_pdf?: File;
-    brochure_video?: File;
+    floor_plans: boolean;
+    other_restrictions: string;
+    dimensions_roller_shutter: string;
+    existing_images: string;
 }
 
 const AddProperty: React.FC = () => {
     const navigate = useNavigate();
     const [addProperty, { isLoading: isSubmitting }] = useAddPropertyMutation();
-    
-    const [formData, setFormData] = useState<FormData>({
+
+    const [formData, setFormData] = useState<PropertyFormData>({
         property_name: '',
         transaction: 'sale',
-        postcode: 1,
+        postcode: '',
         property_type: 'industrial',
         location: '',
         estimated_price: '',
-        lease_duration: '',
+        lease_duration: 0,
         description: '',
         built_area: '',
         length_width: '',
         office_space: '',
         eaves_height: '',
         power_capacity: '',
-        phase: '1',
+        electricity_supply: '',
         roller_shutter_type: '',
-        shutters_height_width: '',
+        roller_shutters: '',
+        dimensions_roller_shutter: '',
         lighting_type: '1',
-        epc_rating: '1',
+        epc_rating: 1,
         any_further_details: '',
         yard_space: false,
         yard_area: '',
         yard_surface: 'Concrete',
-        parking_include: '0',
+        parking_include: 0,
         key_specification: '',
-        risk_level: 'medium',
         vehicle_repair_use: false,
         vehicle_sale_use: false,
         subletting: false,
         leisure_use: false,
         pet_business_use: false,
         plastic_recycling_use: false,
-        whatsapp_number: '',
-        phone_number: '',
-        images: [],
+        floor_plans: false,
+        other_restrictions: '',
+        ev_chaging: false,
+        solar_panels: false,
+        existing_images: '',
     });
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
     const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
-    
+
     const [images, setImages] = useState<{ [key: string]: ImageUpload }>({
         aerial: { id: 'aerial', title: 'Aerial View', description: 'Overhead or drone shot showing building in context (site layout, access points).' },
         frontExternal: { id: 'frontExternal', title: 'Front External', description: 'Main frontage view from the street or approach road.' },
@@ -111,12 +115,17 @@ const AddProperty: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        
+
         if (type === 'checkbox') {
             const checkbox = e.target as HTMLInputElement;
             setFormData(prev => ({
                 ...prev,
                 [name]: checkbox.checked
+            }));
+        } else if (type === 'number') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value === '' ? 0 : parseFloat(value)
             }));
         } else {
             setFormData(prev => ({
@@ -156,7 +165,7 @@ const AddProperty: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         try {
             // Validate required fields
             if (!formData.property_name || !formData.location || !formData.estimated_price) {
@@ -180,7 +189,7 @@ const AddProperty: React.FC = () => {
 
             // Create FormData object
             const formDataToSend = new FormData();
-            
+
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images') {
@@ -210,16 +219,15 @@ const AddProperty: React.FC = () => {
             const response = await addProperty(formDataToSend).unwrap();
 
             console.log('Property added successfully:', response);
-            
-            // Show success message
-            alert('Property added successfully!');
-            
+
+           toast.success('Property added successfully!');
+
             // Redirect to properties list page or property details page
-            navigate('/broker/properties');
+            navigate('/vendor-dashboard/properties');
 
         } catch (error: any) {
-            console.error('Error adding property:', error);
-            alert(error?.data?.message || 'Failed to add property. Please try again.');
+            console.error('Error adding property:', error.data);
+           toast.error('Failed to add property. Please try again.');
         }
     };
 
@@ -234,12 +242,12 @@ const AddProperty: React.FC = () => {
     const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
     // const riskLevelOptions = ['low', 'medium', 'high'];
-    const phaseOptions = ['Single phase','Three Phase',];
-    const lightingTypeOptions = ['Halogen', 'LED', ];
-    
+    const phaseOptions = ['Single phase', 'Three Phase',];
+    const lightingTypeOptions = ['Halogen', 'LED',];
+
     const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-    const evChanging = ['yes', 'no', ];
-    const solarPanel = ['yes', 'no', ];
+    const evChanging = ['yes', 'no',];
+    const solarPanel = ['yes', 'no',];
     return (
         <div className="w-full min-h-screen">
             <div>
@@ -284,7 +292,7 @@ const AddProperty: React.FC = () => {
                                     <label className="block text-base text-gray-900 mb-2">
                                         Transaction *
                                     </label>
-                                    <select 
+                                    <select
                                         name="transaction"
                                         value={formData.transaction}
                                         onChange={handleInputChange}
@@ -299,13 +307,13 @@ const AddProperty: React.FC = () => {
                                     </select>
                                 </div>
 
-                                    <div>
+                                <div>
                                     <label className="block text-base text-gray-900 mb-2">
                                         Post Code *
                                     </label>
                                     <input
                                         type="text"
-                                        name="post_code "
+                                        name="postcode"
                                         value={formData.postcode}
                                         onChange={handleInputChange}
                                         placeholder="Post Code "
@@ -320,7 +328,7 @@ const AddProperty: React.FC = () => {
                                     <label className="block text-base text-gray-900 mb-2">
                                         Property Type *
                                     </label>
-                                    <select 
+                                    <select
                                         name="property_type"
                                         value={formData.property_type}
                                         onChange={handleInputChange}
@@ -354,7 +362,7 @@ const AddProperty: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                       Price (£) *
+                                        Price (£) *
                                     </label>
                                     <input
                                         type="text"
@@ -426,64 +434,64 @@ const AddProperty: React.FC = () => {
                                 </div>
 
                                 {/* add new filed */}
-                             
-                             <div className="">
-    <label className="block text-base text-gray-900 mb-1.5">
-        Built Area (sq m)
-    </label>
-    <input
-        type="text"
-        readOnly
-       
-        value={
-            formData.built_area 
-            ? (parseFloat(formData.built_area) / 10.76).toFixed(2) 
-            : ""
-        }
-        placeholder="Calculated automatically"
-        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-gray-100 rounded-md cursor-not-allowed border border-gray-200"
-    />
-</div>
+
+                                <div className="">
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Built Area (sq m)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        readOnly
+
+                                        value={
+                                            formData.built_area
+                                                ? (parseFloat(formData.built_area) / 10.76).toFixed(2)
+                                                : ""
+                                        }
+                                        placeholder="Calculated automatically"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-gray-100 rounded-md cursor-not-allowed border border-gray-200"
+                                    />
+                                </div>
 
 
-{/* Eaves Height  */}
-<div className="">
-    <label className="block text-base text-gray-900 mb-1.5">
-        Eaves height (m)
-    </label>
-    <input
-        type="text"
-        name="eaves_height"
-        placeholder="e.g., 6.5"
-        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-    />
-</div>
+                                {/* Eaves Height  */}
+                                <div className="">
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Eaves height (m)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="eaves_height"
+                                        placeholder="e.g., 6.5"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
-{/* Height to apex/pitch */}
-<div className="">
-    <label className="block text-base text-gray-900 mb-1.5">
-        Height to apex/pitch
-    </label>
-    <input
-        type="text"
-        name="height_apex_pitch"
-        placeholder="Enter height"
-        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-    />
-</div>
+                                {/* Height to apex/pitch */}
+                                <div className="">
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Height to apex/pitch
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="height_apex_pitch"
+                                        placeholder="Enter height"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
-{/* Power capacity  */}
-<div className="">
-    <label className="block text-base text-gray-900 mb-1.5">
-        Power capacity (Amps or KVA)
-    </label>
-    <input
-        type="text"
-        name="power_capacity"
-        placeholder="e.g., 100 Amps"
-        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-    />
-</div>
+                                {/* Power capacity  */}
+                                <div className="">
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Power capacity (Amps or KVA)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="power_capacity"
+                                        placeholder="e.g., 100 Amps"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
 
 
@@ -505,12 +513,12 @@ const AddProperty: React.FC = () => {
 
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                       Number of roller shutters
+                                        Number of roller shutters
                                     </label>
                                     <input
                                         type="number"
-                                        name="roller_shutter_type"
-                                        value={formData.roller_shutter_type}
+                                        name="roller_shutters"
+                                        value={formData.roller_shutters}
                                         onChange={handleInputChange}
                                         placeholder="e.g., Manual"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -539,8 +547,8 @@ const AddProperty: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
-                                        name="shutters_height_width"
-                                        value={formData.shutters_height_width}
+                                        name="dimensions_roller_shutter"
+                                        value={formData.dimensions_roller_shutter}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 2x4 ft"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -567,7 +575,7 @@ const AddProperty: React.FC = () => {
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Type of lighting
                                     </label>
-                                    <select 
+                                    <select
                                         name="lighting_type"
                                         value={formData.lighting_type}
                                         onChange={handleInputChange}
@@ -582,7 +590,7 @@ const AddProperty: React.FC = () => {
                                 </div>
 
                                 {/* Eaves Height */}
-                                <div>
+                                {/* <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Eaves height (ft)
                                     </label>
@@ -594,14 +602,14 @@ const AddProperty: React.FC = () => {
                                         placeholder="e.g., 13.55"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-                                </div>
+                                </div> */}
 
                                 {/* EPC Rating */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         EPC Rating
                                     </label>
-                                    <select 
+                                    <select
                                         name="epc_rating"
                                         value={formData.epc_rating}
                                         onChange={handleInputChange}
@@ -618,12 +626,15 @@ const AddProperty: React.FC = () => {
 
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                    EV charging
+                                        EV charging
                                     </label>
-                                    <select 
-                                        name="ev-chnaging"
-                                        // value={formData.}
-                                        onChange={handleInputChange}
+                                    <select
+                                        name="ev_chaging"
+                                        value={formData.ev_chaging ? 'yes' : 'no'}
+                                        onChange={(e) => {
+                                            const val = e.target.value === 'yes';
+                                            setFormData(prev => ({ ...prev, ev_chaging: val }));
+                                        }}
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
                                         {evChanging.map(option => (
@@ -636,12 +647,15 @@ const AddProperty: React.FC = () => {
 
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                     Solar Panels
+                                        Solar Panels
                                     </label>
-                                    <select 
-                                        name="ev-chnaging"
-                                        // value={formData.}
-                                        onChange={handleInputChange}
+                                    <select
+                                        name="solar_panels"
+                                        value={formData.solar_panels ? 'yes' : 'no'}
+                                        onChange={(e) => {
+                                            const val = e.target.value === 'yes';
+                                            setFormData(prev => ({ ...prev, solar_panels: val }));
+                                        }}
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
                                         {solarPanel.map(option => (
@@ -689,25 +703,25 @@ const AddProperty: React.FC = () => {
                                 </div> */}
 
 
-                              
-<div>
-    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-        Electricity supply
-    </label>
-    <select 
-        name="phase"
-        value={formData.phase}
-        onChange={handleInputChange}
-        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-    >
-        <option value="">Select supply type</option> 
-        {phaseOptions.map(option => (
-            <option key={option} value={option}>
-                {option}
-            </option>
-        ))}
-    </select>
-</div>
+
+                                <div>
+                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+                                        Electricity supply
+                                    </label>
+                                    <select
+                                        name="electricity_supply"
+                                        value={formData.electricity_supply}
+                                        onChange={handleInputChange}
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="">Select Electricity Supply type</option>
+                                        {phaseOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
                                 {/* Any further details */}
                                 <div>
@@ -748,12 +762,13 @@ const AddProperty: React.FC = () => {
                                     <span className="text-[13px] text-gray-900">Yes</span>
                                 </div>
 
+
                                 {/* Yard Surface */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Yard surface
                                     </label>
-                                    <select 
+                                    <select
                                         name="yard_surface"
                                         value={formData.yard_surface}
                                         onChange={handleInputChange}
@@ -770,7 +785,7 @@ const AddProperty: React.FC = () => {
                                 {/* Area of yard */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                      Area of yard (sq ft or acres)
+                                        Area of yard (sq ft or acres)
                                     </label>
                                     <input
                                         type="text"
@@ -839,9 +854,9 @@ const AddProperty: React.FC = () => {
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Contact Information
                             </h2>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                <div>
+                                {/* <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Phone Number *
                                     </label>
@@ -854,9 +869,9 @@ const AddProperty: React.FC = () => {
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         required
                                     />
-                                </div>
+                                </div> */}
 
-                                <div>
+                                {/* <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         WhatsApp Number
                                     </label>
@@ -868,7 +883,7 @@ const AddProperty: React.FC = () => {
                                         placeholder="e.g., +447911123456"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 
@@ -936,7 +951,7 @@ const AddProperty: React.FC = () => {
                                         {/* Text + Button Section */}
                                         <div className="text-center sm:text-left w-full">
                                             <p className="text-md text-gray-600 font-semibold">
-                                                Please upload Brochure, PDF less than 100KB 
+                                                Please upload Brochure, PDF less than 100KB
                                             </p>
 
                                             <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
@@ -1003,31 +1018,39 @@ const AddProperty: React.FC = () => {
                             </div>
                         </div>
 
-                        <RiskProfileManagementForm 
+                        <RiskProfileManagementForm
                             vehicleRepairUse={formData.vehicle_repair_use}
                             vehicleSaleUse={formData.vehicle_sale_use}
                             subletting={formData.subletting}
                             leisureUse={formData.leisure_use}
                             petBusinessUse={formData.pet_business_use}
                             plasticRecyclingUse={formData.plastic_recycling_use}
-                            onRestrictionChange={(name:string, value:any) => {
+                            floorPlans={formData.floor_plans}
+                            otherRestrictions={formData.other_restrictions}
+                            onRestrictionChange={(name: string, value: any) => {
                                 setFormData(prev => ({
                                     ...prev,
                                     [name]: value
+                                }));
+                            }}
+                            onOtherRestrictionsChange={(value) => {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    other_restrictions: value
                                 }));
                             }}
                         />
 
                         {/* Bottom Actions */}
                         <div className="flex items-center gap-3 mt-8">
-                            <button 
+                            <button
                                 type="button"
                                 onClick={handleCancel}
                                 className="text-gray-700 hover:text-gray-900 px-4 py-2 text-[14px] font-medium transition-colors rounded-md border border-gray-300"
                             >
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 type="submit"
                                 disabled={isSubmitting}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

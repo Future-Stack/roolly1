@@ -237,9 +237,11 @@ return (
                         <MessageSquare size={18} strokeWidth={2} />
                         Message Vendor
                     </button>
-                    <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
-                        View and Update Details
-                    </button>
+                    <Link to={`${id}/view`} >
+                        <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
+                            View and Update Details
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>

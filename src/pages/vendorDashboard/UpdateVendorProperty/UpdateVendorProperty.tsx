@@ -16,43 +16,47 @@ interface ImageUpload {
     existingUrl?: string;
 }
 
-interface FormData {
+interface PropertyFormData {
     property_name: string;
+    postcode: string;
     transaction: string;
     property_type: string;
     location: string;
     estimated_price: string;
-    lease_duration: string;
-    description: string;
+    lease_duration: number;
+    location_description: string;
     built_area: string;
     length_width: string;
     office_space: string;
     eaves_height: string;
     power_capacity: string;
-    phase: string;
+    electricity_supply: string;
     roller_shutter_type: string;
-    shutters_height_width: string;
-    lighting_type: string;
-    epc_rating: string;
+    roller_shutters: string;
+    lighting_type: number | string;
+    epc_rating: number | string;
+    ev_chaging: boolean;
+    solar_panels: boolean;
     any_further_details: string;
     yard_space: boolean;
     yard_area: string;
     yard_surface: string;
-    parking_include: string;
+    parking_include: number | string;
     key_specification: string;
-    risk_level: string;
+    brochure_pdf_url?: string | null;
+    brochure_video_url?: string | null;
     vehicle_repair_use: boolean;
     vehicle_sale_use: boolean;
     subletting: boolean;
     leisure_use: boolean;
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
-    whatsapp_number: string;
-    phone_number: string;
-    images: File[];
-    brochure_pdf?: File;
-    brochure_video?: File;
+    floor_plans: boolean;
+    other_restrictions: string;
+    dimensions_roller_shutter: string;
+    existing_images: string;
 }
+
 
 const UpdateVendorProperty: React.FC = () => {
     const { id } = useParams();
@@ -61,41 +65,45 @@ const UpdateVendorProperty: React.FC = () => {
     const { data: propertyData, isLoading: isLoadingProperty } = useGetSinglePropertyQuery(id);
     console.log(propertyData)
 
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState<PropertyFormData>({
         property_name: '',
         transaction: 'sale',
+        postcode: '',
         property_type: 'industrial',
         location: '',
         estimated_price: '',
-        lease_duration: '',
-        description: '',
+        lease_duration: 0,
+        location_description: '',
         built_area: '',
         length_width: '',
         office_space: '',
         eaves_height: '',
         power_capacity: '',
-        phase: '1',
+        electricity_supply: '',
         roller_shutter_type: '',
-        shutters_height_width: '',
+        roller_shutters: '',
+        dimensions_roller_shutter: '',
         lighting_type: '1',
-        epc_rating: '1',
+        epc_rating: 1,
         any_further_details: '',
         yard_space: false,
         yard_area: '',
         yard_surface: 'Concrete',
-        parking_include: '0',
+        parking_include: 0,
         key_specification: '',
-        risk_level: 'medium',
         vehicle_repair_use: false,
         vehicle_sale_use: false,
         subletting: false,
         leisure_use: false,
         pet_business_use: false,
         plastic_recycling_use: false,
-        whatsapp_number: '',
-        phone_number: '',
-        images: [],
+        floor_plans: false,
+        other_restrictions: '',
+        ev_chaging: false,
+        solar_panels: false,
+        existing_images: '',
     });
+
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
     const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
@@ -120,16 +128,17 @@ const UpdateVendorProperty: React.FC = () => {
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
                 estimated_price: propertyData.estimated_price || '',
-                lease_duration: propertyData.lease_duration || '',
-                description: propertyData.description || '',
+                lease_duration: propertyData.lease_duration || 0,
+                location_description: propertyData.location_description || '',
                 built_area: propertyData.built_area || '',
                 length_width: propertyData.length_width || '',
                 office_space: propertyData.office_space || '',
                 eaves_height: propertyData.eaves_height || '',
                 power_capacity: propertyData.power_capacity || '',
-                phase: propertyData.phase?.toString() || '1',
+                electricity_supply: propertyData.electricity_supply?.toString() || '1',
                 roller_shutter_type: propertyData.roller_shutter_type || '',
-                shutters_height_width: propertyData.shutters_height_width || '',
+                roller_shutters: propertyData.roller_shutters || '',
+                dimensions_roller_shutter: propertyData.dimensions_roller_shutter || '',
                 lighting_type: propertyData.lighting_type?.toString() || '1',
                 epc_rating: propertyData.epc_rating?.toString() || '1',
                 any_further_details: propertyData.any_further_details || '',
@@ -138,22 +147,24 @@ const UpdateVendorProperty: React.FC = () => {
                 yard_surface: propertyData.yard_surface || 'Concrete',
                 parking_include: propertyData.parking_include?.toString() || '0',
                 key_specification: propertyData.key_specification || '',
-                risk_level: propertyData.risk_level || 'medium',
                 vehicle_repair_use: propertyData.vehicle_repair_use || false,
                 vehicle_sale_use: propertyData.vehicle_sale_use || false,
                 subletting: propertyData.subletting || false,
                 leisure_use: propertyData.leisure_use || false,
                 pet_business_use: propertyData.pet_business_use || false,
                 plastic_recycling_use: propertyData.plastic_recycling_use || false,
-                whatsapp_number: propertyData.whatsapp_number || '',
-                phone_number: propertyData.phone_number || '',
-                images: [],
+                postcode: propertyData.postcode || '',
+                floor_plans: propertyData.floor_plans || false,
+                ev_chaging: propertyData.ev_chaging || false,
+                solar_panels: propertyData.solar_panels || false,
+                other_restrictions: propertyData.other_restrictions || '',
+                existing_images: propertyData.existing_images || '',
             });
 
             // Set existing images
             if (propertyData.existing_images && propertyData.existing_images.length > 0) {
                 const imageMap = { ...images };
-                propertyData.existing_images.forEach((img:any, index:number) => {
+                propertyData.existing_images.forEach((img: any, index: number) => {
                     const imageKeys = Object.keys(imageMap);
                     if (index < imageKeys.length) {
                         const key = imageKeys[index];
@@ -185,6 +196,11 @@ const UpdateVendorProperty: React.FC = () => {
             setFormData(prev => ({
                 ...prev,
                 [name]: checkbox.checked
+            }));
+        } else if (type === 'number') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value === '' ? 0 : parseFloat(value)
             }));
         } else {
             setFormData(prev => ({
@@ -240,7 +256,11 @@ const UpdateVendorProperty: React.FC = () => {
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images') {
-                    formDataToSend.append(key, value.toString());
+                    if (typeof value === 'boolean') {
+                        formDataToSend.append(key, value ? 'true' : 'false');
+                    } else {
+                        formDataToSend.append(key, value.toString());
+                    }
                 }
             });
 
@@ -294,9 +314,9 @@ const UpdateVendorProperty: React.FC = () => {
     const transactionOptions = ['sale', 'lease'];
     const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
-    const riskLevelOptions = ['low', 'medium', 'high'];
-    const phaseOptions = ['1', '2', '3'];
-    const lightingTypeOptions = ['1', '2', '3'];
+    // const riskLevelOptions = ['low', 'medium', 'high'];
+    const phaseOptions = ['Single phase', 'Three Phase'];
+    const lightingTypeOptions = ['Halogen', 'LED',];
     const epcRatingOptions = ['1', '2', '3', '4', '5', '6', '7'];
 
     return (
@@ -337,6 +357,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     />
                                 </div>
 
+
                                 {/* Transaction */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
@@ -355,6 +376,21 @@ const UpdateVendorProperty: React.FC = () => {
                                         ))}
                                     </select>
                                 </div>
+                                {/* PostCode */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Post Code *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="postcode"
+                                        value={formData.postcode}
+                                        onChange={handleInputChange}
+                                        placeholder="123456"
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
 
                                 {/* Property Type */}
                                 <div>
@@ -393,15 +429,15 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Estimated Price ($)
+                                        Price (£) *
                                     </label>
                                     <input
                                         type="number"
                                         name="estimated_price"
-                                        value={formData.estimated_price}
+                                        value={formData.estimated_price || ''}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 10000"
-                                        step="0.01"
+                                        // step="0.01"
                                         className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
@@ -409,7 +445,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* lease Duration */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Lease Duration (years)
+                                        Minimum lease duration (years)
                                     </label>
                                     <input
                                         type="number"
@@ -426,11 +462,11 @@ const UpdateVendorProperty: React.FC = () => {
                             {/* Description */}
                             <div className="mt-5">
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Description
+                                    Location Description
                                 </label>
                                 <textarea
-                                    name="description"
-                                    value={formData.description}
+                                    name="location_description"
+                                    value={formData.location_description}
                                     onChange={handleInputChange}
                                     rows={4}
                                     className="w-full px-3 py-2 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -474,6 +510,20 @@ const UpdateVendorProperty: React.FC = () => {
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
+                                {/* Roller Shutters*/}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Roller Shutters
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="roller_shutters"
+                                        value={formData.roller_shutters}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 10"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
 
                                 {/* Length & Width */}
                                 <div>
@@ -491,7 +541,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 </div>
 
                                 {/* Shutters Height & Width */}
-                                <div>
+                                {/* <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Height & width of shutters
                                     </label>
@@ -503,7 +553,7 @@ const UpdateVendorProperty: React.FC = () => {
                                         placeholder="e.g., 2x4 ft"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-                                </div>
+                                </div> */}
 
                                 {/* Office Space */}
                                 <div>
@@ -591,17 +641,17 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Phase */}
                                 <div>
                                     <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-                                        Phase
+                                        Electricity Supply
                                     </label>
                                     <select
-                                        name="phase"
-                                        value={formData.phase}
+                                        name="electricity_supply"
+                                        value={formData.electricity_supply}
                                         onChange={handleInputChange}
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
                                         {phaseOptions.map(option => (
                                             <option key={option} value={option}>
-                                                {option} Phase
+                                                {option}
                                             </option>
                                         ))}
                                     </select>
@@ -688,7 +738,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     <input
                                         type="number"
                                         name="parking_include"
-                                        value={formData.parking_include}
+                                        value={formData.parking_include || ''}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 6"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -713,7 +763,7 @@ const UpdateVendorProperty: React.FC = () => {
                         </div>
 
                         {/* Risk Level */}
-                        <div className="mb-6">
+                        {/* <div className="mb-6">
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Risk Level
                             </h2>
@@ -729,7 +779,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                        </div> */}
 
 
                         {/* Image Upload Section */}
@@ -870,10 +920,18 @@ const UpdateVendorProperty: React.FC = () => {
                             leisureUse={formData.leisure_use}
                             petBusinessUse={formData.pet_business_use}
                             plasticRecyclingUse={formData.plastic_recycling_use}
+                            floorPlans={formData.floor_plans}
+                            otherRestrictions={formData.other_restrictions}
                             onRestrictionChange={(name, value) => {
                                 setFormData(prev => ({
                                     ...prev,
                                     [name]: value
+                                }));
+                            }}
+                            onOtherRestrictionsChange={(value) => {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    other_restrictions: value
                                 }));
                             }}
                         />

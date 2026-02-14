@@ -14,7 +14,7 @@ const analyticsApi = baseApi.injectEndpoints({
                 method: 'GET',
             }),
         }),
-        getPropertyTypePerformance: builder.query({
+        getVendorPropertyTypePerformance: builder.query({
             query: () => ({
                 url: '/vendors/property-type-performance/',
                 method: 'GET',
@@ -26,5 +26,5 @@ const analyticsApi = baseApi.injectEndpoints({
 export const {
     useGetAnalyticsQuery,
     useGetLeadSourcesQuery,
-    useGetPropertyTypePerformanceQuery
+    useGetVendorPropertyTypePerformanceQuery
 } = analyticsApi;
