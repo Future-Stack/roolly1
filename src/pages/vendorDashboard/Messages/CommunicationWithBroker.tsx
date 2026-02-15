@@ -3,81 +3,16 @@ import { useCurrentToken } from '@/redux/features/auth/authSlice';
 import { useGetAllMessagesQuery } from '@/redux/features/message/getAllMessagesApi';
 import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingleUserMessageApi';
 import { useAppSelector } from '@/redux/hook';
+import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
+import { getCurrentUserId } from '@/utils/userUtils';
 import { Check, CheckCheck, Clock, Menu, MoreVertical, Plus, RefreshCw, Search, SendHorizontal, Smile, Wifi, WifiOff, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-interface Conversation {
-  id: string;
-  other_user: {
-    id: string;
-    full_name: string;
-    image: string | null;
-    is_active: string;
-  };
-  created_at: string;
-  last_message: {
-    message: string;
-    message_id: string;
-    timestamp: string;
-    sender_id: string;
-    is_seen: boolean;
-  } | null;
-}
-
-interface ChatUser {
-  id: string;
-  name: string;
-  avatar: string;
-  message: string;
-  time: string;
-  isOnline?: boolean;
-  lastSeen?: string;
-  isSeen?: boolean;
-  userId?: string;
-}
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'other';
-  avatar: string;
-  time?: string;
-  timestamp: string;
-  isSeen?: boolean;
-  senderId?: string;
-  conversationId?: string;
-  senderName?: string;
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
-}
-
-interface WebSocketMessage {
-  type: string;
-  [key: string]: any;
-}
-
-interface ApiMessage {
-  id: string;
-  text: string;
-  is_read: boolean;
-  timestamp: string;
-  sender: {
-    id: string;
-    username: string;
-    avatar: string | null;
-  };
-}
-
-interface PaginatedApiResponse {
-  next: string | null;
-  previous: string | null;
-  results: ApiMessage[];
-}
-
 const CommunicationWithBroker: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'admin'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'broker' | 'admin'>('chat');
   const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -109,7 +44,7 @@ const CommunicationWithBroker: React.FC = () => {
     data: singleUserMessagesData,
     refetch: refetchSingleUserMessages,
     isLoading: isLoadingSingleMessages
-  } = useGetSingleUserMessageQuery(selectedChat?.id || '', {
+  } = useGetSingleUserMessageQuery({ conversationId: selectedChat?.id || '', params: {} }, {
     skip: !selectedChat?.id || !token,
   });
 
@@ -119,54 +54,16 @@ const CommunicationWithBroker: React.FC = () => {
   const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get current user ID from local storage or token
+  // Get current user ID
   useEffect(() => {
-    console.log('🔑 Token:', token ? 'Present' : 'Missing');
-    
-    // First, check localStorage
-    const storedUserId = localStorage.getItem('currentUserId');
-    if (storedUserId) {
-      console.log('✅ Using User ID from localStorage:', storedUserId);
-      setCurrentUserId(storedUserId);
-      return;
+    const userId = getCurrentUserId(token);
+    if (userId) {
+      console.log('✅ Extracted User ID from token:', userId);
+      setCurrentUserId(userId);
+    } else {
+      console.log('❌ No user ID found in token');
     }
-    
-    // If not in localStorage, try to extract from token
-    if (token) {
-      try {
-        const tokenParts = token.split('.');
-        if (tokenParts.length === 3) {
-          const payload = JSON.parse(atob(tokenParts[1]));
-          console.log('🔍 Token payload:', payload);
-          
-          // Try different possible keys for user ID
-          const userId = payload.user_id || payload.userId || payload.sub || payload.id || '';
-          if (userId) {
-            console.log('✅ Extracted User ID from token:', userId);
-            setCurrentUserId(userId);
-            localStorage.setItem('currentUserId', userId);
-          } else {
-            console.error('❌ No user ID found in token payload');
-          }
-        }
-      } catch (error) {
-        console.error('Error decoding token:', error);
-      }
-    }
-    
-    // If still no ID, manually set based on your actual user
-    // Check which user you are by looking at your API response
-    if (!currentUserId) {
-      console.warn('⚠️ No user ID found, please manually set YOUR_USER_ID below');
-      // Manually set your user ID here based on which user you are
-      // If you are "broker" user:
-      // const YOUR_USER_ID = 'f03b0e80-7b74-4304-b444-1401367aa090';
-      // If you are "Md.Shishir" user:
-      // const YOUR_USER_ID = 'e30feddb-d33a-4062-8275-88b576fb9f66';
-      // setCurrentUserId(YOUR_USER_ID);
-      // localStorage.setItem('currentUserId', YOUR_USER_ID);
-    }
-  }, [token, currentUserId]);
+  }, [token]);
 
   // Activity tracking
   const updateActivityTime = () => {
@@ -251,7 +148,7 @@ const CommunicationWithBroker: React.FC = () => {
 
     return {
       id: conversation.id,
-      name: otherUser.full_name,
+      name: otherUser.full_name || otherUser.username || 'Unknown User',
       avatar: otherUser.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
       message: conversation.last_message?.message || 'Start a conversation',
       time: conversation.last_message
@@ -261,6 +158,7 @@ const CommunicationWithBroker: React.FC = () => {
       lastSeen: lastSeen,
       isSeen: conversation.last_message?.is_seen || false,
       userId: otherUser.id,
+      userType: otherUser.user_type,
     };
   };
 
@@ -291,7 +189,7 @@ const CommunicationWithBroker: React.FC = () => {
   };
 
   // Load messages from API response
-  const loadMessagesFromApi = (apiResponse: PaginatedApiResponse | any) => {
+  const loadMessagesFromApi = (apiResponse: PaginatedApiResponse<ApiMessage> | any) => {
     if (!apiResponse || !selectedChat || !currentUserId) {
       console.log('❌ Cannot load messages: Missing data');
       return;
@@ -314,42 +212,28 @@ const CommunicationWithBroker: React.FC = () => {
 
     console.log(`📨 Found ${messagesArray.length} messages to process`);
 
-    // Debug: Show all sender IDs to help identify which is yours
-    const uniqueSenderIds = [...new Set(messagesArray.map(msg => msg.sender.id))];
-    console.log('🔍 Unique Sender IDs in conversation:', uniqueSenderIds);
-    console.log('🔍 Current User ID for comparison:', currentUserId);
-
     const formattedMessages: Message[] = messagesArray.map((msg: ApiMessage, index: number) => {
-      // Get sender ID from message
+      // FIXED: sender is an object, so we need to check msg.sender.id
       const senderId = msg.sender?.id;
-      
-      // DEBUG: Log detailed comparison
-      console.log(`Message ${index + 1} Comparison:`, {
+      const isUserMessage = senderId === currentUserId;
+
+      console.log(`Message ${index + 1}:`, {
         text: msg.text.substring(0, 30) + '...',
-        messageSenderId: senderId,
+        senderId: senderId,
         currentUserId: currentUserId,
-        isEqual: senderId === currentUserId,
+        isUserMessage: isUserMessage,
+        alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
         senderUsername: msg.sender?.username
       });
 
-      // Determine if this message is from current user
-      const isUserMessage = senderId === currentUserId;
-      
-      console.log(`Message ${index + 1} Alignment:`, {
-        text: msg.text.substring(0, 30) + '...',
-        sender: msg.sender?.username,
-        isUserMessage: isUserMessage,
-        side: isUserMessage ? 'RIGHT' : 'LEFT'
-      });
-
-      // Avatars - Use appropriate avatar based on sender
+      // Avatars
       const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
-      const otherAvatar = selectedChat.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop';
+      const otherAvatar = msg.sender?.avatar || selectedChat.avatar;
 
       return {
         id: msg.id,
         text: msg.text,
-        sender: isUserMessage ? 'user' : 'other', // CRITICAL: 'user' = RIGHT side, 'other' = LEFT side
+        sender: isUserMessage ? 'user' : 'other', // 'user' = RIGHT, 'other' = LEFT
         avatar: isUserMessage ? yourAvatar : otherAvatar,
         time: formatMessageTime(msg.timestamp),
         timestamp: msg.timestamp,
@@ -361,24 +245,23 @@ const CommunicationWithBroker: React.FC = () => {
       };
     });
 
-    // Sort by timestamp (oldest to newest)
+    // Sort by timestamp (newest first for display)
     formattedMessages.sort((a, b) =>
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
-    // Log final distribution for debugging
+    // Log final distribution
     const userMessages = formattedMessages.filter(m => m.sender === 'user').length;
     const otherMessages = formattedMessages.filter(m => m.sender === 'other').length;
-    
+
     console.log('✅ Final message distribution:', {
       total: formattedMessages.length,
       userMessages: userMessages,
       otherMessages: otherMessages,
-      userSide: 'RIGHT (Your messages)',
-      otherSide: 'LEFT (Other\'s messages)'
+      userSide: 'RIGHT',
+      otherSide: 'LEFT'
     });
 
-    console.log('📋 All messages with alignment:');
     formattedMessages.forEach((msg, index) => {
       console.log(`${index + 1}. "${msg.text.substring(0, 20)}..." - ${msg.senderName} - ${msg.sender === 'user' ? 'RIGHT (Your)' : 'LEFT (Other\'s)'}`);
     });
@@ -553,7 +436,7 @@ const CommunicationWithBroker: React.FC = () => {
     }
 
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-    console.log(`🔄 Reconnecting in ${delay/1000}s (Attempt ${reconnectAttempts + 1})`);
+    console.log(`🔄 Reconnecting in ${delay / 1000}s (Attempt ${reconnectAttempts + 1})`);
 
     reconnectTimerRef.current = setTimeout(() => {
       setReconnectAttempts(prev => prev + 1);
@@ -577,15 +460,16 @@ const CommunicationWithBroker: React.FC = () => {
       return;
     }
 
-    // Get sender ID from WebSocket data
+    // FIXED: Check if sender ID matches current user ID
     const senderId = data.sender?.id;
-    const isUserMessage = senderId === currentUserId;
-    
-    console.log('📨 Processing incoming WebSocket message:', {
+    // CRITICAL: Ensure robust equality check (string vs number)
+    const isUserMessage = String(senderId) === String(currentUserId);
+
+    console.log('📨 Processing incoming message:', {
       senderId: senderId,
       currentUserId: currentUserId,
       isUserMessage: isUserMessage,
-      alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
+      alignment: isUserMessage ? 'RIGHT' : 'LEFT',
       senderUsername: data.sender?.username
     });
 
@@ -600,22 +484,22 @@ const CommunicationWithBroker: React.FC = () => {
       avatar: isUserMessage ? yourAvatar : otherAvatar,
       time: formatMessageTime(data.timestamp),
       timestamp: data.timestamp,
+      isSeen: false,
       senderId: senderId,
       senderName: data.sender?.username,
-      isSeen: false,
       conversationId: data.conversation_id || selectedChat?.id,
       status: isUserMessage ? 'sent' : undefined,
     };
 
     // If it's your message, replace the temporary one
     if (isUserMessage) {
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id.startsWith('temp-') ? { ...msg, ...newMessage, id: data.message_id, status: 'sent' } : msg
       ));
-      console.log('✅ Updated temporary message to permanent (RIGHT side)');
+      console.log('✅ Updated temporary message to permanent');
     } else {
       setMessages(prev => [...prev, newMessage]);
-      console.log('✅ Added new message from other user (LEFT side)');
+      console.log('✅ Added new message from other user');
     }
 
     // Refetch messages
@@ -672,7 +556,7 @@ const CommunicationWithBroker: React.FC = () => {
       // Add temporary message on RIGHT side (your side)
       const tempId = `temp-${Date.now()}`;
       const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
-      
+
       const optimisticMessage: Message = {
         id: tempId,
         text: message,
@@ -694,9 +578,9 @@ const CommunicationWithBroker: React.FC = () => {
 
       // Remove "sending..." status after timeout
       setTimeout(() => {
-        setMessages(prev => prev.map(msg => 
-          msg.id === tempId && msg.status === 'sending' 
-            ? { ...msg, status: 'sent' } 
+        setMessages(prev => prev.map(msg =>
+          msg.id === tempId && msg.status === 'sending'
+            ? { ...msg, status: 'sent' }
             : msg
         ));
       }, 2000);
@@ -737,6 +621,10 @@ const CommunicationWithBroker: React.FC = () => {
     ...newConversations.map(convertConversationToChatUser),
   ];
 
+  // Filter users by type
+  const brokerUsers = allChatUsers.filter(user => user.userType === 'broker');
+  const adminUsers = allChatUsers.filter(user => user.userType === 'admin');
+
   // Get current user info
   const currentUser = selectedChat ? {
     name: selectedChat.name,
@@ -757,18 +645,18 @@ const CommunicationWithBroker: React.FC = () => {
   // Tab counts
   const tabCounts = {
     chat: allChatUsers.length,
-    vendor: 0,
-    admin: 0
+    broker: brokerUsers.length,
+    admin: adminUsers.length
   };
 
   const getCurrentUsers = () => {
     switch (activeTab) {
       case 'chat':
         return allChatUsers;
-      case 'vendor':
-        return [];
+      case 'broker':
+        return brokerUsers;
       case 'admin':
-        return [];
+        return adminUsers;
       default:
         return allChatUsers;
     }
@@ -804,15 +692,15 @@ const CommunicationWithBroker: React.FC = () => {
     if (status === 'sending') {
       return <span className="text-xs text-gray-400">Sending...</span>;
     }
-    
+
     if (status === 'sent') {
       return <Check size={12} className="text-gray-400" />;
     }
-    
+
     if (isSeen || status === 'read') {
       return <CheckCheck size={12} className="text-blue-500" />;
     }
-    
+
     return null;
   };
 
@@ -913,24 +801,28 @@ const CommunicationWithBroker: React.FC = () => {
             >
               Chat <span className="ml-1">({tabCounts.chat})</span>
             </button>
-            <button
-              onClick={() => setActiveTab('vendor')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
-            >
-              Vendor <span className="ml-1">({tabCounts.vendor})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('admin')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
-            >
-              Admin <span className="ml-1">({tabCounts.admin})</span>
-            </button>
+            {tabCounts.broker > 0 && (
+              <button
+                onClick={() => setActiveTab('broker')}
+                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'broker'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                Broker <span className="ml-1">({tabCounts.broker})</span>
+              </button>
+            )}
+            {tabCounts.admin > 0 && (
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                Admin <span className="ml-1">({tabCounts.admin})</span>
+              </button>
+            )}
           </div>
 
           {/* Chat List */}
@@ -963,7 +855,7 @@ const CommunicationWithBroker: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm md:text-[15px] font-semibold text-gray-900">
+                      <h3 className="text-sm md:text-[15px] font-semibold text-gray-900 capitalize">
                         {user.name}
                       </h3>
                       <span className="text-xs text-gray-500 flex-shrink-0">
@@ -1061,7 +953,7 @@ const CommunicationWithBroker: React.FC = () => {
                         alt="Other User"
                         className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
                       />
-                      
+
                       {/* Message bubble - LEFT */}
                       <div className="flex flex-col">
                         <div className="bg-white border border-gray-200 text-gray-900 px-3 md:px-4 py-2 md:py-3 rounded-2xl shadow-sm">
@@ -1093,7 +985,7 @@ const CommunicationWithBroker: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* Your avatar - ALWAYS ON RIGHT */}
                       <img
                         src={message.avatar}
@@ -1126,8 +1018,8 @@ const CommunicationWithBroker: React.FC = () => {
                   onKeyPress={handleKeyPress}
                   disabled={connectionStatus !== 'connected' || !!connectionError}
                   className={`w-full h-10 md:h-[42px] px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${connectionStatus === 'connected' && !connectionError
-                      ? 'border-gray-300 focus:ring-blue-500'
-                      : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
+                    ? 'border-gray-300 focus:ring-blue-500'
+                    : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
                     }`}
                 />
                 <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -1138,8 +1030,8 @@ const CommunicationWithBroker: React.FC = () => {
                 onClick={sendMessage}
                 disabled={!messageInput.trim() || connectionStatus !== 'connected' || !!connectionError}
                 className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim() && connectionStatus === 'connected' && !connectionError
-                    ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-                    : 'bg-gray-300 cursor-not-allowed'
+                  ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                  : 'bg-gray-300 cursor-not-allowed'
                   }`}
               >
                 <SendHorizontal className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />

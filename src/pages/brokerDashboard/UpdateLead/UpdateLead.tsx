@@ -9,7 +9,8 @@ import {
     Save,
     CheckCircle,
     XCircle,
-    Hash
+    Hash,
+    CirclePoundSterling
 } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUpdateLeadMutation } from '@/redux/features/broker/leads/updateLeadApi';
@@ -21,7 +22,7 @@ interface Lead {
     client_name: string;
     property_name?: string;
     property_type?: string;
-    property?: number; 
+    property?: number;
     source: string;
     lead_status: string;
     lead_traffic: 'green' | 'amber' | 'red' | string;
@@ -29,6 +30,7 @@ interface Lead {
     created_at: string;
     email_address: string;
     phone_number: string;
+    message: string;
 }
 
 const UpdateLead: React.FC = () => {
@@ -37,7 +39,7 @@ const UpdateLead: React.FC = () => {
     const navigate = useNavigate();
 
     const leadDataFromState = location.state?.leadData as Lead | null;
-    
+
     const [formData, setFormData] = useState<Partial<Lead & { propertyString?: string }>>(() => {
         if (leadDataFromState) {
             return {
@@ -90,22 +92,32 @@ const UpdateLead: React.FC = () => {
             setShowError(true);
             return;
         }
+        if (!formData.propertyString?.trim()) {
+            setErrorMessage('Property Id is required');
+            setShowError(true);
+            return;
+        }
+
+
 
         try {
-            const apiData: Record<string, any> = {};
-            
-            Object.keys(formData).forEach(key => {
-                const field = key as keyof Lead | 'propertyString';
-                if (field !== 'propertyString' && formData[field] !== undefined && formData[field] !== null) {
-                    apiData[field] = formData[field];
-                }
-            });
+            const apiData: Record<string, any> = {
+                client_name: formData.client_name,
+                source: formData.source,
+                email_address: formData.email_address,
+                phone_number: formData.phone_number,
+                lead_status: formData.lead_status,
+                lead_traffic: formData.lead_traffic,
+                budget_range: formData.budget_range,
+                message: formData.message
+            };
 
             // Handle property field conversion
             const propertyStringValue = formData.propertyString;
             if (propertyStringValue !== undefined && propertyStringValue !== null) {
                 const trimmedValue = propertyStringValue.toString().trim();
-                apiData.property = trimmedValue === '' ? 0 : Number(trimmedValue);
+                const numValue = Number(trimmedValue);
+                apiData.property = (trimmedValue === '' || isNaN(numValue) || numValue === 0) ? null : numValue;
             }
 
             await updateLead({
@@ -119,11 +131,22 @@ const UpdateLead: React.FC = () => {
 
         } catch (err: any) {
             console.error('Failed to update lead:', err);
-            setErrorMessage(
-                err?.data?.detail || 
-                err?.data?.message || 
-                'Failed to update lead. Please try again.'
-            );
+
+            // Handle field-specific errors
+            if (err?.data && typeof err.data === 'object' && !Array.isArray(err.data)) {
+                const errorMessages = Object.entries(err.data).map(([field, messages]) => {
+                    const fieldName = field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const message = Array.isArray(messages) ? messages.join(' ') : messages;
+                    return `${fieldName}: ${message}`;
+                });
+                setErrorMessage(errorMessages.join(' | '));
+            } else {
+                setErrorMessage(
+                    err?.data?.detail ||
+                    err?.data?.message ||
+                    'Failed to update lead. Please try again.'
+                );
+            }
             setShowError(true);
         }
     };
@@ -144,7 +167,7 @@ const UpdateLead: React.FC = () => {
         { value: 'land', label: 'Land' },
         { value: 'retail', label: 'Retail' },
         { value: 'office', label: 'Office' },
-        { value:'other',label:'Other' }
+        { value: 'other', label: 'Other' }
     ];
 
     const statusOptions = [
@@ -298,14 +321,13 @@ const UpdateLead: React.FC = () => {
                                                 Phone Number *
                                             </label>
                                             <div className="relative">
-                                                <Phone className="absolute left-3 top-3 z-10 w-5 h-5 text-gray-400" />
                                                 <PhoneInput
                                                     international
                                                     defaultCountry="BD"
                                                     value={formData.phone_number || ''}
                                                     onChange={(value) => handleInputChange('phone_number', value || '')}
-                                                    className="w-full"
-                                                    inputClassName="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                    className="w-full h-[41.5px]"
+                                                    inputClassName="w-full px-4 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors h-full"
                                                 />
                                             </div>
                                         </div>
@@ -369,7 +391,6 @@ const UpdateLead: React.FC = () => {
                                             </select>
                                         </div>
 
-                                        {/* Property ID ফিল্ড (Backend এ property নামে যাবে) */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Property ID
@@ -395,17 +416,33 @@ const UpdateLead: React.FC = () => {
                                                 Budget Range
                                             </label>
                                             <div className="relative">
-                                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                                <input
-                                                    type="text"
+                                                <CirclePoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <select
                                                     value={formData.budget_range || ''}
                                                     onChange={(e) => handleInputChange('budget_range', e.target.value)}
                                                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                                    placeholder="e.g., 1000-4000"
-                                                />
+                                                >
+                                                    <option value="2000-50000">£2000-£50000</option>
+                                                    <option value="50000-100000">£50000-£100000</option>
+                                                    <option value="100000-200000">£100000-£200000</option>
+                                                    <option value="200000+">£200000+</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="mt-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Message / Requirement
+                                    </label>
+                                    <textarea
+                                        value={formData.message || ''}
+                                        onChange={(e) => handleInputChange('message', e.target.value)}
+                                        rows={4}
+                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                                        placeholder="Enter any specific requirements or notes from the client"
+                                    />
                                 </div>
                             </div>
                         </div>

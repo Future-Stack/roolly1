@@ -5,6 +5,7 @@ import RiskProfileManagement from './RiskProfileManagement';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEditPropertyMutation } from '@/redux/features/broker/property/editPropertyApi';
 import { useGetPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
+import { toast } from 'react-toastify';
 
 interface ImageUpload {
     id: string;
@@ -17,6 +18,7 @@ interface ImageUpload {
 
 interface FormData {
     property_name: string;
+    postcode: string;
     transaction: string;
     property_type: string;
     location: string;
@@ -28,11 +30,14 @@ interface FormData {
     office_space: string;
     eaves_height: string;
     power_capacity: string;
-    phase: string;
+    electricity_supply: string;
     roller_shutter_type: string;
-    shutters_height_width: string;
+    roller_shutters: string;
+    dimensions_roller_shutter: string;
     lighting_type: string;
     epc_rating: string;
+    ev_chaging: boolean;
+    solar_panels: boolean;
     any_further_details: string;
     yard_space: boolean;
     yard_area: string;
@@ -46,6 +51,8 @@ interface FormData {
     leisure_use: boolean;
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
+    floor_plans: boolean;
+    other_restrictions: string;
     whatsapp_number: string;
     phone_number: string;
     images: File[];
@@ -59,9 +66,10 @@ const PropertyEdit: React.FC = () => {
     const [editProperty, { isLoading: isSubmitting }] = useEditPropertyMutation();
     const { data: propertyData, isLoading: isLoadingProperty } = useGetPropertyDetailsQuery(id);
     console.log(propertyData)
-    
+
     const [formData, setFormData] = useState<FormData>({
         property_name: '',
+        postcode: '',
         transaction: 'sale',
         property_type: 'industrial',
         location: '',
@@ -73,11 +81,14 @@ const PropertyEdit: React.FC = () => {
         office_space: '',
         eaves_height: '',
         power_capacity: '',
-        phase: '1',
+        electricity_supply: '',
         roller_shutter_type: '',
-        shutters_height_width: '',
+        roller_shutters: '0',
+        dimensions_roller_shutter: '',
         lighting_type: '1',
         epc_rating: '1',
+        ev_chaging: false,
+        solar_panels: false,
         any_further_details: '',
         yard_space: false,
         yard_area: '',
@@ -91,6 +102,8 @@ const PropertyEdit: React.FC = () => {
         leisure_use: false,
         pet_business_use: false,
         plastic_recycling_use: false,
+        floor_plans: false,
+        other_restrictions: '',
         whatsapp_number: '',
         phone_number: '',
         images: [],
@@ -98,7 +111,7 @@ const PropertyEdit: React.FC = () => {
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
     const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
-    
+
     const [images, setImages] = useState<{ [key: string]: ImageUpload }>({
         aerial: { id: 'aerial', title: 'Aerial View', description: 'Overhead or drone shot showing building in context (site layout, access points).' },
         frontExternal: { id: 'frontExternal', title: 'Front External', description: 'Main frontage view from the street or approach road.' },
@@ -115,22 +128,26 @@ const PropertyEdit: React.FC = () => {
         if (propertyData) {
             setFormData({
                 property_name: propertyData.property_name || '',
+                postcode: propertyData.postcode || '',
                 transaction: propertyData.transaction || 'sale',
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
                 estimated_price: propertyData.estimated_price || '',
-                lease_duration: propertyData.lease_duration || '',
+                lease_duration: propertyData.lease_duration?.toString() || '',
                 description: propertyData.description || '',
                 built_area: propertyData.built_area || '',
                 length_width: propertyData.length_width || '',
                 office_space: propertyData.office_space || '',
                 eaves_height: propertyData.eaves_height || '',
                 power_capacity: propertyData.power_capacity || '',
-                phase: propertyData.phase?.toString() || '1',
+                electricity_supply: propertyData.electricity_supply?.toString() || '',
                 roller_shutter_type: propertyData.roller_shutter_type || '',
-                shutters_height_width: propertyData.shutters_height_width || '',
+                roller_shutters: propertyData.roller_shutters?.toString() || '0',
+                dimensions_roller_shutter: propertyData.dimensions_roller_shutter || '',
                 lighting_type: propertyData.lighting_type?.toString() || '1',
                 epc_rating: propertyData.epc_rating?.toString() || '1',
+                ev_chaging: propertyData.ev_chaging || false,
+                solar_panels: propertyData.solar_panels || false,
                 any_further_details: propertyData.any_further_details || '',
                 yard_space: propertyData.yard_space || false,
                 yard_area: propertyData.yard_area || '',
@@ -144,6 +161,8 @@ const PropertyEdit: React.FC = () => {
                 leisure_use: propertyData.leisure_use || false,
                 pet_business_use: propertyData.pet_business_use || false,
                 plastic_recycling_use: propertyData.plastic_recycling_use || false,
+                floor_plans: propertyData.floor_plans || false,
+                other_restrictions: propertyData.other_restrictions || '',
                 whatsapp_number: propertyData.whatsapp_number || '',
                 phone_number: propertyData.phone_number || '',
                 images: [],
@@ -152,7 +171,7 @@ const PropertyEdit: React.FC = () => {
             // Set existing images
             if (propertyData.existing_images && propertyData.existing_images.length > 0) {
                 const imageMap = { ...images };
-                propertyData.existing_images.forEach((img:any, index:number) => {
+                propertyData.existing_images.forEach((img: any, index: number) => {
                     const imageKeys = Object.keys(imageMap);
                     if (index < imageKeys.length) {
                         const key = imageKeys[index];
@@ -178,7 +197,7 @@ const PropertyEdit: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        
+
         if (type === 'checkbox') {
             const checkbox = e.target as HTMLInputElement;
             setFormData(prev => ({
@@ -223,7 +242,31 @@ const PropertyEdit: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
+        // Validation for listing requirements
+        if (!formData.phone_number) {
+            toast.error('Phone number is required');
+            return;
+        }
+        if (!formData.phone_number.startsWith('+')) {
+            toast.error('Phone number must include country code (e.g., +44...)');
+            return;
+        }
+
+        if (!formData.whatsapp_number) {
+            toast.error('WhatsApp number is required');
+            return;
+        }
+        if (!formData.whatsapp_number.startsWith('+')) {
+            toast.error('WhatsApp number must include country code (e.g., +44...)');
+            return;
+        }
+
+        // if (!brochurePdfFile && !propertyData?.brochure_pdf_url) {
+        //     toast.error('Brochure PDF is required for listing');
+        //     return;
+        // }
+
         try {
             // Collect all image files
             const imageFiles: File[] = [];
@@ -235,11 +278,38 @@ const PropertyEdit: React.FC = () => {
 
             // Create FormData object
             const formDataToSend = new FormData();
-            
+
+            // List of fields that should be numeric
+            const numericFields = [
+                'estimated_price',
+                'lease_duration',
+                'built_area',
+                'office_space',
+                'eaves_height',
+                'power_capacity',
+                'roller_shutters',
+                'parking_include',
+                'yard_area',
+                'lighting_type',
+                'epc_rating',
+                'electricity_supply'
+            ];
+
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images') {
-                    formDataToSend.append(key, value.toString());
+                    if (typeof value === 'boolean') {
+                        formDataToSend.append(key, value ? 'true' : 'false');
+                    } else {
+                        let val = value.toString().trim();
+
+                        // If it's a numeric field and empty, send '0'
+                        if (numericFields.includes(key) && val === '') {
+                            val = '0';
+                        }
+
+                        formDataToSend.append(key, val);
+                    }
                 }
             });
 
@@ -264,12 +334,15 @@ const PropertyEdit: React.FC = () => {
             }).unwrap();
 
             console.log('Property updated successfully:', response);
-            
+            toast.success('Property updated successfully');
+
             // Redirect to property details page
-            navigate(`/broker/property/${id}/view`);
+            // navigate(`/broker-dashboard/property/${id}/view`);
+            navigate(`/broker-dashboard/property`);
 
         } catch (error) {
             console.error('Error updating property:', error);
+            toast.error('Error updating property');
             // Handle error (show error message to user)
         }
     };
@@ -334,12 +407,27 @@ const PropertyEdit: React.FC = () => {
                                     />
                                 </div>
 
+                                {/* Postcode */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Post Code
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="postcode"
+                                        value={formData.postcode}
+                                        onChange={handleInputChange}
+                                        placeholder="E1 6AN"
+                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
                                 {/* Transaction */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
                                         Transaction
                                     </label>
-                                    <select 
+                                    <select
                                         name="transaction"
                                         value={formData.transaction}
                                         onChange={handleInputChange}
@@ -358,7 +446,7 @@ const PropertyEdit: React.FC = () => {
                                     <label className="block text-base text-gray-900 mb-2">
                                         Property Type
                                     </label>
-                                    <select 
+                                    <select
                                         name="property_type"
                                         value={formData.property_type}
                                         onChange={handleInputChange}
@@ -390,7 +478,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Estimated Price ($)
+                                        Price (£)
                                     </label>
                                     <input
                                         type="number"
@@ -406,7 +494,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* lease Duration */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Lease Duration (years)
+                                        Minimum Lease Duration (years)
                                     </label>
                                     <input
                                         type="number"
@@ -423,7 +511,7 @@ const PropertyEdit: React.FC = () => {
                             {/* Description */}
                             <div className="mt-5">
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Description
+                                    Location Description
                                 </label>
                                 <textarea
                                     name="description"
@@ -451,6 +539,20 @@ const PropertyEdit: React.FC = () => {
                                         type="text"
                                         name="built_area"
                                         value={formData.built_area}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 1682.80"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                                {/* Eaves Height */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Eaves Height
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="eaves_height"
+                                        value={formData.eaves_height}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 1682.80"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -487,15 +589,30 @@ const PropertyEdit: React.FC = () => {
                                     />
                                 </div>
 
-                                {/* Shutters Height & Width */}
+                                {/* Dimensions Roller Shutter */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Height & width of shutters
+                                        Number of roller shutters
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="roller_shutters"
+                                        value={formData.roller_shutters}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., 2"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                {/* Dimensions Roller Shutter */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Dimensions of roller shutter
                                     </label>
                                     <input
                                         type="text"
-                                        name="shutters_height_width"
-                                        value={formData.shutters_height_width}
+                                        name="dimensions_roller_shutter"
+                                        value={formData.dimensions_roller_shutter}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 2x4 ft"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -522,7 +639,7 @@ const PropertyEdit: React.FC = () => {
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Type of lighting
                                     </label>
-                                    <select 
+                                    <select
                                         name="lighting_type"
                                         value={formData.lighting_type}
                                         onChange={handleInputChange}
@@ -536,27 +653,14 @@ const PropertyEdit: React.FC = () => {
                                     </select>
                                 </div>
 
-                                {/* Eaves Height */}
-                                <div>
-                                    <label className="block text-base text-gray-900 mb-1.5">
-                                        Eaves height (ft)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="eaves_height"
-                                        value={formData.eaves_height}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 13.55"
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                </div>
+
 
                                 {/* EPC Rating */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         EPC Rating
                                     </label>
-                                    <select 
+                                    <select
                                         name="epc_rating"
                                         value={formData.epc_rating}
                                         onChange={handleInputChange}
@@ -569,6 +673,7 @@ const PropertyEdit: React.FC = () => {
                                         ))}
                                     </select>
                                 </div>
+
 
                                 {/* Power Capacity */}
                                 <div>
@@ -585,14 +690,14 @@ const PropertyEdit: React.FC = () => {
                                     />
                                 </div>
 
-                                {/* Phase */}
+                                {/* Electricity Supply */}
                                 <div>
                                     <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-                                        Phase
+                                        Electricity Supply
                                     </label>
-                                    <select 
-                                        name="phase"
-                                        value={formData.phase}
+                                    <select
+                                        name="electricity_supply"
+                                        value={formData.electricity_supply}
                                         onChange={handleInputChange}
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
@@ -617,6 +722,57 @@ const PropertyEdit: React.FC = () => {
                                         placeholder="Additional details"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
+                                </div>
+
+                                {/* EV Chaging */}
+                                <div>
+                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+                                        EV Charging
+                                    </label>
+                                    <div className="flex items-center h-[38px]">
+                                        <input
+                                            type="checkbox"
+                                            name="ev_chaging"
+                                            checked={formData.ev_chaging}
+                                            onChange={handleInputChange}
+                                            className="mr-2"
+                                        />
+                                        <span className="text-[13px] text-gray-900">Included</span>
+                                    </div>
+                                </div>
+
+                                {/* Solar Panels */}
+                                <div>
+                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+                                        Solar Panels
+                                    </label>
+                                    <div className="flex items-center h-[38px]">
+                                        <input
+                                            type="checkbox"
+                                            name="solar_panels"
+                                            checked={formData.solar_panels}
+                                            onChange={handleInputChange}
+                                            className="mr-2"
+                                        />
+                                        <span className="text-[13px] text-gray-900">Included</span>
+                                    </div>
+                                </div>
+
+                                {/* Floor Plans */}
+                                <div>
+                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
+                                        Floor Plans
+                                    </label>
+                                    <div className="flex items-center h-[38px]">
+                                        <input
+                                            type="checkbox"
+                                            name="floor_plans"
+                                            checked={formData.floor_plans}
+                                            onChange={handleInputChange}
+                                            className="mr-2"
+                                        />
+                                        <span className="text-[13px] text-gray-900">Available</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -648,7 +804,7 @@ const PropertyEdit: React.FC = () => {
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Yard surface
                                     </label>
-                                    <select 
+                                    <select
                                         name="yard_surface"
                                         value={formData.yard_surface}
                                         onChange={handleInputChange}
@@ -709,12 +865,27 @@ const PropertyEdit: React.FC = () => {
                             />
                         </div>
 
+                        {/* Other Restrictions */}
+                        <div className="mb-6">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                Other Restrictions
+                            </h2>
+                            <textarea
+                                name="other_restrictions"
+                                value={formData.other_restrictions}
+                                onChange={handleInputChange}
+                                rows={3}
+                                placeholder="Any other restrictions"
+                                className="w-full px-3 py-2 text-[13px] text-gray-700 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+
                         {/* Risk Level */}
                         <div className="mb-6">
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Risk Level
                             </h2>
-                            <select 
+                            <select
                                 name="risk_level"
                                 value={formData.risk_level}
                                 onChange={handleInputChange}
@@ -733,7 +904,7 @@ const PropertyEdit: React.FC = () => {
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Contact Information
                             </h2>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
@@ -896,14 +1067,14 @@ const PropertyEdit: React.FC = () => {
                             </div>
                         </div>
 
-                        <RiskProfileManagement 
+                        <RiskProfileManagement
                             vehicleRepairUse={formData.vehicle_repair_use}
                             vehicleSaleUse={formData.vehicle_sale_use}
                             subletting={formData.subletting}
                             leisureUse={formData.leisure_use}
                             petBusinessUse={formData.pet_business_use}
                             plasticRecyclingUse={formData.plastic_recycling_use}
-                            onRestrictionChange={(name:string, value:any) => {
+                            onRestrictionChange={(name: string, value: any) => {
                                 setFormData(prev => ({
                                     ...prev,
                                     [name]: value
@@ -913,14 +1084,14 @@ const PropertyEdit: React.FC = () => {
 
                         {/* Bottom Actions */}
                         <div className="flex items-center gap-3 mt-8">
-                            <button 
+                            <button
                                 type="button"
                                 onClick={handleCancel}
                                 className="text-gray-700 hover:text-gray-900 px-4 py-2 text-[14px] font-medium transition-colors rounded-md border border-gray-300"
                             >
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 type="submit"
                                 disabled={isSubmitting}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

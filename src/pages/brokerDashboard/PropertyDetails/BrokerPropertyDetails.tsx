@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, FileText, Home } from 'lucide-react';
 import React, { useState } from 'react';
 import playButton from '../../../assets/play-button.png';
 import { useGetPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 interface PropertyImage {
     name: string;
@@ -18,27 +18,32 @@ interface PropertyOwner {
 
 interface PropertyDetailsType {
     id: number;
-    existing_images: PropertyImage[];
-    brochure_pdf_url: string | null;
-    brochure_video_url: string | null;
     property_owner: PropertyOwner;
     property_name: string;
+    existing_images: any;
+    brochure_pdf_url: string | null;
+    brochure_video_url: string | null;
+    postcode: string;
     transaction: string;
     property_type: string;
     location: string;
+    location_description: string;
     estimated_price: string;
-    lease_duration: string | null;
+    lease_duration: number | null;
     description: string;
     built_area: string;
     length_width: string;
     office_space: string;
     eaves_height: string;
     power_capacity: string;
-    phase: number;
+    electricity_supply: string;
     roller_shutter_type: string;
-    shutters_height_width: string;
-    lighting_type: number;
-    epc_rating: number;
+    roller_shutters: number;
+    dimensions_roller_shutter: string;
+    lighting_type: string;
+    epc_rating: string;
+    ev_chaging: boolean;
+    solar_panels: boolean;
     any_further_details: string;
     yard_space: string;
     yard_area: string;
@@ -52,19 +57,24 @@ interface PropertyDetailsType {
     leisure_use: boolean;
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
+    floor_plans: boolean;
+    other_restrictions: string;
     whatsapp_number: string;
     phone_number: string;
     is_listed: boolean;
+    occupied: boolean;
     created_at: string;
     updated_at: string;
     user: string;
 }
 
+const MEDIA_BASE_URL = 'https://broker360re.com';
+
 const BrokerPropertyDetails: React.FC = () => {
     const { id } = useParams();
     const [currentImage, setCurrentImage] = useState(0);
     const { data: property, isLoading, isError } = useGetPropertyDetailsQuery(id);
-    
+
     // Loading state
     if (isLoading) {
         return (
@@ -73,7 +83,7 @@ const BrokerPropertyDetails: React.FC = () => {
             </div>
         );
     }
-    
+
     // Error state
     if (isError) {
         return (
@@ -85,7 +95,7 @@ const BrokerPropertyDetails: React.FC = () => {
             </div>
         );
     }
-    
+
     if (!property) {
         return (
             <div className="min-h-screen p-4">
@@ -95,12 +105,46 @@ const BrokerPropertyDetails: React.FC = () => {
             </div>
         );
     }
-    
+
     const propertyData = property as PropertyDetailsType;
-    
-    // Use existing images from API or fallback to dummy images
-    const propertyImages = propertyData.existing_images && propertyData.existing_images.length > 0 
-        ? propertyData.existing_images.map(img => img.url)
+
+    // Helper to format image URL
+    const getFullImageUrl = (url: string) => {
+        if (!url) return '';
+        if (url.startsWith('http')) return url;
+        return `${MEDIA_BASE_URL}${url}`;
+    };
+
+    // Parse existing images - API might return array of objects, array of strings, or a string
+    let parsedImages: string[] = [];
+    if (Array.isArray(propertyData.existing_images)) {
+        parsedImages = propertyData.existing_images
+            .map(img => typeof img === 'string' ? img : img.url)
+            .filter(Boolean)
+            .map(getFullImageUrl);
+    } else if (typeof propertyData.existing_images === 'string' && propertyData.existing_images.trim() !== '') {
+        try {
+            // Try to parse if it's a JSON string
+            const jsonParsed = JSON.parse(propertyData.existing_images);
+            if (Array.isArray(jsonParsed)) {
+                parsedImages = jsonParsed
+                    .map(img => typeof img === 'string' ? img : img.url)
+                    .filter(Boolean)
+                    .map(getFullImageUrl);
+            } else {
+                parsedImages = [getFullImageUrl(propertyData.existing_images)];
+            }
+        } catch (e) {
+            // If not JSON, assume it's a single URL
+            parsedImages = [getFullImageUrl(propertyData.existing_images)];
+        }
+    }
+    console.log('parsedImages', parsedImages)
+
+    // Use current images from API or fallback to dummy images
+  
+    const propertyImages = parsedImages.length > 0
+        ? parsedImages
         : [
             'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop',
             'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1200&h=800&fit=crop',
@@ -108,7 +152,7 @@ const BrokerPropertyDetails: React.FC = () => {
             'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=800&fit=crop',
             'https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&h=800&fit=crop'
         ];
-    
+
     const totalImages = propertyImages.length;
 
     const nextImage = () => {
@@ -124,7 +168,7 @@ const BrokerPropertyDetails: React.FC = () => {
         const numPrice = parseFloat(price);
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'EUR',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(numPrice);
@@ -170,7 +214,7 @@ const BrokerPropertyDetails: React.FC = () => {
                         </p>
                         <div className="flex items-center gap-2 text-sm text-[#082D5B]">
                             <Home size={16} />
-                            <span>{parseFloat(propertyData.built_area).toLocaleString()} sq ft • {propertyData.location}</span>
+                            <span>{parseFloat(propertyData.built_area).toLocaleString()} sq ft • {propertyData.location} {propertyData.postcode && `(${propertyData.postcode})`}</span>
                         </div>
                     </div>
 
@@ -225,9 +269,9 @@ const BrokerPropertyDetails: React.FC = () => {
                             </div>
 
                             {/* Thumbnail Images */}
-                            {propertyData.existing_images && propertyData.existing_images.length > 0 && (
+                            {parsedImages.length > 0 && (
                                 <div className="grid grid-cols-5 gap-2 mt-3">
-                                    {propertyData.existing_images.map((img, index) => (
+                                    {parsedImages.map((img, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setCurrentImage(index)}
@@ -235,8 +279,8 @@ const BrokerPropertyDetails: React.FC = () => {
                                                 }`}
                                         >
                                             <img
-                                                src={img.url}
-                                                alt={img.name || `Thumbnail ${index + 1}`}
+                                                src={img}
+                                                alt={`Thumbnail ${index + 1}`}
                                                 className="w-full h-16 sm:h-20 object-cover"
                                                 onError={(e) => {
                                                     // Fallback image if URL fails
@@ -269,9 +313,9 @@ const BrokerPropertyDetails: React.FC = () => {
                                 </h3>
                                 <div className="flex gap-4">
                                     {propertyData.brochure_pdf_url && (
-                                        <a 
-                                            href={propertyData.brochure_pdf_url} 
-                                            target="_blank" 
+                                        <a
+                                            href={propertyData.brochure_pdf_url}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 px-6 py-1 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
                                         >
@@ -280,9 +324,9 @@ const BrokerPropertyDetails: React.FC = () => {
                                         </a>
                                     )}
                                     {propertyData.brochure_video_url && (
-                                        <a 
-                                            href={propertyData.brochure_video_url} 
-                                            target="_blank" 
+                                        <a
+                                            href={propertyData.brochure_video_url}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2"
                                         >
@@ -293,9 +337,9 @@ const BrokerPropertyDetails: React.FC = () => {
                             </div>
 
                             {/* Internals */}
-                           <div className='bg-[#E7F0FB] p-3 rounded-sm'>
-                             <h4 className="text-xl font-semibold text-gray-900">Internals</h4>
-                           </div>
+                            <div className='bg-[#E7F0FB] p-3 rounded-sm'>
+                                <h4 className="text-xl font-semibold text-gray-900">Internals</h4>
+                            </div>
                             <div className="p-5 mb-4">
                                 <h5 className="text-xl font-semibold text-gray-900 mb-3">Specifications</h5>
 
@@ -309,7 +353,7 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Type of roller shutter-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
-                                            {propertyData.roller_shutter_type || 'N/A'}
+                                            {propertyData.roller_shutter_type || 'N/A'} {propertyData.roller_shutters ? `(${propertyData.roller_shutters} unit)` : ''}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
@@ -321,7 +365,7 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Height & width of shutters-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
-                                            {propertyData.shutters_height_width || 'N/A'}
+                                            {propertyData.dimensions_roller_shutter || 'N/A'}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
@@ -363,7 +407,7 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Single or Three phase-</li>
                                         <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.phase || 'N/A'}
+                                            {propertyData.electricity_supply || 'N/A'}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
@@ -372,13 +416,31 @@ const BrokerPropertyDetails: React.FC = () => {
                                             {propertyData.any_further_details || 'N/A'}
                                         </span>
                                     </div>
+                                    <div className="flex text-[13px]">
+                                        <li className="text-gray-600">EV Charging-</li>
+                                        <span className="text-gray-900 ml-1 font-medium">
+                                            {formatBoolean(propertyData.ev_chaging)}
+                                        </span>
+                                    </div>
+                                    <div className="flex text-[13px]">
+                                        <li className="text-gray-600">Solar Panels-</li>
+                                        <span className="text-gray-900 ml-1 font-medium">
+                                            {formatBoolean(propertyData.solar_panels)}
+                                        </span>
+                                    </div>
+                                    <div className="flex text-[13px]">
+                                        <li className="text-gray-600">Floor Plans-</li>
+                                        <span className="text-gray-900 ml-1 font-medium">
+                                            {formatBoolean(propertyData.floor_plans)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Externals */}
-                             <div className='bg-[#E7F0FB] p-3 rounded-sm'>
-                             <h4 className="text-xl font-semibold text-gray-900">Externals</h4>
-                           </div>
+                            <div className='bg-[#E7F0FB] p-3 rounded-sm'>
+                                <h4 className="text-xl font-semibold text-gray-900">Externals</h4>
+                            </div>
                             <div className='mt-6'>
                                 <h5 className="text-xl font-semibold text-gray-900 mb-3">Specifications</h5>
 
@@ -460,6 +522,12 @@ const BrokerPropertyDetails: React.FC = () => {
                                             {propertyData.risk_level || 'N/A'}
                                         </span>
                                     </div>
+                                    <div className="flex text-[13px]">
+                                        <li className="text-gray-600">Other restrictions-</li>
+                                        <span className="text-gray-900 ml-1 font-medium">
+                                            {propertyData.other_restrictions || 'N/A'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -512,9 +580,11 @@ const BrokerPropertyDetails: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 mt-8">
-                        <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
-                            Update Property
-                        </button>
+                        <Link to={`/broker-dashboard/property/${propertyData.id}`}>
+                            <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
+                                Update Property
+                            </button>
+                        </Link>
                         <button className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-[14px] font-medium rounded-sm transition-colors">
                             Cancel
                         </button>

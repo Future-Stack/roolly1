@@ -1,53 +1,77 @@
-import { useGetAdminAnalyticsQuery } from '@/redux/features/admin/overview/getAdminAnalyticsApi';
+import {
+    useGetAdminAnalyticsQuery,
+    useGetLeadsPerformanceQuery,
+    useGetPropertyTypePerformanceQuery,
+    useGetLeadsConversionQuery,
+    useGetLeadSourceQuery,
+    useGetPropertyPerformanceQuery
+} from '@/redux/features/admin/analytics/adminAnalyticsApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Bar, BarChart, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 
-const properties = [
-    { name: 'Leeds Industrial Park', location: 'Leeds, West Yorkshire', leads: 24 },
-    { name: 'Leeds Industrial Park', location: 'Leeds, West Yorkshire', leads: 19 },
-    { name: 'Leeds Industrial Park', location: 'Leeds, West Yorkshire', leads: 8 }
-];
+
 
 const AdminAnalytics: React.FC = () => {
-    const {data:analytics} = useGetAdminAnalyticsQuery(undefined);
-    console.log("Analytics Data:", analytics); 
-    const monthlyData = [
-        { month: 'Jan', leads: 150, conversions: 50 },
-        { month: 'Feb', leads: 175, conversions: 60 },
-        { month: 'Mar', leads: 210, conversions: 65 },
-        { month: 'Apr', leads: 250, conversions: 72 },
-        { month: 'May', leads: 275, conversions: 75 },
-        { month: 'Jun', leads: 300, conversions: 75 }
-    ];
+    const { data: analytics } = useGetAdminAnalyticsQuery(undefined);
+    const { data: leadsPerformance } = useGetLeadsPerformanceQuery(undefined);
 
-    const propertyTypeData = [
-        { type: 'Industrial', views: 165000, enquiries: 30000 },
-        { type: 'Land', views: 110000, enquiries: 52000 },
-        { type: 'Office', views: 200000, enquiries: 85000 },
-        { type: 'Retail', views: 160000, enquiries: 55000 }
-    ];
+    const monthlyData = useMemo(() => {
+        if (!leadsPerformance?.leads_data) return [];
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return leadsPerformance.leads_data.map((item: any) => ({
+            month: monthNames[item.month - 1],
+            leads: item.total_leads,
+            conversions: item.completed_leads
+        }));
+    }, [leadsPerformance]);
 
-    const data = [
-        { month: 'Jan', value: 1.5 },
-        { month: 'Feb', value: 2.5 },
-        { month: 'Mar', value: 4 },
-        { month: 'Apr', value: 1 },
-        { month: 'May', value: 6.5 },
-        { month: 'Jun', value: 1.5 },
-        { month: 'Jul', value: 3 },
-        { month: 'Aug', value: 9.5 },
-        { month: 'Sep', value: 13.5 },
-        { month: 'Oct', value: 6.5 },
-        { month: 'Nov', value: 3 },
-        { month: 'Dec', value: 12 }
-    ];
+    const { data: propertyTypePerformance } = useGetPropertyTypePerformanceQuery(undefined);
 
-    const leadSources = [
-        { name: 'Chat', leads: 20, percentage: 53, color: 'bg-[#126AD8]' },
-        { name: 'Whatsapp', leads: 70, percentage: 14, color: 'bg-[#126AD8]' },
-        { name: 'Call', leads: 10, percentage: 10, color: 'bg-[#126AD8]' }
-    ];
+    const propertyTypeData = useMemo(() => {
+        if (!propertyTypePerformance) return [];
+        return propertyTypePerformance.map((item: any) => ({
+            type: item.property_type.charAt(0).toUpperCase() + item.property_type.slice(1),
+            views: item.total_views,
+            enquiries: item.total_enquiries
+        }));
+    }, [propertyTypePerformance]);
+
+    const { data: leadsConversion } = useGetLeadsConversionQuery(undefined);
+    const { data: leadSourceData } = useGetLeadSourceQuery(undefined);
+    const { data: propertyPerformance } = useGetPropertyPerformanceQuery(undefined);
+
+    const conversionData = useMemo(() => {
+        if (!leadsConversion) return [];
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        // Create an array for all 12 months initialized with 0
+        const allMonths = monthNames.map(month => ({ month, value: 0 }));
+
+        leadsConversion.forEach((item: any) => {
+            if (item.month >= 1 && item.month <= 12) {
+                allMonths[item.month - 1].value = item.leads;
+            }
+        });
+        return allMonths;
+    }, [leadsConversion]);
+
+    const leadSources = useMemo(() => {
+        if (!leadSourceData) return [];
+        return leadSourceData.map((item: any) => ({
+            name: item.source,
+            percentage: item.percentage,
+            color: item.source === 'Whatsapp' ? 'bg-[#25D366]' : item.source === 'AI' ? 'bg-[#8B5CF6]' : 'bg-[#126AD8]'
+        }));
+    }, [leadSourceData]);
+
+    const propertyPerformanceData = useMemo(() => {
+        if (!propertyPerformance) return [];
+        return propertyPerformance.map((item: any) => ({
+            name: item.property_name,
+            location: item.location,
+            leads: item.leads_count
+        }));
+    }, [propertyPerformance]);
 
     return (
         <div className="w-full min-h-screen mb-6">
@@ -194,7 +218,7 @@ const AdminAnalytics: React.FC = () => {
                         </p>
 
                         <div className="space-y-8">
-                            {leadSources.map((source, index) => (
+                            {leadSources.map((source: any, index: number) => (
                                 <div key={index}>
                                     <div className="flex items-center justify-between mb-3">
                                         <span className="text-gray-900 text-base font-medium">
@@ -225,7 +249,7 @@ const AdminAnalytics: React.FC = () => {
                         </p>
 
                         <div className="space-y-4">
-                            {properties.map((property, index) => (
+                            {propertyPerformanceData?.map((property: any, index: number) => (
                                 <div
                                     key={index}
                                     className="bg-[#E8F1FD] rounded-lg px-5 py-3 flex items-center justify-between"
@@ -257,7 +281,7 @@ const AdminAnalytics: React.FC = () => {
                     <div className="w-full h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={data}
+                                data={conversionData}
                                 margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
                             >
                                 <CartesianGrid

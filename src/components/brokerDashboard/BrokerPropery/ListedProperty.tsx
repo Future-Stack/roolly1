@@ -69,7 +69,7 @@ const formatPrice = (price: string) => {
     const numPrice = parseFloat(price);
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'EUR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(numPrice);

@@ -35,6 +35,7 @@ const BrokerLeadManagement: React.FC = () => {
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<boolean>(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const navigate = useNavigate();
@@ -60,7 +61,11 @@ const BrokerLeadManagement: React.FC = () => {
   }
 
   if (selectedStatus) {
-    queryParams.status = selectedStatus; 
+    queryParams.lead_status = selectedStatus;
+  }
+
+  if (selectedFilters.length > 0) {
+    queryParams.lead_traffic = selectedFilters.join(',');
   }
   const {
     data: leadsData,
@@ -71,7 +76,7 @@ const BrokerLeadManagement: React.FC = () => {
   } = useGetBrokerLeadsListQuery(queryParams, {
     refetchOnMountOrArgChange: true,
   });
-console.log('leads data',leadsData)
+  console.log('leads data', leadsData)
   const leads: Lead[] = leadsData?.results || [];
   const totalCount = leadsData?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -128,6 +133,7 @@ console.log('leads data',leadsData)
 
   const clearFilters = () => {
     setSelectedStatus('');
+    setSelectedFilters([]);
     setSearchQuery('');
     setCurrentPage(1);
   };
@@ -160,6 +166,16 @@ console.log('leads data',leadsData)
     const idString = typeof leadId === 'number' ? leadId.toString() : leadId;
     navigate(`/broker-dashboard/update-lead/${idString}`, {
       state: { leadData }
+    });
+  };
+  // ✅ NEW: Toggle filter
+  const toggleFilter = (traffic: string) => {
+    setSelectedFilters(prev => {
+      const newFilters = prev.includes(traffic)
+        ? prev.filter(f => f !== traffic)
+        : [...prev, traffic];
+      setCurrentPage(1); // Reset to first page when filtering
+      return newFilters;
     });
   };
 
@@ -202,75 +218,118 @@ console.log('leads data',leadsData)
 
         {/* Filters Bar */}
         <div className='flex flex-col lg:flex-row justify-between gap-4 mb-5'>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search leads..."
-                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              {searchQuery && (
+          {/* <div className=''> */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              {/* Search Input */}
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search leads..."
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter */}
+              <div className="relative">
                 <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                  className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'
+                >
+                  <span className="text-gray-700">{getSelectedStatusLabel()}</span>
+                  <ArrowDown className={`w-4 h-4 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Status Dropdown */}
+                {statusDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-30"
+                      onClick={closeStatusDropdown}
+                    />
+                    <div className="absolute top-full mt-2 z-40 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                      <div className="p-2 max-h-60 overflow-y-auto">
+                        {statusOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => handleStatusSelect(option.value)}
+                            className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedStatus === option.value
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Clear Filters Button */}
+              {(selectedStatus || searchQuery) && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white"
                 >
                   <X className="w-4 h-4" />
+                  Clear Filters
                 </button>
               )}
             </div>
+            {/* ✅ NEW: Traffic Filter Checkboxes */}
+            {/* <div className="flex items-center gap-4 my-6">
+              <span className="text-sm font-medium text-gray-700">Filter by Traffic:</span>
 
-            {/* Status Filter */}
-            <div className="relative">
-              <button
-                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'
-              >
-                <span className="text-gray-700">{getSelectedStatusLabel()}</span>
-                <ArrowDown className={`w-4 h-4 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedFilters.includes('green')}
+                  onChange={() => toggleFilter('green')}
+                  className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="inline-block px-3 py-1 rounded text-[13px] font-medium bg-green-500 text-white">
+                  Green
+                </span>
+              </label>
 
-              {/* Status Dropdown */}
-              {statusDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-30"
-                    onClick={closeStatusDropdown}
-                  />
-                  <div className="absolute top-full mt-2 z-40 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="p-2 max-h-60 overflow-y-auto">
-                      {statusOptions.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => handleStatusSelect(option.value)}
-                          className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedStatus === option.value
-                            ? 'bg-blue-50 text-blue-600'
-                            : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedFilters.includes('amber')}
+                  onChange={() => toggleFilter('amber')}
+                  className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="inline-block px-3 py-1 rounded text-[13px] font-medium bg-amber-500 text-white">
+                  Amber
+                </span>
+              </label>
 
-            {/* Clear Filters Button */}
-            {(selectedStatus || searchQuery) && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white"
-              >
-                <X className="w-4 h-4" />
-                Clear Filters
-              </button>
-            )}
-          </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedFilters.includes('red')}
+                  onChange={() => toggleFilter('red')}
+                  className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                />
+                <span className="inline-block px-3 py-1 rounded text-[13px] font-medium bg-red-500 text-white">
+                  Red
+                </span>
+              </label>
+            </div> */}
+
+          {/* </div> */}
 
           <Link to="/broker-dashboard/create-lead">
             <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm">
@@ -367,8 +426,8 @@ console.log('leads data',leadsData)
                               />
                               <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                                 <div className="p-2">
-                                  <button 
-                                    onClick={() => handleEditLead(lead.id, lead)} 
+                                  <button
+                                    onClick={() => handleEditLead(lead.id, lead)}
                                     className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm"
                                   >
                                     Edit
