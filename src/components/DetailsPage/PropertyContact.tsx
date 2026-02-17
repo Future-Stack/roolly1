@@ -9,8 +9,17 @@ interface QuickFact {
 
 
 
+import { useDispatch } from 'react-redux';
+import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';
+
 const PropertyMapContact: React.FC = () => {
   const [, setMapZoom] = useState(14);
+  const dispatch = useDispatch();
+
+  const handleChatNow = () => {
+    dispatch(setChatbotView('survey'));
+    dispatch(openChatbot());
+  };
 
   const quickFacts: QuickFact[] = [
     { label: 'Property ID:', value: 1 },
@@ -28,13 +37,13 @@ const PropertyMapContact: React.FC = () => {
               <div className="relative h-[400px] md:h-[500px] lg:h-[600px]">
                 {/* Map Image Placeholder */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200">
-                  <img 
+                  <img
                     src={map}
                     alt="Property Location Map"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                
+
                 {/* Street View Button */}
                 <button className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium">
                   <MapPin size={16} />
@@ -43,13 +52,13 @@ const PropertyMapContact: React.FC = () => {
 
                 {/* Map Controls */}
                 <div className="absolute right-4 bottom-4 flex flex-col gap-2">
-                  <button 
+                  <button
                     onClick={() => setMapZoom(prev => Math.min(prev + 1, 20))}
                     className="bg-white p-2 rounded shadow-lg hover:bg-gray-50 transition"
                   >
                     <Plus size={20} className="text-gray-700" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => setMapZoom(prev => Math.max(prev - 1, 1))}
                     className="bg-white p-2 rounded shadow-lg hover:bg-gray-50 transition"
                   >
@@ -85,17 +94,20 @@ const PropertyMapContact: React.FC = () => {
 
               {/* Contact Buttons */}
               <div className="space-y-3 mb-8">
-               <div className='flex items-center gap-4 '>
-                 <button className="w-full bg-[#0DC043]  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
-                  <MessageSquare size={20} /> 
-                  WhatsApp
-                </button>
-                <button className="w-full bg-gray-900  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
-                  <Phone size={20} />
-                  000 2569 06541
-                </button>
-               </div>
-                <button className="w-full bg-[#126AD8]  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
+                <div className='flex items-center gap-4 '>
+                  <button className="w-full bg-[#0DC043]  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
+                    <MessageSquare size={20} />
+                    WhatsApp
+                  </button>
+                  <button className="w-full bg-gray-900  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
+                    <Phone size={20} />
+                    000 2569 06541
+                  </button>
+                </div>
+                <button
+                  onClick={handleChatNow}
+                  className="w-full bg-[#126AD8]  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2"
+                >
                   <MessageCircle size={20} />
                   Chat Now
                 </button>
@@ -114,7 +126,7 @@ const PropertyMapContact: React.FC = () => {
                 </div>
               </div>
 
-          
+
             </div>
           </div>
         </div>
