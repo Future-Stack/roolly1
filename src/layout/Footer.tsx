@@ -1,4 +1,4 @@
-import { Instagram, Mail } from 'lucide-react';
+import { Instagram, Mail, MessageCircle } from 'lucide-react';
 import React from 'react';
 import footerImg from '../assets/footerImg.png';
 import logoImg from '../assets/logo.svg';
@@ -29,30 +29,30 @@ const Footer: React.FC = () => {
             <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-400 p-2">
               <Mail size={18} />
             </div>
-            <a href="mailto:rolo@mark30re.com" className="hover:text-gray-300 transition-colors">
+            <a href="mailto:rob@broker360re.com" className="hover:text-gray-300 transition-colors">
               rob@broker360re.com
             </a>
-            <a href="mailto:matthew@mark30re.com" className="hover:text-gray-300 transition-colors">
+            <a href="mailto:Matt@broker360re.com" className="hover:text-gray-300 transition-colors">
               Matt@broker360re.com
             </a>
           </div>
 
           <div className="flex flex-col items-center gap-2 text-white">
             <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-400 p-2">
-              <Mail size={18} />
+              <MessageCircle size={18} />
             </div>
-            <a href="tel:07717340048" className="hover:text-gray-300 transition-colors">
-              07772425231
+            <a href="https://wa.me/447717340059" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">
+              WhatsApp: 07717340059
             </a>
-            <a href="tel:07717678944" className="hover:text-gray-300 transition-colors">
-              07717340059
+            <a href="tel:07717340059" className="hover:text-gray-300 transition-colors">
+              Call: 07717340059
             </a>
           </div>
         </div>
 
 
         {/* Logo and Social */}
-        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 -z-1">
           <img src={logoImg} alt="Logo" className="w-24 sm:w-32" />
 
           <div className="flex flex-col items-center gap-1 sm:gap-2">
@@ -80,8 +80,8 @@ const Footer: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center text-white text-sm sm:text-base gap-2 sm:gap-0">
             <p>© 2025 All Rights Reserved</p>
             <div className="flex gap-4">
-              <button onClick={()=> navigate('/privecy-policy')} className='cursor-pointer'>Privacy Policy</button>
-              <button onClick={()=> navigate('/terms')} className='cursor-pointer'>Terms of Use</button>
+              <button onClick={() => navigate('/privecy-policy')} className='cursor-pointer'>Privacy Policy</button>
+              <button onClick={() => navigate('/terms')} className='cursor-pointer'>Terms of Use</button>
             </div>
           </div>
         </div>

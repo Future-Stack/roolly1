@@ -169,15 +169,15 @@ const BrokerLeadManagement: React.FC = () => {
     });
   };
   // ✅ NEW: Toggle filter
-  const toggleFilter = (traffic: string) => {
-    setSelectedFilters(prev => {
-      const newFilters = prev.includes(traffic)
-        ? prev.filter(f => f !== traffic)
-        : [...prev, traffic];
-      setCurrentPage(1); // Reset to first page when filtering
-      return newFilters;
-    });
-  };
+  // const toggleFilter = (traffic: string) => {
+  //   setSelectedFilters(prev => {
+  //     const newFilters = prev.includes(traffic)
+  //       ? prev.filter(f => f !== traffic)
+  //       : [...prev, traffic];
+  //     setCurrentPage(1); // Reset to first page when filtering
+  //     return newFilters;
+  //   });
+  // };
 
   if (isLoading) {
     return (

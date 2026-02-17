@@ -48,7 +48,7 @@ const NotificationsUpdate: React.FC = () => {
     if (preference) {
       setEmailNotification(preference.email_notification);
       setSmsNotification(preference.sms_notification);
-      setNewLeadsAlerts(preference.new_leads_alert);
+      setNewLeadsAlerts(preference.new_property_alert);
     }
   }, [preference]);
 
@@ -61,7 +61,7 @@ const NotificationsUpdate: React.FC = () => {
     const updateData = {
       email_notification: emailNotification,
       sms_notification: smsNotification,
-      new_leads_alert: newLeadsAlerts,
+      new_property_alert: newLeadsAlerts,
     };
 
     console.log('Updating preferences:', updateData);

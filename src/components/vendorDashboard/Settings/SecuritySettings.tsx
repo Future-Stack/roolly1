@@ -1,14 +1,18 @@
-
+import React from 'react';
 import SecurityInformation from './SecurityInformation'
 import AccountActions from './AccountActions'
 
-const SecuritySettings = () => {
+interface SecuritySettingsProps {
+  role?: 'broker' | 'vendor';
+}
+
+const SecuritySettings: React.FC<SecuritySettingsProps> = ({ role = 'broker' }) => {
   return (
     <div>
-        <SecurityInformation/>
-        <div className='mt-6'>
-            <AccountActions/>
-        </div>
+      <SecurityInformation role={role} />
+      <div className='mt-6'>
+        <AccountActions role={role} />
+      </div>
     </div>
   )
 }

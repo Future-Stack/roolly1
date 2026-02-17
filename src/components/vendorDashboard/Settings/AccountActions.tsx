@@ -1,11 +1,19 @@
 import { useUpdateBrokerProfileMutation } from '@/redux/features/broker/settings/updateBrokerProfileApi';
+import { useUpdateVendorProfileMutation } from '@/redux/features/vendor/updateVendorProfileApi';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 
-const AccountActions: React.FC = () => {
-  const [updateBrokerProfile, { isLoading: isUpdating }] = useUpdateBrokerProfileMutation();
+interface AccountActionsProps {
+  role?: 'broker' | 'vendor';
+}
+
+const AccountActions: React.FC<AccountActionsProps> = ({ role = 'broker' }) => {
+  const [updateBrokerProfile, { isLoading: isBrokerUpdating }] = useUpdateBrokerProfileMutation();
+  const [updateVendorProfile, { isLoading: isVendorUpdating }] = useUpdateVendorProfileMutation();
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const isUpdating = isBrokerUpdating || isVendorUpdating;
 
   const handleDeleteAccount = async () => {
     if (!showDeleteConfirm) {
@@ -15,14 +23,11 @@ const AccountActions: React.FC = () => {
 
     try {
       console.log('Delete account requested');
-      
-      alert('Account deletion request has been submitted.');
-      
+      toast.info('Account deletion request has been submitted.');
       setShowDeleteConfirm(false);
-      
     } catch (error) {
       console.error('Failed to delete account:', error);
-      alert('Failed to delete account. Please try again.');
+      toast.error('Failed to submit deletion request.');
       setShowDeleteConfirm(false);
     }
   };
@@ -37,11 +42,15 @@ const AccountActions: React.FC = () => {
       const deactivationData = {
         is_deactivated: true
       };
-      await updateBrokerProfile(deactivationData).unwrap();
-      
+
+      if (role === 'broker') {
+        await updateBrokerProfile(deactivationData).unwrap();
+      } else {
+        await updateVendorProfile(deactivationData).unwrap();
+      }
+
       toast.success('Account deactivated successfully!');
       setShowDeactivateConfirm(false);
-      
     } catch (error) {
       console.error('Failed to deactivate account:', error);
       toast.error('Failed to deactivate account. Please try again.');
@@ -114,17 +123,17 @@ const AccountActions: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5 mb-5">
           <button
             onClick={handleDeleteAccount}
-            className="w-full h-[50px] bg-[#B91C1C] hover:bg-red-700 text-white text-[15px] font-medium rounded-lg transition-colors"
+            className="w-full h-[48px] bg-red-600 hover:bg-red-700 text-white text-[15px] font-medium rounded-lg transition-colors shadow-sm"
           >
-            {showDeleteConfirm ? 'Confirm Delete Account' : 'Delete Account'}
+            {showDeleteConfirm ? 'Confirm Delete' : 'Delete Account'}
           </button>
 
           <button
             onClick={handleDeactiveAccount}
             disabled={isUpdating}
-            className="w-full h-[50px] bg-[#CA8A04] hover:bg-yellow-700 text-white text-[15px] font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-[48px] bg-amber-500 hover:bg-amber-600 text-white text-[15px] font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {showDeactivateConfirm 
+            {showDeactivateConfirm
               ? (isUpdating ? 'Deactivating...' : 'Confirm Deactivate')
               : 'Deactivate Account'
             }

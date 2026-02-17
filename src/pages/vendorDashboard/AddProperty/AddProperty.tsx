@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAddPropertyMutation } from '@/redux/features/vendor/addPropertyApi';
 import RiskProfileManagementForm from '@/components/vendorDashboard/Property/RiskProfileManagementForm';
-import Swal from 'sweetalert2';
+// import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 
 interface ImageUpload {

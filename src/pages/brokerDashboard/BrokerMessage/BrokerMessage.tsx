@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
 import { useCurrentToken } from '@/redux/features/auth/authSlice';
 import { useGetAllMessagesQuery } from '@/redux/features/message/getAllMessagesApi';
 import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingleUserMessageApi';
 import { useAppSelector } from '@/redux/hook';
 import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
 import { getCurrentUserId } from '@/utils/userUtils';
-import { Check, CheckCheck, Clock, Menu, MoreVertical, Plus, RefreshCw, Search, SendHorizontal, Smile, Wifi, WifiOff, X } from 'lucide-react';
+import { Check, CheckCheck, Clock, Menu, MoreVertical, Search, SendHorizontal, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -444,13 +445,13 @@ const BrokerMessage: React.FC = () => {
   };
 
   // Manual reconnect
-  const manualReconnect = () => {
-    if (selectedChat?.id) {
-      cleanupWebSockets();
-      setReconnectAttempts(0);
-      connectToConversation(selectedChat.id);
-    }
-  };
+  // const manualReconnect = () => {
+  //   if (selectedChat?.id) {
+  //     cleanupWebSockets();
+  //     setReconnectAttempts(0);
+  //     connectToConversation(selectedChat.id);
+  //   }
+  // };
 
   // Handle incoming chat message
   const handleChatMessage = (data: WebSocketMessage) => {
@@ -613,6 +614,10 @@ const BrokerMessage: React.FC = () => {
     setMessages([]);
     updateActivityTime();
   };
+  const handleEmojiSelect = (emoji: string) => {
+    setMessageInput(prev => prev + emoji);
+    updateActivityTime();
+  };
 
   // Combine all conversations
   const allChatUsers: ChatUser[] = [
@@ -662,20 +667,20 @@ const BrokerMessage: React.FC = () => {
   };
 
   // Get connection status
-  const getConnectionStatusInfo = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
-      case 'connecting':
-        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
-      case 'error':
-        return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
-      default:
-        return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
-    }
-  };
+  // const getConnectionStatusInfo = () => {
+  //   switch (connectionStatus) {
+  //     case 'connected':
+  //       return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
+  //     case 'connecting':
+  //       return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
+  //     case 'error':
+  //       return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
+  //     default:
+  //       return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
+  //   }
+  // };
 
-  const statusInfo = getConnectionStatusInfo();
+  // const statusInfo = getConnectionStatusInfo();
 
   // Scroll to bottom
   useEffect(() => {
@@ -707,7 +712,7 @@ const BrokerMessage: React.FC = () => {
     <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
 
       {/* Connection Status */}
-      <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
+      {/* <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
         {statusInfo.icon}
         <div className="flex flex-col">
           <span className="text-sm font-medium">{statusInfo.text}</span>
@@ -722,8 +727,8 @@ const BrokerMessage: React.FC = () => {
               Reconnect Now
             </button>
           )}
-        </div>
-      </div>
+        </div> 
+      </div> */}
 
       {/* Header */}
       <div className="pb-4 md:pb-6">
@@ -1001,9 +1006,9 @@ const BrokerMessage: React.FC = () => {
           {/* Message Input */}
           <div className="px-2 py-2 border-t bg-white">
             <div className="flex items-center gap-2 md:gap-3">
-              <button className="p-1 md:p-0.5 hover:bg-gray-100 transition-colors border border-gray-600 rounded-full">
+              {/* <button className="p-1 md:p-0.5 hover:bg-gray-100 transition-colors border border-gray-600 rounded-full">
                 <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600" strokeWidth={2} />
-              </button>
+              </button> */}
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -1020,13 +1025,19 @@ const BrokerMessage: React.FC = () => {
                     : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
                     }`}
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
+                {/* <button  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
                   <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
-                </button>
+                </button> */}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                  <EmojiPickerButton
+                                    onEmojiSelect={handleEmojiSelect}
+                                    disabled={connectionStatus !== 'connected' || !!connectionError}
+                                  />
+                                </div>
               </div>
               <button
                 onClick={sendMessage}
-                disabled={!messageInput.trim() || connectionStatus !== 'connected' || !!connectionError}
+                disabled={!messageInput.trim() || connectionStatus !== 'connected' }
                 className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim() && connectionStatus === 'connected' && !connectionError
                   ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                   : 'bg-gray-300 cursor-not-allowed'
@@ -1035,11 +1046,11 @@ const BrokerMessage: React.FC = () => {
                 <SendHorizontal className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
               </button>
             </div>
-            {connectionStatus !== 'connected' && (
+            {/* {connectionStatus !== 'connected' && (
               <p className="text-xs text-center text-gray-500 mt-2">
                 {connectionError || 'Trying to establish connection...'}
               </p>
-            )}
+            )} */}
           </div>
         </div>
       </div>

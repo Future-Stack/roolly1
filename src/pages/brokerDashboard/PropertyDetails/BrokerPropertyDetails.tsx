@@ -4,10 +4,10 @@ import playButton from '../../../assets/play-button.png';
 import { useGetPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
 import { Link, useParams } from 'react-router-dom';
 
-interface PropertyImage {
-    name: string;
-    url: string;
-}
+// interface PropertyImage {
+//     name: string;
+//     url: string;
+// }
 
 interface PropertyOwner {
     id: string;

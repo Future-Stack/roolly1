@@ -117,9 +117,9 @@ const PropertyInformationForm: React.FC = () => {
     };
 
     // Format phase
-    const formatPhase = (phase: number | string) => {
-        return `${phase} Phase`;
-    };
+    // const formatPhase = (phase: number | string) => {
+    //     return `${phase} Phase`;
+    // };
 
     // Set existing images from backend
     useEffect(() => {

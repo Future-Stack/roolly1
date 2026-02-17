@@ -209,7 +209,7 @@ const AdminOverview: React.FC = () => {
                             </p>
 
                             <div className="space-y-8">
-                                {leadSources?.map((source, index) => (
+                                {leadSources?.map((source: any, index: any) => (
                                     <div key={index}>
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="text-gray-900 text-base font-medium">

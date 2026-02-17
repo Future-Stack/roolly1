@@ -46,10 +46,15 @@ const Broker360Header: React.FC = () => {
               </button>
             </Link>
 
-            <button className="px-6 py-2.5 text-white text-lg font-inter bg-[#126AD8] rounded-md transition duration-150 shadow-md hover:bg-blue-600 whitespace-nowrap flex items-center gap-2">
+            <a
+              href="https://wa.me/447717340048"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-2.5 text-white text-lg font-inter bg-[#126AD8] rounded-md transition duration-150 shadow-md hover:bg-blue-600 whitespace-nowrap flex items-center gap-2"
+            >
               <Phone className="w-4 h-4" />
               Give us a Call
-            </button>
+            </a>
 
             <button
               onClick={() => navigate('/login')}
@@ -114,12 +119,16 @@ const Broker360Header: React.FC = () => {
               </Link>
 
               <div>
-                <Link to="/all-properties" onClick={() => setIsMenuOpen(false)}>
-                  <button className="w-full py-3 bg-[#126AD8] text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition duration-150">
-                    <Phone className="w-4 h-4" />
-                    Give us a Call
-                  </button>
-                </Link>
+                <a
+                  href="https://wa.me/447717340048"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full py-3 bg-[#126AD8] text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition duration-150"
+                >
+                  <Phone className="w-4 h-4" />
+                  Give us a Call
+                </a>
               </div>
             </div>
 

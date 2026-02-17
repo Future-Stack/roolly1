@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import {
     ArrowLeft,
     Mail,
-    Phone,
-    DollarSign,
     Globe,
     Save,
     CheckCircle,

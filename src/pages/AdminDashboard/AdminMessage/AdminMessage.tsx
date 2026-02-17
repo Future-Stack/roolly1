@@ -5,7 +5,9 @@ import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingle
 import { useAppSelector } from '@/redux/hook';
 import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
 import { getCurrentUserId } from '@/utils/userUtils';
-import { Check, CheckCheck, Clock, Menu, MoreVertical, Plus, RefreshCw, Search, SendHorizontal, Smile, Wifi, WifiOff, X } from 'lucide-react';
+import { Check, CheckCheck, Clock, FileText, Image as ImageIcon, Menu, MoreVertical,  Search, SendHorizontal,  X as XIcon } from 'lucide-react';
+import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
+// import FileUploadButton from '@/components/shared/FileUploadButton';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -25,6 +27,7 @@ const AdminMessage: React.FC = () => {
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   console.log(setNewConversations)
 
   const location = useLocation();
@@ -444,13 +447,13 @@ const AdminMessage: React.FC = () => {
   };
 
   // Manual reconnect
-  const manualReconnect = () => {
-    if (selectedChat?.id) {
-      cleanupWebSockets();
-      setReconnectAttempts(0);
-      connectToConversation(selectedChat.id);
-    }
-  };
+  // const manualReconnect = () => {
+  //   if (selectedChat?.id) {
+  //     cleanupWebSockets();
+  //     setReconnectAttempts(0);
+  //     connectToConversation(selectedChat.id);
+  //   }
+  // };
 
   // Handle incoming chat message
   const handleChatMessage = (data: WebSocketMessage) => {
@@ -604,6 +607,23 @@ const AdminMessage: React.FC = () => {
     }
   };
 
+  // Handle file selection
+  // const handleFileSelect = (files: File[]) => {
+  //   setSelectedFiles(prev => [...prev, ...files]);
+  //   updateActivityTime();
+  // };
+
+  // Remove selected file
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setMessageInput(prev => prev + emoji);
+    updateActivityTime();
+  };
+
   // Handle chat selection
   const handleChatSelect = (user: ChatUser) => {
     console.log('💬 Selecting chat:', user.name);
@@ -619,6 +639,7 @@ const AdminMessage: React.FC = () => {
     ...conversations.map(convertConversationToChatUser),
     ...newConversations.map(convertConversationToChatUser),
   ];
+  console.log(allChatUsers)
 
   // Filter users by type
   const vendorUsers = allChatUsers.filter(user => user.userType === 'vendor');
@@ -661,21 +682,21 @@ const AdminMessage: React.FC = () => {
     }
   };
 
-  // Get connection status
-  const getConnectionStatusInfo = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
-      case 'connecting':
-        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
-      case 'error':
-        return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
-      default:
-        return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
-    }
-  };
+  // // Get connection status
+  // const getConnectionStatusInfo = () => {
+  //   switch (connectionStatus) {
+  //     case 'connected':
+  //       return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
+  //     case 'connecting':
+  //       return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
+  //     case 'error':
+  //       return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
+  //     default:
+  //       return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
+  //   }
+  // };
 
-  const statusInfo = getConnectionStatusInfo();
+  // const statusInfo = getConnectionStatusInfo();
 
   // Scroll to bottom
   useEffect(() => {
@@ -707,11 +728,11 @@ const AdminMessage: React.FC = () => {
     <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
 
       {/* Connection Status */}
-      <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
+      {/* <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
         {statusInfo.icon}
         <div className="flex flex-col">
           <span className="text-sm font-medium">{statusInfo.text}</span>
-          {connectionError && (
+         {connectionError && (
             <span className="text-xs mt-1 max-w-xs">{connectionError}</span>
           )}
           {connectionStatus !== 'connected' && selectedChat?.id && (
@@ -721,9 +742,9 @@ const AdminMessage: React.FC = () => {
             >
               Reconnect Now
             </button>
-          )}
+          )} 
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
       <div className="pb-4 md:pb-6">
@@ -735,7 +756,7 @@ const AdminMessage: React.FC = () => {
             onClick={() => setIsChatListOpen(!isChatListOpen)}
             className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
           >
-            {isChatListOpen ? <X size={24} /> : <Menu size={24} />}
+            {isChatListOpen ? <XIcon size={24} /> : <Menu size={24} />}
           </button>
         </div>
         <p className="text-sm md:text-[15px] text-gray-600 font-normal">
@@ -772,7 +793,7 @@ const AdminMessage: React.FC = () => {
               onClick={() => setIsChatListOpen(false)}
               className="p-2 hover:bg-gray-100 rounded-full"
             >
-              <X size={20} />
+              <XIcon size={20} />
             </button>
           </div>
 
@@ -906,7 +927,7 @@ const AdminMessage: React.FC = () => {
                   </h3>
                   <p className="text-xs md:text-[13px] text-gray-500">
                     {currentUser.status}
-                    {connectionStatus !== 'connected' && ' • Connection issue'}
+                    {/* {connectionStatus !== 'connected' && ' • Connection issue'} */}
                   </p>
                 </div>
               </div>
@@ -929,11 +950,11 @@ const AdminMessage: React.FC = () => {
                 <div className="text-center text-gray-500">
                   <p className="text-lg font-medium mb-2">No messages yet</p>
                   <p className="text-sm">Start the conversation</p>
-                  {connectionStatus !== 'connected' && (
+                  {/* {connectionStatus !== 'connected' && (
                     <p className="text-sm text-yellow-600 mt-2">
                       Waiting for connection...
                     </p>
-                  )}
+                  )} */}
                 </div>
               </div>
             ) : (
@@ -1000,10 +1021,34 @@ const AdminMessage: React.FC = () => {
 
           {/* Message Input */}
           <div className="px-2 py-2 border-t bg-white">
+            {/* File Previews */}
+            {selectedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2 px-2">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="relative group">
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 pr-8">
+                      {file.type.startsWith('image/') ? (
+                        <ImageIcon className="w-4 h-4 text-blue-500" />
+                      ) : (
+                        <FileText className="w-4 h-4 text-gray-500" />
+                      )}
+                      <span className="text-xs text-gray-700 max-w-[150px] truncate">
+                        {file.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XIcon className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center gap-2 md:gap-3">
-              <button className="p-1 md:p-0.5 hover:bg-gray-100 transition-colors border border-gray-600 rounded-full">
-                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600" strokeWidth={2} />
-              </button>
+              
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -1020,9 +1065,12 @@ const AdminMessage: React.FC = () => {
                     : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
                     }`}
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
-                </button>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <EmojiPickerButton
+                    onEmojiSelect={handleEmojiSelect}
+                    disabled={connectionStatus !== 'connected' || !!connectionError}
+                  />
+                </div>
               </div>
               <button
                 onClick={sendMessage}
@@ -1035,11 +1083,11 @@ const AdminMessage: React.FC = () => {
                 <SendHorizontal className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
               </button>
             </div>
-            {connectionStatus !== 'connected' && (
+            {/* {connectionStatus !== 'connected' && (
               <p className="text-xs text-center text-gray-500 mt-2">
                 {connectionError || 'Trying to establish connection...'}
               </p>
-            )}
+            )} */}
           </div>
         </div>
       </div>

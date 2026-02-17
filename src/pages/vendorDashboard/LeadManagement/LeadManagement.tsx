@@ -3,28 +3,30 @@ import { useGetVendorLeadsQuery, type VendorLead } from '@/redux/features/vendor
 import { Mail, MessageSquare, MoreVertical, Phone, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
-interface Lead {
-    id: string;
-    name: string;
-    property: string;
-    propertyType: string;
-    budget: string;
-    client_name: string;
-    property_name: string;
-    property_type: string;
-    budget_range: string;
-    lead_traffic: 'green' | 'amber' | 'red';
-    created_at: string;
-    broker_phone_number: string;
-    broker_email_address: string;
-    comments?: string;
-}
+// interface Lead {
+//     id: string;
+//     name: string;
+//     property: string;
+//     propertyType: string;
+//     budget: string;
+//     client_name: string;
+//     property_name: string;
+//     property_type: string;
+//     budget_range: string;
+//     lead_traffic: 'green' | 'amber' | 'red';
+//     created_at: string;
+//     broker_phone_number: string;
+//     broker_email_address: string;
+//     comments?: string;
+// }
 
 const LeadManagement: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
     const { data: leadsResponse, isLoading } = useGetVendorLeadsQuery({ page: currentPage });
+
+    
     
     // ✅ NEW: Filter states
     const [selectedFilters, setSelectedFilters] = useState<string[]>(['green', 'amber', 'red']);
