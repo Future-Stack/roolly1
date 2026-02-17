@@ -3,20 +3,18 @@ import { Minus } from 'lucide-react';
 import chatbot from '../../../assets/chatbot-img.png';
 import chatbotLogo from '../../../assets/logo2.png';
 import mainLogo from '../../../assets/main-logo.png';
-import { useState } from 'react';
 import LocationSelectionModal from './LocationSelectModal';
 import ExploreCityModal from './ExploreCityModal';
 import SurveyModal from './SurveyModal';
 import ChatInterface from './ChatInterface ';
 import BrokerFAQ from './BrokerFAQ';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from '@/redux/store';
+import { setChatbotView, setSelectedCity } from '@/redux/features/chatbot/chatbotSlice';
 
 const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
-    const [showLocationModal, setShowLocationModal] = useState(false);
-    const [showExploreModal, setShowExploreModal] = useState(false);
-    const [showSurveyModal, setShowSurveyModal] = useState(false);
-    const [showChatInterface, setShowChatInterface] = useState(false);
-    const [showFAQ, setShowFAQ] = useState(false);
-    const [selectedCity, setSelectedCity] = useState<any>(null);
+    const dispatch = useDispatch();
+    const { view, selectedCity } = useSelector((state: RootState) => state.chatbot);
 
     const messages = [
         'I am researching real estate marketing platforms.',
@@ -27,39 +25,32 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
 
     const handleMessageClick = (message: string) => {
         if (message === 'Show property by location.') {
-            setShowLocationModal(true);
+            dispatch(setChatbotView('location'));
         } else if (message === 'I\'m looking for customer support.') {
-            setShowSurveyModal(true);
+            dispatch(setChatbotView('survey'));
         } else if (message === 'I am researching real estate marketing platforms.') {
-            setShowSurveyModal(true);
+            dispatch(setChatbotView('survey'));
         }
         else if (message === 'I heard about Broker 360 & want to learn more.') {
-            setShowFAQ(true);
+            dispatch(setChatbotView('faq'));
         }
     };
 
     const handleSelectCity = (cityData: any) => {
-        setSelectedCity(cityData);
-        setShowLocationModal(false);
-        setShowExploreModal(true);
+        dispatch(setSelectedCity(cityData));
+        dispatch(setChatbotView('explore'));
     };
 
     const handleBackToLocations = () => {
-        setShowExploreModal(false);
-        setShowLocationModal(true);
+        dispatch(setChatbotView('location'));
     };
 
     const handleViewDetails = () => {
-        setShowExploreModal(false);
-        setShowSurveyModal(true);
+        dispatch(setChatbotView('survey'));
     };
 
     const handleCloseAll = () => {
-        setShowLocationModal(false);
-        setShowExploreModal(false);
-        setShowSurveyModal(false);
-        setShowChatInterface(false);
-        setShowFAQ(false);
+        dispatch(setChatbotView('main'));
         onClose();
     };
 
@@ -93,7 +84,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         </div>
     );
 
-    if (showChatInterface) {
+    if (view === 'chat') {
         return (
             <ChatWindow>
                 <ChatInterface onClose={handleCloseAll} />
@@ -101,15 +92,15 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         );
     }
 
-    if (showFAQ) {
+    if (view === 'faq') {
         return (
             <ChatWindow>
-                <BrokerFAQ onBack={() => setShowFAQ(false)} />
+                <BrokerFAQ onBack={() => dispatch(setChatbotView('main'))} />
             </ChatWindow>
         );
     }
 
-    if (showSurveyModal) {
+    if (view === 'survey') {
         return (
             <ChatWindow>
                 <SurveyModal onClose={handleCloseAll} />
@@ -117,7 +108,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         );
     }
 
-    if (showExploreModal && selectedCity) {
+    if (view === 'explore' && selectedCity) {
         return (
             <ChatWindow>
                 <ExploreCityModal
@@ -130,7 +121,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         );
     }
 
-    if (showLocationModal) {
+    if (view === 'location') {
         return (
             <ChatWindow>
                 <LocationSelectionModal

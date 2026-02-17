@@ -4,33 +4,38 @@ import PrivacyPolicyForm from './PrivacyPolicyForm';
 
 const PrivacyPolicy: React.FC = () => {
     const [view, setView] = useState<'list' | 'form'>('list');
-    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 
     const handleEdit = (item: any) => {
-        setSelectedItem(item);
+        setSelectedItemId(item.id);
+        setView('form');
+    };
+
+    const handleAddNew = () => {
+        setSelectedItemId(null);
         setView('form');
     };
 
     const handleSave = () => {
         // Here you would save the data
         setView('list');
-        setSelectedItem(null);
+        setSelectedItemId(null);
     };
 
     const handleCancel = () => {
         setView('list');
-        setSelectedItem(null);
+        setSelectedItemId(null);
     };
 
     return (
         <>
             {view === 'list' ? (
-                <PrivacyPolicyList onEdit={handleEdit} />
+                <PrivacyPolicyList onEdit={handleEdit} onAddNew={handleAddNew} />
             ) : (
                 <PrivacyPolicyForm
                     onCancel={handleCancel}
                     onSave={handleSave}
-                    initialData={selectedItem}
+                    policyId={selectedItemId}
                 />
             )}
         </>

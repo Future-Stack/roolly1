@@ -139,7 +139,7 @@ const FeaturedProperties = () => {
                 </div>
 
                 <button
-                  onClick={() => navigate(`/property-details/${property.id}`)}
+                  onClick={() => navigate(`/details/${property.id}`)}
                   className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
                 >
                   View Details

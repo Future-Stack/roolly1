@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './features/auth/authSlice'
+import chatbotReducer from './features/chatbot/chatbotSlice'
 import { baseApi } from './api/baseApi'
 import { aiBaseApi } from './features/ai/aiCustomerSupport'
 import storage from "redux-persist/lib/storage";
@@ -26,7 +27,8 @@ export const store = configureStore({
   reducer: {
     [baseApi.reducerPath] : baseApi.reducer,
     [aiBaseApi.reducerPath] : aiBaseApi.reducer,
-    auth: persistedAuthReducer
+    auth: persistedAuthReducer,
+    chatbot: chatbotReducer
   },
   middleware : getDefaultMiddlewares => getDefaultMiddlewares({
     serializableCheck:{

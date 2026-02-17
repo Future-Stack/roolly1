@@ -95,7 +95,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
 
         {/* View Details Button */}
-        <Link to={`/property-details/${id}`}>
+        <Link to={`/details/${id}`}>
           <button className="w-full py-2.5 border border-[#126AD8] rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             View Details
           </button>

@@ -1,21 +1,54 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useCreatePrivacyPolicyMutation, useGetPrivacyPolicyByIdQuery, useUpdatePrivacyPolicyMutation } from '@/redux/features/admin/settings/privacyPolicyApi';
+import { Loader2, Plus, Save, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
+interface SubContent {
+    id?: number;
+    title: string;
+    content: string;
+}
+
+interface PrivacyPolicyData {
+    id?: number;
+    title: string;
+    content: string;
+    sub_contents: SubContent[];
+}
 
 interface PrivacyPolicyFormProps {
     onCancel: () => void;
     onSave: () => void;
-    initialData?: any;
+    policyId?: number | null;
 }
 
-const PrivacyPolicyForm: React.FC<PrivacyPolicyFormProps> = ({ onCancel, onSave, initialData }) => {
-    // Placeholder state for the form
-    const [formData, setFormData] = useState({
-        numberOfContent: initialData?.title || '',
-        headline1: '',
-        bodyText1: '',
-        subHeading: '',
-        bodyText2: ''
+const PrivacyPolicyForm: React.FC<PrivacyPolicyFormProps> = ({ onCancel, onSave, policyId }) => {
+    console.log(policyId)
+    const [formData, setFormData] = useState<PrivacyPolicyData>({
+        title: '',
+        content: '',
+        sub_contents: []
     });
+
+    // API Hooks
+    const { data: existingPolicy, isLoading: isFetching } = useGetPrivacyPolicyByIdQuery(policyId, {
+        skip: !policyId
+    });
+
+    const [createPrivacyPolicy, { isLoading: isCreating }] = useCreatePrivacyPolicyMutation();
+    const [updatePrivacyPolicy, { isLoading: isUpdating }] = useUpdatePrivacyPolicyMutation();
+
+    // Initialize form data when existing policy is loaded
+    useEffect(() => {
+        if (existingPolicy) {
+            setFormData({
+                id: existingPolicy.id,
+                title: existingPolicy.title,
+                content: existingPolicy.content,
+                sub_contents: existingPolicy.sub_contents || []
+            });
+        }
+    }, [existingPolicy]);
+    console.log(formData)
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -25,123 +58,170 @@ const PrivacyPolicyForm: React.FC<PrivacyPolicyFormProps> = ({ onCancel, onSave,
         }));
     };
 
+    const handleSubContentChange = (index: number, field: keyof SubContent, value: string) => {
+        const newSubContents = [...formData.sub_contents];
+        newSubContents[index] = {
+            ...newSubContents[index],
+            [field]: value
+        };
+        setFormData(prev => ({
+            ...prev,
+            sub_contents: newSubContents
+        }));
+    };
+
+    const addSubContent = () => {
+        setFormData(prev => ({
+            ...prev,
+            sub_contents: [...prev.sub_contents, { title: '', content: '' }]
+        }));
+    };
+
+    const removeSubContent = (index: number) => {
+        const newSubContents = [...formData.sub_contents];
+        newSubContents.splice(index, 1);
+        setFormData(prev => ({
+            ...prev,
+            sub_contents: newSubContents
+        }));
+    };
+
+    const handleSubmit = async () => {
+        try {
+            if (policyId) {
+                await updatePrivacyPolicy({ id: policyId, data: formData }).unwrap();
+            } else {
+                await createPrivacyPolicy(formData).unwrap();
+            }
+            onSave();
+        } catch (error) {
+            console.error("Failed to save privacy policy", error);
+        }
+    };
+
+    const isLoading = isFetching || isCreating || isUpdating;
+
+    if (isFetching) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+        );
+    }
+
     return (
         <div className="w-full">
-            <h2 className="text-[20px] font-bold text-gray-900 mb-6">Privacy Policy</h2>
+            <h2 className="text-[20px] font-bold text-gray-900 mb-6">
+                {policyId ? 'Edit Privacy Policy Section' : 'Add Privacy Policy Section'}
+            </h2>
 
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-                <div className="space-y-6">
-                    {/* Search Field */}
-                    {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                         <div className="md:col-span-1">
-                            <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                Search Field
-                            </label>
-                            <div className="bg-blue-50 px-4 py-2.5 rounded-lg text-sm text-gray-700 font-medium">
-                                Privacy Policy
-                            </div>
-                        </div> */}
+            <div className="bg-white rounded-lg p-6 border border-gray-200 space-y-6">
 
-                        <div className="md:col-span-3 space-y-6">
-                            {/* Number of content */}
-                            <div>
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Number of content
-                                </label>
-                                <input
-                                    type="text"
-                                    name="numberOfContent"
-                                    value={formData.numberOfContent}
-                                    onChange={handleInputChange}
-                                    placeholder="Types of information we collect online"
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
-                                />
-                            </div>
+                {/* Main Title */}
+                <div>
+                    <label className="block text-[14px] font-medium text-gray-900 mb-2">
+                        Title
+                    </label>
+                    <input
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        placeholder="e.g. Types of information we collect online"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
+                    />
+                </div>
 
-                            {/* Headline 1 */}
-                            <div>
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Headline 1
-                                </label>
-                                <input
-                                    type="text"
-                                    name="headline1"
-                                    value={formData.headline1}
-                                    onChange={handleInputChange}
-                                    placeholder="Types of information we collect online"
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
-                                />
-                            </div>
+                {/* Main Content */}
+                <div>
+                    <label className="block text-[14px] font-medium text-gray-900 mb-2">
+                        Content
+                    </label>
+                    <textarea
+                        name="content"
+                        value={formData.content}
+                        onChange={handleInputChange}
+                        rows={4}
+                        placeholder="Main content of this section..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 resize-none leading-relaxed"
+                    />
+                </div>
 
-                            {/* Body Text 1 */}
-                            <div>
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Body Text
-                                </label>
-                                <textarea
-                                    name="bodyText1"
-                                    value={formData.bodyText1}
-                                    onChange={handleInputChange}
-                                    rows={4}
-                                    placeholder="The types of Personal Data that we may collect while you use the Updevision Site are described in this section and include both information that you provide to us and information that we collect automatically when you use the *** Site."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 resize-none leading-relaxed"
-                                />
-                            </div>
+                {/* Sub-contents */}
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <label className="block text-[14px] font-medium text-gray-900">
+                            Sub-Sections
+                        </label>
+                        <button
+                            onClick={addSubContent}
+                            className="inline-flex items-center px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md text-sm font-medium transition-colors"
+                        >
+                            <Plus size={14} className="mr-1" /> Add Sub-Section
+                        </button>
+                    </div>
 
-                            {/* Sub-Heading */}
-                            <div>
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Sub-Heading
-                                </label>
-                                <input
-                                    type="text"
-                                    name="subHeading"
-                                    value={formData.subHeading}
-                                    onChange={handleInputChange}
-                                    placeholder="Types of information we collect online"
-                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
-                                />
-                            </div>
+                    {formData.sub_contents.map((sub, index) => (
+                        <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative">
+                            <button
+                                onClick={() => removeSubContent(index)}
+                                className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
 
-                            {/* Body Text 2 */}
-                            <div>
-                                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                                    Body Text
-                                </label>
-                                <textarea
-                                    name="bodyText2"
-                                    value={formData.bodyText2}
-                                    onChange={handleInputChange}
-                                    rows={4}
-                                    placeholder="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 resize-none leading-relaxed"
-                                />
-                            </div>
-
-                            {/* Add Button */}
-                            <div>
-                                <button className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors">
-                                    Add <Plus size={16} className="ml-1" />
-                                </button>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    onClick={onSave}
-                                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                                >
-                                    Save
-                                </button>
-                                <button
-                                    onClick={onCancel}
-                                    className="px-6 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors bg-white"
-                                >
-                                    Cancel
-                                </button>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Sub-Section Title</label>
+                                    <input
+                                        type="text"
+                                        value={sub.title}
+                                        onChange={(e) => handleSubContentChange(index, 'title', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Sub-Section Content</label>
+                                    <textarea
+                                        value={sub.content}
+                                        onChange={(e) => handleSubContentChange(index, 'content', e.target.value)}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    {/* </div> */}
+                    ))}
+
+                    {formData.sub_contents.length === 0 && (
+                        <p className="text-sm text-gray-400 italic">No sub-sections added.</p>
+                    )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-6 border-t border-gray-100">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        className="inline-flex items-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin mr-2" /> Saving...
+                            </>
+                        ) : (
+                            <>
+                                <Save size={16} className="mr-2" /> Save Changes
+                            </>
+                        )}
+                    </button>
+                    <button
+                        onClick={onCancel}
+                        disabled={isLoading}
+                        className="px-6 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors bg-white"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
