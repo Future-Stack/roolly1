@@ -3,16 +3,20 @@ import finImg from '../../assets/cantFindsec.svg';
 import clock from '../../assets/clock.svg';
 import easy from '../../assets/easycan.svg';
 import { toast } from 'react-toastify';
+import { useCreatePropertyEnquiryMutation } from '@/redux/features/public/propertyEnquiryApi';
 
 const CantFindSection: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [createPropertyEnquiry, { isLoading }] = useCreatePropertyEnquiryMutation();
+
   const [formData, setFormData] = useState({
     name: '',
-    businessName: '',
+    business_name: '',
     email: '',
-    tel: '',
-    sqftRequired: '',
-    locations: ''
+    phone_number: '',
+    sqft_min: '',
+    sqft_max: '',
+    location: ''
   });
 
   const features = [
@@ -61,19 +65,25 @@ const CantFindSection: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    toast.success('Submitted')
-    setIsModalOpen(false);
-    setFormData({
-      name: '',
-      businessName: '',
-      email: '',
-      tel: '',
-      sqftRequired: '',
-      locations: ''
-    });
+    try {
+      await createPropertyEnquiry(formData).unwrap();
+      toast.success('Requirement submitted successfully!');
+      setIsModalOpen(false);
+      setFormData({
+        name: '',
+        business_name: '',
+        email: '',
+        phone_number: '',
+        sqft_min: '',
+        sqft_max: '',
+        location: ''
+      });
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to submit enquiry');
+      console.error('Failed to submit enquiry:', err);
+    }
   };
 
   return (
@@ -106,11 +116,11 @@ const CantFindSection: React.FC = () => {
               </p>
 
               {/* Explore Button */}
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="w-full sm:w-auto px-8 py-3 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[8px] text-base font-semibold transition-colors duration-300"
               >
-                Explore
+                Enquiry
               </button>
             </div>
 
@@ -181,21 +191,21 @@ const CantFindSection: React.FC = () => {
 
                 {/* Business Name */}
                 <div>
-                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="business_name" className="block text-sm font-medium text-gray-700 mb-1">
                     Business Name
                   </label>
                   <input
                     type="text"
-                    id="businessName"
-                    name="businessName"
-                    value={formData.businessName}
+                    id="business_name"
+                    name="business_name"
+                    value={formData.business_name}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                     placeholder="Enter your business name"
                   />
                 </div>
 
-                {/* Email and Tel in one row for larger screens */}
+                {/* Email and Telephone in one row for larger screens */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Email */}
                   <div>
@@ -214,16 +224,16 @@ const CantFindSection: React.FC = () => {
                     />
                   </div>
 
-                  {/* Tel */}
+                  {/* Phone Number */}
                   <div>
-                    <label htmlFor="tel" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
                       Telephone *
                     </label>
                     <input
                       type="tel"
-                      id="tel"
-                      name="tel"
-                      value={formData.tel}
+                      id="phone_number"
+                      name="phone_number"
+                      value={formData.phone_number}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
@@ -232,64 +242,68 @@ const CantFindSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sq ft required and Locations in one row for larger screens */}
+                {/* Min Sq ft and Max Sq ft in one row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Sq ft required */}
+                  {/* Min Sq ft */}
                   <div>
-                    <label htmlFor="sqftRequired" className="block text-sm font-medium text-gray-700 mb-1">
-                      Sq ft Required *
+                    <label htmlFor="sqft_min" className="block text-sm font-medium text-gray-700 mb-1">
+                      Min Sq ft Required *
                     </label>
                     <input
                       type="text"
-                      id="sqftRequired"
-                      name="sqftRequired"
-                      value={formData.sqftRequired}
+                      id="sqft_min"
+                      name="sqft_min"
+                      value={formData.sqft_min}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      placeholder="e.g., 1000-2000 sq ft"
+                      placeholder="e.g., 1000"
                     />
                   </div>
 
-                  {/* Locations */}
+                  {/* Max Sq ft */}
                   <div>
-                    <label htmlFor="locations" className="block text-sm font-medium text-gray-700 mb-1">
-                      Preferred Locations *
+                    <label htmlFor="sqft_max" className="block text-sm font-medium text-gray-700 mb-1">
+                      Max Sq ft Required *
                     </label>
                     <input
                       type="text"
-                      id="locations"
-                      name="locations"
-                      value={formData.locations}
+                      id="sqft_max"
+                      name="sqft_max"
+                      value={formData.sqft_max}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      placeholder="e.g., New York, Chicago"
+                      placeholder="e.g., 2000"
                     />
                   </div>
                 </div>
 
-                {/* Additional Notes (Optional) */}
+                {/* Location */}
                 <div>
-                  <label htmlFor="additionalNotes" className="block text-sm font-medium text-gray-700 mb-1">
-                    Additional Notes (Optional)
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                    Preferred Location *
                   </label>
-                  <textarea
-                    id="additionalNotes"
-                    name="additionalNotes"
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
-                    placeholder="Any additional requirements or comments..."
-                  ></textarea>
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    placeholder="e.g., Uttara"
+                  />
                 </div>
 
                 {/* Form Actions */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-[#126AD8] hover:bg-blue-400 text-white font-semibold rounded-lg transition-colors duration-300"
+                    disabled={isLoading}
+                    className={`flex-1 px-6 py-3 bg-[#126AD8] hover:bg-blue-400 text-white font-semibold rounded-lg transition-colors duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    Submit Requirements
+                    {isLoading ? 'Submitting...' : 'Submit Requirements'}
                   </button>
                   <button
                     type="button"

@@ -11,6 +11,7 @@ import { useGetPropertyDetailsQuery } from "@/redux/features/broker/property/get
 const PropertyDetails = () => {
   const { id } = useParams();
   const { data: property, isLoading, error } = useGetPropertyDetailsQuery(id);
+  console.log(property);
 
   if (isLoading) {
     return (
@@ -201,7 +202,7 @@ const PropertyDetails = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-600">Power Phase</span>
-                    <span className="font-semibold">{property.phase || 'N/A'}</span>
+                    <span className="font-semibold">{property.electricity_supply || 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-600">Lighting Type</span>
@@ -239,7 +240,7 @@ const PropertyDetails = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shutter Dimensions</span>
-                      <span className="font-medium">{property.shutters_height_width || 'N/A'}</span>
+                      <span className="font-medium">{property.dimensions_roller_shutter || 'N/A'}</span>
                     </div>
                   </div>
                 </div>

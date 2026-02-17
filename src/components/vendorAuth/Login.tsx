@@ -23,7 +23,7 @@ const Login: React.FC = () => {
     try {
       const res = await login({ email, password }).unwrap();
       const user = verifyToken(res?.access);
-      dispacth(setUser({ user: user, token: res.access }));
+      dispacth(setUser({ user: user, token: res.access, refreshToken: res.refresh }));
 
       toast.success('Login Successful');
 
@@ -31,11 +31,11 @@ const Login: React.FC = () => {
         navigate('/admin-dashboard');
       } else if (res?.role === 'BROKER') {
         navigate('/broker-dashboard');
-      }else{
+      } else {
         navigate('/vendor-dashboard');
       }
 
-    } catch (err:any) {
+    } catch (err: any) {
       toast.error(err?.data?.non_field_errors[0])
     }
 

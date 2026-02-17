@@ -299,7 +299,7 @@ const CreateNewLead = () => {
                                             }
                                         }}
                                         className={`w-full px-4 py-3 border ${formErrors.budget_range ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-                                        placeholder="e.g., 1000-2000 or $50,000 - $100,000"
+                                        placeholder="e.g., 1000-2000 or £50000 - £100000"
                                     />
                                     {formErrors.budget_range && (
                                         <p className="text-red-500 text-sm mt-1">{formErrors.budget_range}</p>

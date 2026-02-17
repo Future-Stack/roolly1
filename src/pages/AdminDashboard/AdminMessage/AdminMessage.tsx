@@ -3,81 +3,18 @@ import { useCurrentToken } from '@/redux/features/auth/authSlice';
 import { useGetAllMessagesQuery } from '@/redux/features/message/getAllMessagesApi';
 import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingleUserMessageApi';
 import { useAppSelector } from '@/redux/hook';
-import { Check, CheckCheck, Clock, Menu, MoreVertical, Plus, RefreshCw, Search, SendHorizontal, Smile, Wifi, WifiOff, X } from 'lucide-react';
+import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
+import { getCurrentUserId } from '@/utils/userUtils';
+import { Check, CheckCheck, Clock, FileText, Image as ImageIcon, Menu, MoreVertical,  Search, SendHorizontal,  X as XIcon } from 'lucide-react';
+import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
+// import FileUploadButton from '@/components/shared/FileUploadButton';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-
-interface Conversation {
-  id: string;
-  other_user: {
-    id: string;
-    full_name: string;
-    image: string | null;
-    is_active: string;
-  };
-  created_at: string;
-  last_message: {
-    message: string;
-    message_id: string;
-    timestamp: string;
-    sender_id: string;
-    is_seen: boolean;
-  } | null;
-}
-
-interface ChatUser {
-  id: string;
-  name: string;
-  avatar: string;
-  message: string;
-  time: string;
-  isOnline?: boolean;
-  lastSeen?: string;
-  isSeen?: boolean;
-  userId?: string;
-}
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'other';
-  avatar: string;
-  time?: string;
-  timestamp: string;
-  isSeen?: boolean;
-  senderId?: string;
-  conversationId?: string;
-  senderName?: string;
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
-}
-
-interface WebSocketMessage {
-  type: string;
-  [key: string]: any;
-}
-
-interface ApiMessage {
-  id: string;
-  text: string;
-  is_read: boolean;
-  timestamp: string;
-  sender: {
-    id: string;
-    username: string;
-    avatar: string | null;
-  };
-}
-
-interface PaginatedApiResponse {
-  next: string | null;
-  previous: string | null;
-  results: ApiMessage[];
-}
 
 const AdminMessage: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'admin'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'broker'>('chat');
   const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -90,6 +27,7 @@ const AdminMessage: React.FC = () => {
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   console.log(setNewConversations)
 
   const location = useLocation();
@@ -109,7 +47,7 @@ const AdminMessage: React.FC = () => {
     data: singleUserMessagesData,
     refetch: refetchSingleUserMessages,
     isLoading: isLoadingSingleMessages
-  } = useGetSingleUserMessageQuery(selectedChat?.id || '', {
+  } = useGetSingleUserMessageQuery({ conversationId: selectedChat?.id || '', params: {} }, {
     skip: !selectedChat?.id || !token,
   });
 
@@ -119,53 +57,14 @@ const AdminMessage: React.FC = () => {
   const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Hardcoded user ID for testing - REPLACE THIS WITH YOUR ACTUAL USER ID
-  // Based on your API response, you seem to be "broker" user
-  const YOUR_USER_ID = 'f03b0e80-7b74-4304-b444-1401367aa090'; // broker user ID
-  // OR if you are "Md.Shishir"
-  // const YOUR_USER_ID = 'e30feddb-d33a-4062-8275-88b576fb9f66'; // Md.Shishir user ID
-
   // Get current user ID
   useEffect(() => {
-    console.log('🔑 Token:', token ? 'Present' : 'Missing');
-    
-    // First, check if we have a hardcoded ID
-    if (YOUR_USER_ID) {
-      console.log('✅ Using hardcoded User ID:', YOUR_USER_ID);
-      setCurrentUserId(YOUR_USER_ID);
-      localStorage.setItem('userId', YOUR_USER_ID);
-      return;
-    }
-    
-    // If not hardcoded, check localStorage
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      console.log('✅ Using User ID from localStorage:', storedUserId);
-      setCurrentUserId(storedUserId);
-      return;
-    }
-    
-    // If not in localStorage, try to extract from token
-    if (token) {
-      try {
-        const tokenParts = token.split('.');
-        if (tokenParts.length === 3) {
-          const payload = JSON.parse(atob(tokenParts[1]));
-          console.log('🔍 Token payload:', payload);
-          
-          // Try different possible keys for user ID
-          const userId = payload.user_id || payload.userId || payload.sub || payload.id || '';
-          if (userId) {
-            console.log('✅ Extracted User ID from token:', userId);
-            setCurrentUserId(userId.toString());
-            localStorage.setItem('userId', userId.toString());
-          } else {
-            console.error('❌ No user ID found in token payload');
-          }
-        }
-      } catch (error) {
-        console.error('Error decoding token:', error);
-      }
+    const userId = getCurrentUserId(token);
+    if (userId) {
+      console.log('✅ Extracted User ID from token:', userId);
+      setCurrentUserId(userId);
+    } else {
+      console.log('❌ No user ID found in token');
     }
   }, [token]);
 
@@ -251,7 +150,7 @@ const AdminMessage: React.FC = () => {
 
     return {
       id: conversation.id,
-      name: otherUser.full_name,
+      name: otherUser.full_name || otherUser.username || 'Unknown User',
       avatar: otherUser.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
       message: conversation.last_message?.message || 'Start a conversation',
       time: conversation.last_message
@@ -261,6 +160,7 @@ const AdminMessage: React.FC = () => {
       lastSeen: lastSeen,
       isSeen: conversation.last_message?.is_seen || false,
       userId: otherUser.id,
+      userType: otherUser.user_type,
     };
   };
 
@@ -291,7 +191,7 @@ const AdminMessage: React.FC = () => {
   };
 
   // Load messages from API response
-  const loadMessagesFromApi = (apiResponse: PaginatedApiResponse | any) => {
+  const loadMessagesFromApi = (apiResponse: PaginatedApiResponse<ApiMessage> | any) => {
     if (!apiResponse || !selectedChat || !currentUserId) {
       console.log('❌ Cannot load messages: Missing data');
       return;
@@ -318,7 +218,7 @@ const AdminMessage: React.FC = () => {
       // FIXED: sender is an object, so we need to check msg.sender.id
       const senderId = msg.sender?.id;
       const isUserMessage = senderId === currentUserId;
-      
+
       console.log(`Message ${index + 1}:`, {
         text: msg.text.substring(0, 30) + '...',
         senderId: senderId,
@@ -355,13 +255,17 @@ const AdminMessage: React.FC = () => {
     // Log final distribution
     const userMessages = formattedMessages.filter(m => m.sender === 'user').length;
     const otherMessages = formattedMessages.filter(m => m.sender === 'other').length;
-    
+
     console.log('✅ Final message distribution:', {
       total: formattedMessages.length,
       userMessages: userMessages,
       otherMessages: otherMessages,
       userSide: 'RIGHT',
       otherSide: 'LEFT'
+    });
+
+    formattedMessages.forEach((msg, index) => {
+      console.log(`${index + 1}. "${msg.text.substring(0, 20)}..." - ${msg.senderName} - ${msg.sender === 'user' ? 'RIGHT (Your)' : 'LEFT (Other\'s)'}`);
     });
 
     setMessages(formattedMessages);
@@ -534,7 +438,7 @@ const AdminMessage: React.FC = () => {
     }
 
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-    console.log(`🔄 Reconnecting in ${delay/1000}s (Attempt ${reconnectAttempts + 1})`);
+    console.log(`🔄 Reconnecting in ${delay / 1000}s (Attempt ${reconnectAttempts + 1})`);
 
     reconnectTimerRef.current = setTimeout(() => {
       setReconnectAttempts(prev => prev + 1);
@@ -543,13 +447,13 @@ const AdminMessage: React.FC = () => {
   };
 
   // Manual reconnect
-  const manualReconnect = () => {
-    if (selectedChat?.id) {
-      cleanupWebSockets();
-      setReconnectAttempts(0);
-      connectToConversation(selectedChat.id);
-    }
-  };
+  // const manualReconnect = () => {
+  //   if (selectedChat?.id) {
+  //     cleanupWebSockets();
+  //     setReconnectAttempts(0);
+  //     connectToConversation(selectedChat.id);
+  //   }
+  // };
 
   // Handle incoming chat message
   const handleChatMessage = (data: WebSocketMessage) => {
@@ -560,8 +464,9 @@ const AdminMessage: React.FC = () => {
 
     // FIXED: Check if sender ID matches current user ID
     const senderId = data.sender?.id;
-    const isUserMessage = senderId === currentUserId;
-    
+    // CRITICAL: Ensure robust equality check (string vs number)
+    const isUserMessage = String(senderId) === String(currentUserId);
+
     console.log('📨 Processing incoming message:', {
       senderId: senderId,
       currentUserId: currentUserId,
@@ -590,7 +495,7 @@ const AdminMessage: React.FC = () => {
 
     // If it's your message, replace the temporary one
     if (isUserMessage) {
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id.startsWith('temp-') ? { ...msg, ...newMessage, id: data.message_id, status: 'sent' } : msg
       ));
       console.log('✅ Updated temporary message to permanent');
@@ -653,7 +558,7 @@ const AdminMessage: React.FC = () => {
       // Add temporary message on RIGHT side (your side)
       const tempId = `temp-${Date.now()}`;
       const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
-      
+
       const optimisticMessage: Message = {
         id: tempId,
         text: message,
@@ -675,9 +580,9 @@ const AdminMessage: React.FC = () => {
 
       // Remove "sending..." status after timeout
       setTimeout(() => {
-        setMessages(prev => prev.map(msg => 
-          msg.id === tempId && msg.status === 'sending' 
-            ? { ...msg, status: 'sent' } 
+        setMessages(prev => prev.map(msg =>
+          msg.id === tempId && msg.status === 'sending'
+            ? { ...msg, status: 'sent' }
             : msg
         ));
       }, 2000);
@@ -702,6 +607,23 @@ const AdminMessage: React.FC = () => {
     }
   };
 
+  // Handle file selection
+  // const handleFileSelect = (files: File[]) => {
+  //   setSelectedFiles(prev => [...prev, ...files]);
+  //   updateActivityTime();
+  // };
+
+  // Remove selected file
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setMessageInput(prev => prev + emoji);
+    updateActivityTime();
+  };
+
   // Handle chat selection
   const handleChatSelect = (user: ChatUser) => {
     console.log('💬 Selecting chat:', user.name);
@@ -717,6 +639,11 @@ const AdminMessage: React.FC = () => {
     ...conversations.map(convertConversationToChatUser),
     ...newConversations.map(convertConversationToChatUser),
   ];
+  console.log(allChatUsers)
+
+  // Filter users by type
+  const vendorUsers = allChatUsers.filter(user => user.userType === 'vendor');
+  const brokerUsers = allChatUsers.filter(user => user.userType === 'broker');
 
   // Get current user info
   const currentUser = selectedChat ? {
@@ -738,8 +665,8 @@ const AdminMessage: React.FC = () => {
   // Tab counts
   const tabCounts = {
     chat: allChatUsers.length,
-    vendor: 0,
-    admin: 0
+    vendor: vendorUsers.length,
+    admin: brokerUsers.length
   };
 
   const getCurrentUsers = () => {
@@ -747,29 +674,29 @@ const AdminMessage: React.FC = () => {
       case 'chat':
         return allChatUsers;
       case 'vendor':
-        return [];
-      case 'admin':
-        return [];
+        return vendorUsers;
+      case 'broker':
+        return brokerUsers;
       default:
         return allChatUsers;
     }
   };
 
-  // Get connection status
-  const getConnectionStatusInfo = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
-      case 'connecting':
-        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
-      case 'error':
-        return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
-      default:
-        return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
-    }
-  };
+  // // Get connection status
+  // const getConnectionStatusInfo = () => {
+  //   switch (connectionStatus) {
+  //     case 'connected':
+  //       return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
+  //     case 'connecting':
+  //       return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
+  //     case 'error':
+  //       return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
+  //     default:
+  //       return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
+  //   }
+  // };
 
-  const statusInfo = getConnectionStatusInfo();
+  // const statusInfo = getConnectionStatusInfo();
 
   // Scroll to bottom
   useEffect(() => {
@@ -785,15 +712,15 @@ const AdminMessage: React.FC = () => {
     if (status === 'sending') {
       return <span className="text-xs text-gray-400">Sending...</span>;
     }
-    
+
     if (status === 'sent') {
       return <Check size={12} className="text-gray-400" />;
     }
-    
+
     if (isSeen || status === 'read') {
       return <CheckCheck size={12} className="text-blue-500" />;
     }
-    
+
     return null;
   };
 
@@ -801,11 +728,11 @@ const AdminMessage: React.FC = () => {
     <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
 
       {/* Connection Status */}
-      <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
+      {/* <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
         {statusInfo.icon}
         <div className="flex flex-col">
           <span className="text-sm font-medium">{statusInfo.text}</span>
-          {connectionError && (
+         {connectionError && (
             <span className="text-xs mt-1 max-w-xs">{connectionError}</span>
           )}
           {connectionStatus !== 'connected' && selectedChat?.id && (
@@ -815,9 +742,9 @@ const AdminMessage: React.FC = () => {
             >
               Reconnect Now
             </button>
-          )}
+          )} 
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
       <div className="pb-4 md:pb-6">
@@ -829,7 +756,7 @@ const AdminMessage: React.FC = () => {
             onClick={() => setIsChatListOpen(!isChatListOpen)}
             className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
           >
-            {isChatListOpen ? <X size={24} /> : <Menu size={24} />}
+            {isChatListOpen ? <XIcon size={24} /> : <Menu size={24} />}
           </button>
         </div>
         <p className="text-sm md:text-[15px] text-gray-600 font-normal">
@@ -866,7 +793,7 @@ const AdminMessage: React.FC = () => {
               onClick={() => setIsChatListOpen(false)}
               className="p-2 hover:bg-gray-100 rounded-full"
             >
-              <X size={20} />
+              <XIcon size={20} />
             </button>
           </div>
 
@@ -893,24 +820,28 @@ const AdminMessage: React.FC = () => {
             >
               Chat <span className="ml-1">({tabCounts.chat})</span>
             </button>
-            <button
-              onClick={() => setActiveTab('vendor')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
-            >
-              Vendor <span className="ml-1">({tabCounts.vendor})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('admin')}
-              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
-            >
-              Admin <span className="ml-1">({tabCounts.admin})</span>
-            </button>
+            {tabCounts.vendor > 0 && (
+              <button
+                onClick={() => setActiveTab('vendor')}
+                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                Vendor <span className="ml-1">({tabCounts.vendor})</span>
+              </button>
+            )}
+            {tabCounts.admin > 0 && (
+              <button
+                onClick={() => setActiveTab('broker')}
+                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'broker'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                Admin <span className="ml-1">({tabCounts.admin})</span>
+              </button>
+            )}
           </div>
 
           {/* Chat List */}
@@ -943,7 +874,7 @@ const AdminMessage: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm md:text-[15px] font-semibold text-gray-900">
+                      <h3 className="text-sm md:text-[15px] font-semibold text-gray-900 capitalize">
                         {user.name}
                       </h3>
                       <span className="text-xs text-gray-500 flex-shrink-0">
@@ -996,7 +927,7 @@ const AdminMessage: React.FC = () => {
                   </h3>
                   <p className="text-xs md:text-[13px] text-gray-500">
                     {currentUser.status}
-                    {connectionStatus !== 'connected' && ' • Connection issue'}
+                    {/* {connectionStatus !== 'connected' && ' • Connection issue'} */}
                   </p>
                 </div>
               </div>
@@ -1019,11 +950,11 @@ const AdminMessage: React.FC = () => {
                 <div className="text-center text-gray-500">
                   <p className="text-lg font-medium mb-2">No messages yet</p>
                   <p className="text-sm">Start the conversation</p>
-                  {connectionStatus !== 'connected' && (
+                  {/* {connectionStatus !== 'connected' && (
                     <p className="text-sm text-yellow-600 mt-2">
                       Waiting for connection...
                     </p>
-                  )}
+                  )} */}
                 </div>
               </div>
             ) : (
@@ -1041,7 +972,7 @@ const AdminMessage: React.FC = () => {
                         alt="Other User"
                         className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
                       />
-                      
+
                       {/* Message bubble - LEFT */}
                       <div className="flex flex-col">
                         <div className="bg-white border border-gray-200 text-gray-900 px-3 md:px-4 py-2 md:py-3 rounded-2xl shadow-sm">
@@ -1073,7 +1004,7 @@ const AdminMessage: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* Your avatar - ALWAYS ON RIGHT */}
                       <img
                         src={message.avatar}
@@ -1090,10 +1021,34 @@ const AdminMessage: React.FC = () => {
 
           {/* Message Input */}
           <div className="px-2 py-2 border-t bg-white">
+            {/* File Previews */}
+            {selectedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2 px-2">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="relative group">
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 pr-8">
+                      {file.type.startsWith('image/') ? (
+                        <ImageIcon className="w-4 h-4 text-blue-500" />
+                      ) : (
+                        <FileText className="w-4 h-4 text-gray-500" />
+                      )}
+                      <span className="text-xs text-gray-700 max-w-[150px] truncate">
+                        {file.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XIcon className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center gap-2 md:gap-3">
-              <button className="p-1 md:p-0.5 hover:bg-gray-100 transition-colors border border-gray-600 rounded-full">
-                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600" strokeWidth={2} />
-              </button>
+              
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -1106,30 +1061,33 @@ const AdminMessage: React.FC = () => {
                   onKeyPress={handleKeyPress}
                   disabled={connectionStatus !== 'connected' || !!connectionError}
                   className={`w-full h-10 md:h-[42px] px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${connectionStatus === 'connected' && !connectionError
-                      ? 'border-gray-300 focus:ring-blue-500'
-                      : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
+                    ? 'border-gray-300 focus:ring-blue-500'
+                    : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
                     }`}
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
-                </button>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <EmojiPickerButton
+                    onEmojiSelect={handleEmojiSelect}
+                    disabled={connectionStatus !== 'connected' || !!connectionError}
+                  />
+                </div>
               </div>
               <button
                 onClick={sendMessage}
                 disabled={!messageInput.trim() || connectionStatus !== 'connected' || !!connectionError}
                 className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim() && connectionStatus === 'connected' && !connectionError
-                    ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-                    : 'bg-gray-300 cursor-not-allowed'
+                  ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                  : 'bg-gray-300 cursor-not-allowed'
                   }`}
               >
                 <SendHorizontal className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
               </button>
             </div>
-            {connectionStatus !== 'connected' && (
+            {/* {connectionStatus !== 'connected' && (
               <p className="text-xs text-center text-gray-500 mt-2">
                 {connectionError || 'Trying to establish connection...'}
               </p>
-            )}
+            )} */}
           </div>
         </div>
       </div>

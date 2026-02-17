@@ -1,58 +1,58 @@
-import { useGetAnalyticsQuery, useGetLeadSourcesQuery, useGetPropertyTypePerformanceQuery } from '@/redux/features/vendor/analyticsApi';
+import { useGetAnalyticsQuery, useGetLeadSourcesQuery, useGetVendorPropertyTypePerformanceQuery } from '@/redux/features/vendor/analyticsApi';
 import { useGetVendorMonthlyPerformQuery } from '@/redux/features/vendor/vendorMonthlyPerformApi';
 import { Building2, Eye, TrendingUp, Users } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface AnalyticsData {
-  total_leads: {
-    value: number;
-    sub_text: string;
-  };
-  active_properties: {
-    value: number;
-    sub_text: string;
-  };
-  conversion_rate: {
-    value: string;
-    sub_text: string;
-  };
-  total_views: {
-    value: number;
-    sub_text: string;
-  };
+    total_leads: {
+        value: number;
+        sub_text: string;
+    };
+    active_properties: {
+        value: number;
+        sub_text: string;
+    };
+    conversion_rate: {
+        value: string;
+        sub_text: string;
+    };
+    total_views: {
+        value: number;
+        sub_text: string;
+    };
 }
 
 interface MonthlyPerformanceData {
-  leads_data: Array<{
-    month: number;
-    total_leads: number;
-    completed_leads: number;
-  }>;
+    leads_data: Array<{
+        month: number;
+        total_leads: number;
+        completed_leads: number;
+    }>;
 }
 
 const AnalyticsReporting: React.FC = () => {
     const { data: analytics, isLoading, isError } = useGetAnalyticsQuery(undefined);
     const { data: monthlyPerformance, isLoading: isLoadingMonthly } = useGetVendorMonthlyPerformQuery(undefined);
     const { data: leadData } = useGetLeadSourcesQuery(undefined);
-    const { data: performanceData } = useGetPropertyTypePerformanceQuery(undefined);
+    const { data: performanceData } = useGetVendorPropertyTypePerformanceQuery(undefined);
 
     const analyticsData = analytics as AnalyticsData;
     const monthlyPerformanceData = monthlyPerformance as MonthlyPerformanceData;
-    
+
     // Format month numbers to names
     const getMonthName = (monthNumber: number): string => {
-      const monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-      ];
-      return monthNames[monthNumber - 1] || '';
+        const monthNames = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+        return monthNames[monthNumber - 1] || '';
     };
 
     // Transform backend monthly data for chart
     const transformedMonthlyData = monthlyPerformanceData?.leads_data?.map(item => ({
-      month: getMonthName(item.month),
-      leads: item.total_leads,
-      conversions: item.completed_leads
+        month: getMonthName(item.month),
+        leads: item.total_leads,
+        conversions: item.completed_leads
     })) || [];
 
     const propertyTypeData = performanceData?.map((item: any) => ({
@@ -215,7 +215,7 @@ const AnalyticsReporting: React.FC = () => {
                                         tick={{ fontSize: 12, fill: '#6b7280' }}
                                         axisLine={{ stroke: '#e5e7eb' }}
                                     />
-                                    <Tooltip 
+                                    <Tooltip
                                         formatter={(value) => [value, '']}
                                         labelFormatter={(label) => `Month: ${label}`}
                                     />
@@ -251,7 +251,7 @@ const AnalyticsReporting: React.FC = () => {
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <h2 className="text-[17px] font-semibold text-gray-900 mb-6">Lead Sources</h2>
                     <div className="space-y-6">
-                        {leadSources?.map((source:any, index:any) => (
+                        {leadSources?.map((source: any, index: any) => (
                             <div key={index}>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-[14px] text-gray-900 font-normal">{source.name}</span>

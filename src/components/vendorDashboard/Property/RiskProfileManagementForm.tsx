@@ -14,7 +14,10 @@ interface RiskProfileManagementFormProps {
     leisureUse: boolean;
     petBusinessUse: boolean;
     plasticRecyclingUse: boolean;
+    floorPlans: boolean;
+    otherRestrictions: string;
     onRestrictionChange: (name: string, value: boolean) => void;
+    onOtherRestrictionsChange: (value: string) => void;
 }
 
 const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
@@ -24,7 +27,10 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
     leisureUse,
     petBusinessUse,
     plasticRecyclingUse,
-    onRestrictionChange
+    floorPlans,
+    otherRestrictions,
+    onRestrictionChange,
+    onOtherRestrictionsChange
 }) => {
     const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([
         { id: 'low', checked: false },
@@ -32,9 +38,7 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
         { id: 'high', checked: false }
     ]);
 
-    // ✅ NEW STATE FOR OTHER RESTRICTIONS
-    const [otherRestrictions, setOtherRestrictions] = useState(false);
-    const [otherRestrictionsText, setOtherRestrictionsText] = useState('');
+    const [isOtherEnabled, setIsOtherEnabled] = useState(otherRestrictions.length > 0);
 
     const toggleRiskProfile = (id: string) => {
         setRiskProfiles(prev =>
@@ -53,7 +57,7 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
         { id: 'leisureUse', checked: leisureUse, label: 'Leisure Use', description: '' },
         { id: 'plasticRecyclingUse', checked: plasticRecyclingUse, label: 'Plastic Recycling Use', description: 'Prohibit use or cultivation of cannabis' },
         // ✅ NEW: Floor Plans option
-        { id: 'floorPlans', checked: false, label: 'Floor Plans', description: 'Enable upload and display of property floor plans' }
+        { id: 'floorPlans', checked: floorPlans, label: 'Floor Plans', description: 'Enable upload and display of property floor plans' }
     ];
 
     const handleRestrictionToggle = (id: string, currentValue: boolean) => {
@@ -248,18 +252,23 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
                                 <div className="flex items-start gap-3">
                                     <input
                                         type="checkbox"
-                                        checked={otherRestrictions}
-                                        onChange={(e) => setOtherRestrictions(e.target.checked)}
+                                        checked={isOtherEnabled}
+                                        onChange={(e) => {
+                                            setIsOtherEnabled(e.target.checked);
+                                            if (!e.target.checked) {
+                                                onOtherRestrictionsChange('');
+                                            }
+                                        }}
                                         className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                     <div className="flex-1">
                                         <h3 className="text-base font-semibold text-gray-900 mb-2">
                                             Other Restrictions
                                         </h3>
-                                        {otherRestrictions && (
+                                        {isOtherEnabled && (
                                             <textarea
-                                                value={otherRestrictionsText}
-                                                onChange={(e) => setOtherRestrictionsText(e.target.value)}
+                                                value={otherRestrictions}
+                                                onChange={(e) => onOtherRestrictionsChange(e.target.value)}
                                                 placeholder="Please specify other restrictions..."
                                                 rows={3}
                                                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -286,7 +295,7 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
                         </div>
                     </div>
 
-              
+
                 </div>
             </div>
         </div>
@@ -561,13 +570,13 @@ export default RiskProfileManagementForm;
 
 //                     {/* Action Buttons */}
 //                     <div className="flex items-center gap-3">
-//                         <button 
+//                         <button
 //                             type="submit"
 //                             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md text-[14px] font-medium transition-colors"
 //                         >
 //                             Submit
 //                         </button>
-//                         <button 
+//                         <button
 //                             type="button"
 //                             className="text-gray-700 hover:text-gray-900 px-4 py-2.5 text-[14px] font-medium transition-colors"
 //                         >

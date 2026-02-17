@@ -6,6 +6,7 @@ import PropertyCribSheet from '@/components/brokerDashboard/BrokerLeads/Property
 import { useGetBrokerLeadsQuery } from '@/redux/features/broker/leads/getBrokerLeadsApi';
 import BrokerAvailableLeads from '@/components/brokerDashboard/Overview/BrokerAvailableLeads';
 import { useGetAvailableLeadsQuery } from '@/redux/features/broker/leads/getAvailableLeadsApi';
+import { useGetBrokerOverviewQuery } from '@/redux/features/broker/overview/getBrokerOverviewApi';
 
 const BrokerDashboardOverview: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my' | 'available'>('my');
@@ -13,6 +14,7 @@ const BrokerDashboardOverview: React.FC = () => {
   const [propertyCribModalOpen, setPropertyCribModalOpen] = useState(false); 
   const {data:brokerLeads} = useGetBrokerLeadsQuery(undefined);
   const {data:availableLeads} = useGetAvailableLeadsQuery(undefined);
+  const {data:brokerOverview} = useGetBrokerOverviewQuery(undefined);
 
   const openNewLeadModal = () => {
     setNewLeadModalOpen(true);
@@ -73,7 +75,7 @@ const BrokerDashboardOverview: React.FC = () => {
               <Target className="w-5 h-5 text-blue-600" strokeWidth={2} />
             </div>
             <div>
-              <p className="text-[32px] font-bold text-gray-900 mb-1">3</p>
+              <p className="text-[32px] font-bold text-gray-900 mb-1">{brokerOverview?.assigned_leads}</p>
               <p className="text-[12px] text-green-600 font-medium">Active</p>
             </div>
           </div>
@@ -85,7 +87,7 @@ const BrokerDashboardOverview: React.FC = () => {
               <Target className="w-5 h-5 text-blue-600" strokeWidth={2} />
             </div>
             <div>
-              <p className="text-[32px] font-bold text-gray-900 mb-1">3</p>
+              <p className="text-[32px] font-bold text-gray-900 mb-1">{brokerOverview?.assigned_property}</p>
               <p className="text-[12px] text-orange-500 font-medium">Available</p>
             </div>
           </div>
@@ -108,7 +110,7 @@ const BrokerDashboardOverview: React.FC = () => {
               <ChartLine className="w-5 h-5 text-blue-600" strokeWidth={2} />
             </div>
             <div>
-              <p className="text-[32px] font-bold text-gray-900">10</p>
+              <p className="text-[32px] font-bold text-gray-900">{brokerOverview?.close_deals}</p>
             </div>
           </div>
         </div>

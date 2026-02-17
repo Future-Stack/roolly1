@@ -7,12 +7,12 @@ import { toast } from 'react-toastify';
 import BrokerNotificationSettings from '@/components/brokerDashboard/BrokerNotificationSettings/BrokerNotificationSettings';
 
 interface ProfileData {
-  image: string | null;
-  full_name: string;
-  email: string;
-  phone_number: string;
-  is_deactivated: boolean;
-  id?: string;
+    image: string | null;
+    full_name: string;
+    email: string;
+    phone_number: string;
+    is_deactivated: boolean;
+    id?: string;
 }
 
 const BrokerSettings: React.FC = () => {
@@ -24,17 +24,17 @@ const BrokerSettings: React.FC = () => {
         phone_number: '',
         is_deactivated: false
     });
-    
+
     const { data: profile, isLoading, isError, refetch } = useGetBrokerProfileQuery(undefined);
     const [updateBrokerProfile, { isLoading: isUpdating }] = useUpdateBrokerProfileMutation();
-    
+
 
     const [formData, setFormData] = useState({
         full_name: '',
         email: '',
         phone_number: '',
     });
-    
+
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
     const [isFormDirty, setIsFormDirty] = useState(false);
@@ -54,12 +54,12 @@ const BrokerSettings: React.FC = () => {
     }, [profile]);
 
     useEffect(() => {
-        const hasChanges = 
+        const hasChanges =
             formData.full_name !== profileData.full_name ||
             formData.email !== profileData.email ||
             formData.phone_number !== profileData.phone_number ||
             selectedImageFile !== null;
-        
+
         setIsFormDirty(hasChanges);
     }, [formData, profileData, selectedImageFile]);
 
@@ -72,9 +72,9 @@ const BrokerSettings: React.FC = () => {
                 alert('Please upload a valid image (jpg, png, jpeg)');
                 return;
             }
-            
+
             setSelectedImageFile(file);
-            
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result as string);
@@ -94,7 +94,7 @@ const BrokerSettings: React.FC = () => {
     const handleSaveProfile = async () => {
         try {
             const formDataToSend = new FormData();
-            
+
             // Add form fields
             if (formData.full_name !== profileData.full_name) {
                 formDataToSend.append('full_name', formData.full_name);
@@ -105,26 +105,26 @@ const BrokerSettings: React.FC = () => {
             if (formData.phone_number !== profileData.phone_number) {
                 formDataToSend.append('phone_number', formData.phone_number);
             }
-            
+
 
             if (selectedImageFile) {
                 formDataToSend.append('image', selectedImageFile);
             }
-            
-           
+
+
             if (formDataToSend.entries().next().done) {
                 alert('No changes to save');
                 return;
             }
-            
-            const result = await updateBrokerProfile(formDataToSend ).unwrap();
-            
+
+            const result = await updateBrokerProfile(formDataToSend).unwrap();
+
             console.log('Profile updated successfully:', result);
-            
+
             setSelectedImageFile(null);
             refetch();
             toast.success('Profile updated successfully!');
-            
+
         } catch (error) {
             console.error('Failed to update profile:', error);
             toast.error('Failed to update profile. Please try again.');
@@ -261,9 +261,9 @@ const BrokerSettings: React.FC = () => {
                                     {imagePreview ? (
                                         <>
                                             <div className="mb-4">
-                                                <img 
-                                                    src={imagePreview} 
-                                                    alt="Profile Preview" 
+                                                <img
+                                                    src={imagePreview}
+                                                    alt="Profile Preview"
                                                     className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
                                                 />
                                             </div>
@@ -299,7 +299,7 @@ const BrokerSettings: React.FC = () => {
 
                             {/* Upload Button - Only show if image is selected */}
                             {selectedImageFile && (
-                                <button 
+                                <button
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-[15px] font-medium transition-colors mb-4"
                                     onClick={handleSaveProfile}
                                     disabled={isUpdating}
@@ -366,14 +366,14 @@ const BrokerSettings: React.FC = () => {
                         </div>
                     </div>
                     <div className='flex justify-end mt-6'>
-                        <button 
+                        <button
                             className="border border-gray-200 text-black px-5 py-2.5 rounded-lg text-[15px] font-medium transition-colors mr-3 hover:bg-gray-200"
                             onClick={handleCancel}
                             disabled={!isFormDirty || isUpdating}
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-[15px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={handleSaveProfile}
                             disabled={!isFormDirty || isUpdating}
@@ -387,7 +387,7 @@ const BrokerSettings: React.FC = () => {
             {/* Security Settings Content */}
             {activeTab === 'security' && (
                 <div>
-                    <SecuritySettings />
+                    <SecuritySettings role="broker" />
                 </div>
             )}
 

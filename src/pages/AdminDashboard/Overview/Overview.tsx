@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useGetLeadSourceQuery } from '@/redux/features/admin/analytics/adminAnalyticsApi';
 import { useBrokerPerformanceQuery } from '@/redux/features/admin/overview/brokerPerformanceApi';
 import { useGetLeadsStatusQuery } from '@/redux/features/admin/overview/getLeadsStatusApi';
 import { useGetOverviewQuery } from '@/redux/features/admin/overview/getOverviewApi';
 import { useGetPerformanceQuery } from '@/redux/features/admin/overview/getPerformanceApi';
 import { Clock, Mail, MessageSquare, MoreVertical, Phone, TrendingUp, User } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 interface BrokerPerformanceData {
     id: string;
@@ -24,6 +25,8 @@ const AdminOverview: React.FC = () => {
     const {data:leadsStatus} = useGetLeadsStatusQuery(undefined);
     const {data:overview} = useGetOverviewQuery(undefined);
     const {data:performance} = useGetPerformanceQuery(undefined);
+    const { data: leadSourceData } = useGetLeadSourceQuery(undefined);
+    
     console.log(performance)
     
     const brokerPerformance: BrokerPerformanceData[] = brokerPerformanceResponse?.results || brokerPerformanceResponse || [];
@@ -45,11 +48,14 @@ const AdminOverview: React.FC = () => {
         { value: leadsStatus?.unassigned_leads, label: 'Unassigned Leads', bg: 'bg-[#F9ECFF]', borderColor: 'border-[#F0CEFF]' }
     ];
 
-    const leadSources = [
-        { name: 'Chat', percentage: 20, color: 'bg-blue-600' },
-        { name: 'WhatsApp', percentage: 70, color: 'bg-blue-600' },
-        { name: 'Call', percentage: 10, color: 'bg-blue-600' }
-    ];
+    const leadSources = useMemo(() => {
+        if (!leadSourceData) return [];
+        return leadSourceData.map((item: any) => ({
+            name: item.source,
+            percentage: item.percentage,
+            color: item.source === 'Whatsapp' ? 'bg-[#25D366]' : item.source === 'AI' ? 'bg-[#8B5CF6]' : 'bg-[#126AD8]'
+        }));
+    }, [leadSourceData]);
 
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
@@ -203,7 +209,7 @@ const AdminOverview: React.FC = () => {
                             </p>
 
                             <div className="space-y-8">
-                                {leadSources?.map((source, index) => (
+                                {leadSources?.map((source: any, index: any) => (
                                     <div key={index}>
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="text-gray-900 text-base font-medium">

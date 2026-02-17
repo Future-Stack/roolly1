@@ -64,7 +64,7 @@ const formatPrice = (price: string) => {
     const numPrice = parseFloat(price);
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'EUR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(numPrice);
@@ -214,7 +214,7 @@ return (
 
                 {/* Estimated Price */}
                 <div className="md:col-span-3">
-                    <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
+                    <div className="text-[13px] text-gray-500 mb-1">Price</div>
                     <div className="text-[15px] text-gray-900 font-normal">
                         {formatPrice(estimated_price)}
                     </div>
@@ -237,9 +237,11 @@ return (
                         <MessageSquare size={18} strokeWidth={2} />
                         Message Vendor
                     </button>
-                    <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
-                        View and Update Details
-                    </button>
+                    <Link to={`${id}/view`} >
+                        <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
+                            View and Update Details
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>

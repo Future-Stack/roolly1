@@ -1,12 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { logout } from "@/redux/features/auth/authSlice";
+import { useAppDispatch } from "@/redux/hook";
+import { persistor } from "@/redux/store";
 import { LogOut, Settings, HelpCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProfileDropdown = ({
   isOpen,
   onClose,
   dropdownRef
 }: any) => {
+ const dispatch = useAppDispatch();
+ const navigate = useNavigate();
+
+ const handleLogout = () => {
+   navigate("/login"); // Redirect to login page
+   dispatch(logout());
+    persistor.purge(); // Clear persisted storage
+    onClose();
+  };
+
+  const handleSettings = () => {
+    navigate('/broker-dashboard/settings');
+    onClose();
+  }
+
   if (!isOpen) return null;
+
 
   return (
     <div
@@ -22,7 +42,7 @@ const ProfileDropdown = ({
 
       {/* Settings */}
       <button
-        onClick={onClose}
+        onClick={handleSettings}
         className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#4F46E51A] flex items-center justify-center">
@@ -44,7 +64,7 @@ const ProfileDropdown = ({
 
       {/* Logout */}
       <button
-        onClick={onClose}
+        onClick={handleLogout}
         className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#7E22CE33] flex items-center justify-center">

@@ -7,9 +7,7 @@ interface LeadStatusDistributionProps {
 }
 
 const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilterChange }) => {
-  const { data, isLoading, isError } = useGetLeadStatusCountsQuery(undefined);
-  
-  console.log('Lead Status Data:', data);
+  const { data } = useGetLeadStatusCountsQuery(undefined);
 
   // ✅ State to track selected filters (all selected by default)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([
@@ -22,7 +20,7 @@ const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilte
     {
       count: data?.green ?? 0,
       label: 'Prime Leads',
-      value: 'PrimeLeads',
+      value: 'green',
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-600',
       borderColor: 'border-blue-200'
@@ -30,18 +28,18 @@ const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilte
     {
       count: data?.amber ?? 0,
       label: 'Warm Lead',
-      value: 'WarmLead',
+      value: 'amber',
       bgColor: 'bg-[#FEFCE8]',
       textColor: 'text-yellow-600',
       borderColor: 'border-[#CA8A04]'
     },
     {
       count: data?.red ?? 0,
-      label: 'Cold Lead',
-      value: 'ColdLead',
-      bgColor: 'bg-[#FFEDD5]',
+      label: 'Hot Lead',
+      value: 'red',
+      bgColor: 'bg-orange-50',
       textColor: 'text-orange-600',
-      borderColor: 'border-[#F97316]'
+      borderColor: 'border-orange-200'
     }
   ];
 
@@ -50,9 +48,9 @@ const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilte
     const newStatuses = selectedStatuses.includes(value)
       ? selectedStatuses.filter(s => s !== value)
       : [...selectedStatuses, value];
-    
+
     setSelectedStatuses(newStatuses);
-    
+
     // Optional: notify parent component
     if (onFilterChange) {
       onFilterChange(newStatuses);
