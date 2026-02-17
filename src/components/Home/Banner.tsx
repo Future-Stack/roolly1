@@ -1,7 +1,5 @@
-import { useState} from 'react';
+import { useState } from 'react';
 import bannerImg from '../../assets/bnnnerImg.svg';
-import chatbotImg from '../../assets/chatbot-img.png';
-import ChatbotMain from './chatbot/ChatbotMain';
 import { useNavigate } from 'react-router-dom';
 
 const Banner: React.FC = () => {
@@ -11,7 +9,6 @@ const Banner: React.FC = () => {
   const [transaction, setTransaction] = useState('');
   const [sqft, setSqft] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   // Dropdown open states
   const [isPropertyOpen, setIsPropertyOpen] = useState(false);
@@ -27,12 +24,12 @@ const Banner: React.FC = () => {
     { label: 'House', value: 'house' },
     { label: 'Other', value: 'other' }
   ];
-  
+
   const transactionOptions = [
     { label: 'Lease', value: 'lease' },
     { label: 'Sale', value: 'sale' }
   ];
-  
+
   const sqftOptions = [
     { label: '1,000-2,000 sq ft', gte: 1000, lte: 2000 },
     { label: '2,000-4,000 sq ft', gte: 2000, lte: 4000 },
@@ -44,12 +41,12 @@ const Banner: React.FC = () => {
 
   const handleSearch = () => {
     const queryParams = new URLSearchParams();
-    
+
     // Add search query
     if (searchQuery) {
       queryParams.append('search', searchQuery);
     }
-    
+
     // Add sqft range
     if (sqft) {
       const selectedSqft = sqftOptions.find(opt => opt.label === sqft);
@@ -58,7 +55,7 @@ const Banner: React.FC = () => {
         queryParams.append('built_area__lte', selectedSqft.lte.toString());
       }
     }
-    
+
     // Add property type
     if (propertyType) {
       const selectedProp = propertyOptions.find(opt => opt.label === propertyType);
@@ -66,7 +63,7 @@ const Banner: React.FC = () => {
         queryParams.append('property_type', selectedProp.value);
       }
     }
-    
+
     // Add transaction type
     if (transaction) {
       const selectedTrans = transactionOptions.find(opt => opt.label === transaction);
@@ -74,10 +71,10 @@ const Banner: React.FC = () => {
         queryParams.append('transaction', selectedTrans.value);
       }
     }
-    
+
 
     queryParams.append('page', '1');
-    
+
     navigate(`/all-properties?${queryParams.toString()}`);
   };
 
@@ -270,7 +267,7 @@ const Banner: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Selected Filters Display */}
           {(propertyType || transaction || sqft || searchQuery) && (
             <div className="mt-4 flex flex-wrap gap-2">
@@ -278,7 +275,7 @@ const Banner: React.FC = () => {
               {searchQuery && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
                   Search: {searchQuery}
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('')}
                     className="text-blue-500 hover:text-blue-700"
                   >
@@ -289,7 +286,7 @@ const Banner: React.FC = () => {
               {propertyType && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
                   Property: {propertyType} ({getPropertyValue(propertyType)})
-                  <button 
+                  <button
                     onClick={() => setPropertyType('')}
                     className="text-green-500 hover:text-green-700"
                   >
@@ -300,7 +297,7 @@ const Banner: React.FC = () => {
               {transaction && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
                   Transaction: {transaction} ({getTransactionValue(transaction)})
-                  <button 
+                  <button
                     onClick={() => setTransaction('')}
                     className="text-purple-500 hover:text-purple-700"
                   >
@@ -311,7 +308,7 @@ const Banner: React.FC = () => {
               {sqft && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">
                   SQFT: {sqft}
-                  <button 
+                  <button
                     onClick={() => setSqft('')}
                     className="text-amber-500 hover:text-amber-700"
                   >
@@ -322,23 +319,6 @@ const Banner: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Chat Button */}
-        <button
-          onClick={() => setIsChatbotOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 mb-[68px] mr-[61px] rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 cursor-pointer z-50"
-        >
-          <img src={chatbotImg} alt="chatbot_img" />
-        </button>
-
-        {/* Chatbot Modal */}
-        {isChatbotOpen && (
-          <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-60 p-4">
-            <div className="w-full max-w-md">
-              <ChatbotMain onClose={() => setIsChatbotOpen(false)} />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

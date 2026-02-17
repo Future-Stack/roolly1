@@ -1,4 +1,5 @@
-import { useFeaturedPropertyQuery } from '@/redux/features/users/featuredPropertyApi';
+// import { useFeaturedPropertyQuery } from '@/redux/features/users/featuredPropertyApi';
+import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
 import { Bath, Bed, Square, Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -14,6 +15,15 @@ const randomImages = [
   'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=500&h=300&fit=crop',
   'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=500&h=300&fit=crop'
 ];
+
+// const MEDIA_BASE_URL = 'https://broker360re.com';
+
+// Helper function to format image URL
+const getFullImageUrl = (url: string | null | undefined) => {
+  if (!url) return '';
+
+  return `${url}`;
+};
 
 interface PropertyCardProps {
   id: number;
@@ -40,6 +50,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   privatePool,
   forRent,
 }) => {
+
   return (
     <div className="bg-white p-1.5 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       {/* Image */}
@@ -94,8 +105,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   );
 };
 
-const PropertyListing: React.FC = () => {
-  const { data: featuredProperty, isLoading } = useFeaturedPropertyQuery(undefined);
+interface PropertyListingProps {
+  search?: string;
+}
+
+const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
+  const { data: featuredProperty, isLoading } = useGetAllUsersPropertyQuery({
+    page_size: 100
+  });
 
   // Helper function to get random image
   const getRandomImage = (propertyId: number) => {
@@ -135,17 +152,32 @@ const PropertyListing: React.FC = () => {
 
   // Transform API data to component data
   const transformProperties = () => {
-    if (!featuredProperty || !Array.isArray(featuredProperty)) {
-      return [];
-    }
+    if (!featuredProperty) return [];
 
-    return featuredProperty.map((property) => {
+    const propertiesList = Array.isArray(featuredProperty)
+      ? featuredProperty
+      : (featuredProperty as any)?.results;
+
+    if (!Array.isArray(propertiesList)) return [];
+
+    // ✅ Filter by location properly
+    const normalizeLocation = (loc: string) => loc.split(',')[0].trim();
+
+
+    const filteredList = search
+      ? propertiesList
+        .filter((property: any) => {
+          return normalizeLocation(property.location).toLowerCase() === search.toLowerCase()
+        })
+      : propertiesList.slice(0, 4); // Limit to 4 for general view
+
+    return filteredList.map((property: any) => {
       const price = generatePrice(property.property_type, property.transaction);
       const features = generateRandomFeatures(property.property_type);
 
       return {
         id: property.id,
-        image: property.image || getRandomImage(property.id),
+        image: getFullImageUrl(property.image) || getRandomImage(property.id),
         price: price,
         period: property.transaction === 'sale' ? 'total' : 'month',
         title: property.property_name,
@@ -160,23 +192,19 @@ const PropertyListing: React.FC = () => {
 
   const properties = transformProperties();
 
-  // If loading, show skeleton or return null
+  // If loading, show skeleton
   if (isLoading) {
     return (
       <div className="w-full p-2">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded mb-4 w-1/3"></div>
-          <div className="h-4 bg-gray-200 rounded mb-6 w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-gray-100 p-1.5 rounded-lg">
                 <div className="h-36 bg-gray-200 rounded"></div>
-                <div className="p-1.5">
-                  <div className="h-6 bg-gray-200 rounded w-1/2 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="p-1.5 mt-2">
+                  <div className="h-6 bg-gray-200 rounded w-1/2 mb-2"></div>
                   <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
                 </div>
               </div>
             ))}
@@ -186,36 +214,38 @@ const PropertyListing: React.FC = () => {
     );
   }
 
-  // If no data, show empty state
-  if (!properties || properties.length === 0) {
-    return (
-      <div className="w-full p-2">
-        <div className="text-center py-8">
-          <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No featured properties available</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className="w-full p-2">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Perfect Commercial Space Is Just a Pin Away
+    <div className="w-full p-2">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {search ? `Properties in ${search}` : "Top Commercial Spaces"}
           </h1>
         </div>
+        {search && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+              {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
+            </span>
+            <p className="text-xs text-gray-500 italic">Click markers on the map to switch areas</p>
+          </div>
+        )}
+      </div>
 
-        {/* Property Grid */}
+      {/* Property Grid */}
+      {properties.length === 0 ? (
+        <div className="text-center py-12">
+          <Building className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 font-medium font-outfit">No properties available in {search}</p>
+        </div>
+      ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {properties.map((property) => (
             <PropertyCard key={property.id} {...property} />
           ))}
         </div>
-
-      </div>
+      )}
     </div>
   );
 };

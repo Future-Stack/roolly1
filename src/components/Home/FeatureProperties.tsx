@@ -18,7 +18,7 @@ const FeaturedProperties = () => {
   // Get default image URL
   const getImageUrl = (image: string | null, propertyType: string) => {
     if (image) return image;
-    
+
     const defaultImages: Record<string, string> = {
       office: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=500&h=300&fit=crop',
       industrial: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&h=300&fit=crop',
@@ -26,7 +26,7 @@ const FeaturedProperties = () => {
       land: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop',
       house: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=500&h=300&fit=crop',
     };
-    
+
     return defaultImages[propertyType] || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&h=300&fit=crop';
   };
 

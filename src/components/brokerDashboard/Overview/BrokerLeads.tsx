@@ -410,7 +410,7 @@ const BrokerLeads = () => {
               </div>
               <button
                 onClick={() => handleScheduleViewing(lead)}
-                className="bg-[#126AD8] hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
+                className="bg-[#126AD8] disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
                 disabled={!lead.scheduleId}
               >
                 <Calendar className="w-4 h-4" strokeWidth={2} />

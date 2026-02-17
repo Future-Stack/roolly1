@@ -1,6 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, FileText, Eye, ExternalLink } from 'lucide-react';
+// import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
+import { useGetPropertyCribSheetQuery } from '@/redux/features/broker/overview/getPropertyCribSheetApi';
+import PropertyCribModal from './PropertyCribModal';
 
 interface Property {
   id: string;
@@ -17,147 +20,113 @@ interface PropertyCribSheetProps {
   onClose?: () => void;
 }
 
-const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({ 
-  isOpen = true, 
-  onClose 
+const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
+  isOpen = true,
+  onClose
 }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
-  
-  const properties: Property[] = [
-    {
-      id: '1',
-      name: 'PR001 - Leeds Industrial Park',
-      type: 'Industrial',
-      transaction: 'Rent',
-      location: 'Manchester City Centre',
-      size: '1000 sq',
-      price: '$5000-$7000'
-    },
-    {
-      id: '2',
-      name: 'PR002 - Leeds Industrial Park',
-      type: 'Land',
-      transaction: 'Sell',
-      location: 'Manchester City Centre',
-      size: '1000 sq',
-      price: '$5000-$7000'
-    },
-    {
-      id: '3',
-      name: 'PR003 - Leeds Industrial Park',
-      type: 'Land',
-      transaction: 'Rent',
-      location: 'Manchester City Centre',
-      size: '1000 sq',
-      price: '$5000-$7000'
-    },
-    {
-      id: '4',
-      name: 'PR004 - Leeds Industrial Park',
-      type: 'Land',
-      transaction: 'Rent',
-      location: 'Manchester City Centre',
-      size: '1000 sq',
-      price: '$5000-$7000'
-    },
-    {
-      id: '5',
-      name: 'PR005 - Leeds Industrial Park',
-      type: 'Land',
-      transaction: 'Rent',
-      location: 'Manchester City Centre',
-      size: '1000 sq',
-      price: '$5000-$7000'
-    }
-  ];
+  const { data: propertyCribSheet } = useGetPropertyCribSheetQuery(undefined);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
+  const properties: Property[] = propertyCribSheet?.results.map((item: any) => ({
+    name: item.property_name,
+    type: item.property_type,
+    transaction: item.transaction,
+    location: item.location,
+    size: item.built_area,
+    price: item.estimated_price,
+    id: item.id
+  }))
+
+
 
   const handleExportPDFSimple = () => {
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      
+
       // Add title
       pdf.setFontSize(20);
       pdf.text('Property Crib Sheet', pageWidth / 2, 20, { align: 'center' });
-      
+
       pdf.setFontSize(11);
       pdf.text('Quick reference guide for all available properties', pageWidth / 2, 30, { align: 'center' });
-      
+
       // Add date
       const date = new Date().toLocaleDateString('en-GB');
       pdf.setFontSize(10);
       pdf.text(`Generated on: ${date}`, pageWidth / 2, 37, { align: 'center' });
-      
+
       // Start table
       const startY = 50;
       let currentY = startY;
-      
+
       // Table header
       pdf.setFillColor(240, 240, 240);
       pdf.rect(10, currentY, pageWidth - 20, 10, 'F');
-      
+
       pdf.setFontSize(12);
       pdf.setTextColor(0, 0, 0);
       pdf.setFont('helvetica', 'bold');
-      
+
       const headers = ['Property Name', 'Type', 'Transaction', 'Location', 'Size', 'Price'];
       const colWidths = [40, 20, 25, 45, 20, 30];
-      
+
       let x = 10;
       headers.forEach((header, i) => {
         pdf.text(header, x + 2, currentY + 7);
         x += colWidths[i];
       });
-      
+
       currentY += 12;
-      
+
       // Table rows
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
-      
+
       properties.forEach((property, index) => {
         if (index % 2 === 0) {
           pdf.setFillColor(250, 250, 250);
           pdf.rect(10, currentY, pageWidth - 20, 10, 'F');
         }
-        
+
         x = 10;
         pdf.text(property.name, x + 2, currentY + 7);
         x += colWidths[0];
-        
+
         pdf.text(property.type, x + 2, currentY + 7);
         x += colWidths[1];
-        
+
         pdf.text(property.transaction, x + 2, currentY + 7);
         x += colWidths[2];
-        
+
         pdf.text(property.location, x + 2, currentY + 7);
         x += colWidths[3];
-        
+
         pdf.text(property.size, x + 2, currentY + 7);
         x += colWidths[4];
-        
+
         pdf.text(property.price, x + 2, currentY + 7);
-        
+
         currentY += 10;
-        
+
         // Add new page if needed
         if (currentY > 280) {
           pdf.addPage();
           currentY = 20;
         }
       });
-      
+
       // Add summary
       currentY += 10;
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
       pdf.text(`Total Properties: ${properties.length}`, 10, currentY);
-      
+
       // Download PDF
       const fileName = `Property_Crib_Sheet_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
-      
+
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
@@ -257,20 +226,19 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
                 {properties.map((property, index) => (
                   <tr
                     key={property.id}
-                    className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                      index === properties.length - 1 ? 'border-b-0' : ''
-                    }`}
+                    className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${index === properties.length - 1 ? 'border-b-0' : ''
+                      }`}
                   >
                     <td className="py-4 px-4 text-[13px] text-gray-900">
                       {property.name}
                     </td>
-                    <td className="py-4 px-4 text-[13px] text-gray-900">
+                    <td className="py-4 px-4 text-[13px] text-gray-900 capitalize">
                       {property.type}
                     </td>
-                    <td className="py-4 px-4 text-[13px] text-gray-900">
+                    <td className="py-4 px-4 text-[13px] text-gray-900 capitalize">
                       {property.transaction}
                     </td>
-                    <td className="py-4 px-4 text-[13px] text-gray-900">
+                    <td className="py-4 px-4 text-[13px] text-gray-900 capitalize">
                       {property.location}
                     </td>
                     <td className="py-4 px-4 text-[13px] text-gray-900">
@@ -280,7 +248,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
                       {property.price}
                     </td>
                     <td className="py-4 px-4">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button onClick={() => setSelectedProperty(property)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                         <Eye className="w-5 h-5 text-blue-600" strokeWidth={2} />
                       </button>
                     </td>
@@ -291,6 +259,13 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
           </div>
         </div>
       </div>
+      {selectedProperty && (
+        <PropertyCribModal
+          isOpen={!!selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          property={selectedProperty}
+        />
+      )}
     </div>
   );
 };

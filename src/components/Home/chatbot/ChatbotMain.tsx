@@ -33,7 +33,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         } else if (message === 'I am researching real estate marketing platforms.') {
             setShowSurveyModal(true);
         }
-         else if (message === 'I heard about Broker 360 & want to learn more.') {
+        else if (message === 'I heard about Broker 360 & want to learn more.') {
             setShowFAQ(true);
         }
     };
@@ -133,7 +133,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
     if (showLocationModal) {
         return (
             <ChatWindow>
-                <LocationSelectionModal    
+                <LocationSelectionModal
                     onClose={handleCloseAll}
                     onSelectCity={handleSelectCity}
                 />
@@ -143,7 +143,7 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
 
     return (
         <ChatWindow>
-            <div className='flex flex-col p-5'>
+            <div className='flex flex-col p-5 '>
                 <div className="flex items-start gap-3 mb-6">
                     <div className="flex-shrink-0">
                         <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">

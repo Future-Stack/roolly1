@@ -35,9 +35,9 @@ const AdminProfileDropdown = ({
         onClick={onClose}
         className="w-full flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
       >
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#4F46E51A] flex items-center justify-center">
+        <Link to={'/admin-dashboard/settings'} className="flex-shrink-0 w-10 h-10 rounded-full bg-[#4F46E51A] flex items-center justify-center">
           <Settings className="w-5 h-5 text-[#4338CA]" strokeWidth={2} />
-        </div>
+        </Link>
         <Link to='/admin-dashboard/settings'>
           <span className="text-base font-medium text-gray-900">Settings</span>
         </Link>

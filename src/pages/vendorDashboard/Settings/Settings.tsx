@@ -14,7 +14,7 @@ const Settings: React.FC = () => {
     const { data: profileData, isLoading, isError } = useGetVendorProfileQuery(undefined);
     const [updateVendorProfile, { isLoading: isUpdating }] = useUpdateVendorProfileMutation();
 
-    
+
     // State for editable form fields
     const [formData, setFormData] = useState({
         full_name: '',
@@ -60,24 +60,24 @@ const Settings: React.FC = () => {
         try {
             // Create FormData object
             const formDataToSend = new FormData();
-            
+
             // Add form fields to FormData
             formDataToSend.append('full_name', formData.full_name);
             formDataToSend.append('email', formData.email);
             formDataToSend.append('phone_number', formData.phone_number);
-            
+
             // Add image file if selected
             if (selectedImageFile) {
                 formDataToSend.append('image', selectedImageFile);
             }
-            
-        
-             await updateVendorProfile(formDataToSend).unwrap();
-            
+
+
+            await updateVendorProfile(formDataToSend).unwrap();
+
             setSelectedImageFile(null);
-            
-          toast.success('Profile updated successfully!');
-            
+
+            toast.success('Profile updated successfully!');
+
         } catch (error: any) {
             console.error('Error updating profile:', error);
             // Show error message
@@ -178,9 +178,9 @@ const Settings: React.FC = () => {
                                     </p>
                                     <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4 overflow-hidden">
                                         {profileImage ? (
-                                            <img 
-                                                src={profileImage} 
-                                                alt="Profile" 
+                                            <img
+                                                src={profileImage}
+                                                alt="Profile"
                                                 className="w-full h-full object-cover rounded-full"
                                             />
                                         ) : (
@@ -267,17 +267,17 @@ const Settings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className='mt-6'>
-                        <button 
+                        <button
                             onClick={handleCancel}
                             disabled={isUpdating}
                             className="border border-gray-200 text-black px-5 py-2.5 rounded-lg text-[15px] font-medium transition-colors ml-5 me-5 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             onClick={handleSaveProfile}
                             disabled={isUpdating}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-[15px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -291,7 +291,7 @@ const Settings: React.FC = () => {
             {/* Security Settings Content */}
             {activeTab === 'security' && (
                 <div>
-                    <SecuritySettings />
+                    <SecuritySettings role="vendor" />
                 </div>
             )}
 

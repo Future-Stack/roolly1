@@ -15,49 +15,60 @@ interface ImageUpload {
 
 interface PropertyData {
     property_name: string;
+    postcode: string;
     transaction: string;
     property_type: string;
     location: string;
     estimated_price: string;
     lease_duration: number;
-    description: string;
+    location_description: string;
     built_area: string;
+    height_to_apex_pitch: string;
     length_width: string;
     office_space: string;
     eaves_height: string;
     power_capacity: string;
-    phase: number;
+    electricity_supply: string;
     roller_shutter_type: string;
-    shutters_height_width: string;
-    lighting_type: number;
+    roller_shutters: string;
+    dimensions_roller_shutter: string;
+    lighting_type: string;
     epc_rating: number;
+    ev_chaging: boolean;
+    solar_panels: boolean;
     any_further_details: string;
     yard_space: string;
     yard_area: string;
     yard_surface: string;
     parking_include: number;
     key_specification: string;
-    risk_level: string;
+    // existing_images?: string;
+    brochure_pdf_url?: string | null;
+    brochure_video_url?: string | null;
     vehicle_repair_use: boolean;
     vehicle_sale_use: boolean;
     subletting: boolean;
     leisure_use: boolean;
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
+    floor_plans: boolean;
+    other_restriction: boolean;
     existing_images?: Array<{
         name: string;
         url: string;
     }>;
-    brochure_pdf_url?: string | null;
-    brochure_video_url?: string | null;
+    phase: number;
+    shutters_height_width: string;
+    risk_level: string;
 }
 
 const PropertyInformationForm: React.FC = () => {
     const { id } = useParams();
     const { data: singlePropertyData, isLoading, isError } = useGetSinglePropertyQuery(id!);
-    
+    console.log(singlePropertyData)
+
     const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
-    
+
     const [images, setImages] = useState<{ [key: string]: ImageUpload }>({
         aerial: { id: 'aerial', title: 'Aerial View', description: 'Overhead or drone shot showing building in context (site layout, access points).' },
         frontExternal: { id: 'frontExternal', title: 'Front External', description: 'Main frontage view from the street or approach road.' },
@@ -96,31 +107,31 @@ const PropertyInformationForm: React.FC = () => {
     };
 
     // Format lighting type
-    const formatLightingType = (type: number) => {
+    const formatLightingType = (type: number | string) => {
         return `Type ${type}`;
     };
 
     // Format EPC rating
-    const formatEPCRating = (rating: number) => {
+    const formatEPCRating = (rating: number | string) => {
         return `Rating ${rating}`;
     };
 
     // Format phase
-    const formatPhase = (phase: number) => {
-        return `${phase} Phase`;
-    };
+    // const formatPhase = (phase: number | string) => {
+    //     return `${phase} Phase`;
+    // };
 
     // Set existing images from backend
     useEffect(() => {
         if (singlePropertyData) {
             setPropertyData(singlePropertyData);
-            
+
             // Map existing images to image slots
             const existingImages = singlePropertyData.existing_images || [];
             const imageKeys = Object.keys(images);
-            
+
             const updatedImages = { ...images };
-            existingImages.forEach((img:any, index:number) => {
+            existingImages.forEach((img: any, index: number) => {
                 if (index < imageKeys.length) {
                     const key = imageKeys[index];
                     updatedImages[key] = {
@@ -228,17 +239,17 @@ const PropertyInformationForm: React.FC = () => {
                             {/* Rent or purchase estimated price */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Estimated Price
+                                    Price
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
-                                    ${propertyData.estimated_price} {propertyData.transaction === 'lease' ? '/month' : ''}
+                                    £{propertyData.estimated_price} {propertyData.transaction === 'lease' ? '/month' : ''}
                                 </div>
                             </div>
 
                             {/* lease Duration */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Lease Duration (years)
+                                    Minimum lease duration (years)
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
                                     {propertyData.lease_duration} years
@@ -252,7 +263,7 @@ const PropertyInformationForm: React.FC = () => {
                                 Description
                             </label>
                             <div className="w-full px-3 py-2 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md min-h-[100px]">
-                                {propertyData.description}
+                                {propertyData.location_description}
                             </div>
                         </div>
                     </div>
@@ -274,6 +285,16 @@ const PropertyInformationForm: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Eaves Height */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Eaves Height (m)
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {propertyData.eaves_height} m
+                                </div>
+                            </div>
+
                             {/* Roller Shutter Type */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
@@ -281,6 +302,16 @@ const PropertyInformationForm: React.FC = () => {
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
                                     {propertyData.roller_shutter_type}
+                                </div>
+                            </div>
+
+                            {/* Number of Roller Shutters */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Number of Roller Shutters
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {propertyData.roller_shutters}
                                 </div>
                             </div>
 
@@ -294,13 +325,13 @@ const PropertyInformationForm: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Shutters Height & Width */}
+                            {/* Dimensions of roller shutter */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
-                                    Height & width of shutters
+                                    Dimensions of roller shutter
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.shutters_height_width}
+                                    {propertyData.dimensions_roller_shutter}
                                 </div>
                             </div>
 
@@ -325,14 +356,14 @@ const PropertyInformationForm: React.FC = () => {
                             </div>
 
                             {/* Eaves Height */}
-                            <div>
+                            {/* <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
                                     Eaves height (ft)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
                                     {propertyData.eaves_height} ft
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* EPC Rating */}
                             <div>
@@ -341,6 +372,25 @@ const PropertyInformationForm: React.FC = () => {
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
                                     {formatEPCRating(propertyData.epc_rating)}
+                                </div>
+                            </div>
+                            {/* EV Charging */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    EV Charging
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {formatBoolean(propertyData.ev_chaging)}
+                                </div>
+                            </div>
+
+                            {/* Solar Panels */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Solar Panels
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {formatBoolean(propertyData.solar_panels)}
                                 </div>
                             </div>
 
@@ -354,15 +404,23 @@ const PropertyInformationForm: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Phase */}
+                            {/* Electricity Supply */}
                             <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Electricity Supply
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {propertyData.electricity_supply}
+                                </div>
+                            </div>
+                            {/* <div>
                                 <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
                                     Phase
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
                                     {formatPhase(propertyData.phase)}
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* Any further details */}
                             <div>
@@ -492,9 +550,9 @@ const PropertyInformationForm: React.FC = () => {
 
                                         <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
                                             {propertyData.brochure_pdf_url ? (
-                                                <a 
-                                                    href={propertyData.brochure_pdf_url} 
-                                                    target="_blank" 
+                                                <a
+                                                    href={propertyData.brochure_pdf_url}
+                                                    target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="px-3 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors text-[13px] font-medium w-full sm:w-auto"
                                                 >
@@ -532,9 +590,9 @@ const PropertyInformationForm: React.FC = () => {
 
                                         <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
                                             {propertyData.brochure_video_url ? (
-                                                <a 
-                                                    href={propertyData.brochure_video_url} 
-                                                    target="_blank" 
+                                                <a
+                                                    href={propertyData.brochure_video_url}
+                                                    target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="px-3 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors text-[13px] font-medium w-full sm:w-auto"
                                                 >

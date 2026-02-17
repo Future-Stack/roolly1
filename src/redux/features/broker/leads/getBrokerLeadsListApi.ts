@@ -9,6 +9,8 @@ const getBrokerLeadsListApi = baseApi.injectEndpoints({
                 page_size?: number; 
                 search?: string;
                 ordering?: string;
+                lead_status?: string;
+                lead_traffic?: string;
             }) => {
                 
                 const queryParams: any = {
@@ -18,12 +20,18 @@ const getBrokerLeadsListApi = baseApi.injectEndpoints({
                 
                 if (params?.search && params.search.trim() !== '') {
                     queryParams.search = params.search.trim();
-                    
                 }
                 
                 if (params?.ordering && params.ordering.trim() !== '') {
                     queryParams.ordering = params.ordering.trim();
-                    
+                }
+
+                if (params?.lead_status && params.lead_status.trim() !== '') {
+                    queryParams.lead_status = params.lead_status.trim();
+                }
+
+                if (params?.lead_traffic && params.lead_traffic.trim() !== '') {
+                    queryParams.lead_traffic = params.lead_traffic.trim();
                 }
                 
                 

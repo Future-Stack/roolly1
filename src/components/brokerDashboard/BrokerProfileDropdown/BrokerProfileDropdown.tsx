@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { logout } from "@/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/redux/hook";
+import { persistor } from "@/redux/store";
 import { LogOut, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const BrokerProfileDropdown = ({
   isOpen,
@@ -10,12 +11,15 @@ const BrokerProfileDropdown = ({
   dropdownRef
 }: any) => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
   const handleLogout = () => {
     dispatch(logout());
+    persistor.purge(); // Clear persisted storage
     onClose();
+    navigate("/login"); // Redirect to login page
   };
 
   return (

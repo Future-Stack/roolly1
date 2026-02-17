@@ -1,3 +1,4 @@
+
 interface StatusCardProps {
   count: number;
   label: string;
@@ -7,30 +8,29 @@ interface StatusCardProps {
   isSelected?: boolean; // ✅ NEW: Selection state
 }
 
-const StatusCard: React.FC<StatusCardProps> = ({ 
-  count, 
-  label, 
-  bgColor, 
-  textColor, 
+const StatusCard: React.FC<StatusCardProps> = ({
+  count,
+  label,
+  bgColor,
+  textColor,
   borderColor,
-  isSelected = true // ✅ Default: selected
+  isSelected = false // ✅ Default: selected
 }) => {
+
   return (
-    <div 
-      className={`relative flex-1 border rounded-2xl py-6 px-6 flex flex-col items-center justify-center transition-all ${
-        isSelected 
-          ? `${bgColor} ${borderColor} shadow-sm hover:shadow-md` 
-          : 'bg-gray-100 border-gray-300 opacity-50'
-      }`}
+    <div
+      className={`relative flex-1 border rounded-2xl py-6 px-6 flex flex-col items-center justify-center transition-all ${isSelected
+          ? `${bgColor} ${borderColor} shadow-sm hover:shadow-md`
+          : `border-transparent ${bgColor}`
+        }`}
     >
       {/* ✅ Checkbox indicator (top-right corner) */}
       <div className="absolute top-3 right-3">
         <div
-          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-            isSelected
+          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isSelected
               ? `${borderColor} ${bgColor}`
-              : 'border-gray-400 bg-white'
-          }`}
+              : 'border-gray-200 bg-white'
+            }`}
         >
           {isSelected && (
             <svg
