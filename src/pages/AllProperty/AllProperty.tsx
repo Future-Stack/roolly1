@@ -104,7 +104,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                     <span className="truncate">{subtitle}</span>
                 </div>
                 <p className="text-gray-500 text-sm mb-4 line-clamp-2">{description}</p>
-                <Link to={`/property-details/${id}`}>
+                <Link to={`/details/${id}`}>
                     <button className="w-full py-2.5 hover:bg-gray-50 text-black border border-[#126AD8] text-sm font-medium rounded transition-colors hover:bg-blue-50">
                         View Details
                     </button>

@@ -7,8 +7,15 @@ const getPropertyDetailsApi = baseApi.injectEndpoints({
                 url : `/brokers/property-details/${id}/`,
                 method: 'GET',
             })
+        }) ,
+        getUserPropertyDetails: builder.query({
+            query : (id) => ({
+                url : `/properties/detail/${id}/`,
+                method: 'GET',
+            })
         })
+        
     }),
 })
 
-export const {useGetPropertyDetailsQuery} = getPropertyDetailsApi;
+export const {useGetPropertyDetailsQuery,useGetUserPropertyDetailsQuery} = getPropertyDetailsApi;

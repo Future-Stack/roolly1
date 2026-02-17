@@ -1,21 +1,85 @@
-import { properties } from '@/data/properties';
-import { ChevronLeft, ChevronRight, FileText, Home, MessageCircle, Phone } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, MessageCircle, Phone } from 'lucide-react';
 import React, { useState } from 'react';
 import playButton from '../../assets/play-button.png';
+import { useGetUserPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
+import { useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';
+
+interface PropertyImage {
+  image: string;
+  name: string;
+}
+
+interface RelatedProperty {
+  id: number;
+  property_name: string;
+  image: string;
+  property_type: string;
+  transaction: string;
+  location: string;
+  location_description: string;
+}
+
+interface PropertyDetails {
+  id: number;
+  images: PropertyImage[];
+  related_properties: RelatedProperty[];
+  property_name: string;
+  postcode: string;
+  transaction: string;
+  property_type: string;
+  location: string;
+  location_description: string;
+  lease_duration: string | null;
+  built_area: string;
+  length_width: string;
+  office_space: string;
+  eaves_height: string;
+  power_capacity: string;
+  electricity_supply: string;
+  roller_shutter_type: string;
+  roller_shutters: number;
+  dimensions_roller_shutter: string;
+  lighting_type: string;
+  epc_rating: string;
+  ev_chaging: boolean;
+  solar_panels: boolean;
+  any_further_details: string;
+  yard_space: string;
+  yard_area: string;
+  yard_surface: string;
+  parking_include: number;
+  key_specification: string;
+  vehicle_repair_use: boolean;
+  vehicle_sale_use: boolean;
+  subletting: boolean;
+  leisure_use: boolean;
+  pet_business_use: boolean;
+  plastic_recycling_use: boolean;
+  floor_plans: boolean;
+  other_restrictions: string | null;
+  whatsapp_number: string;
+  phone_number: string;
+  occupied: boolean;
+}
 
 const HomePropertyDetails: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const { data: propertyData, isLoading, error } = useGetUserPropertyDetailsQuery(id);
 
+  const property: PropertyDetails | undefined = propertyData;
+  console.log(property);
 
-  // 5 dummy images for carousel
-  const propertyImages = [
-    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&h=800&fit=crop'
-  ];
+  const getImageUrl = (path: string | undefined): string => {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('https')) return path;
+    return `https://broker360re.com${path}`;
+  };
 
+  const propertyImages = property?.images?.map(img => getImageUrl(img.image)) || [];
   const totalImages = propertyImages.length;
 
   const nextImage = () => {
@@ -29,12 +93,32 @@ const HomePropertyDetails: React.FC = () => {
   const latitude = 39.7392;
   const longitude = -104.9903;
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700">Property not found</h2>
+          <p className="text-gray-500 mt-2">Unable to load property details</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full mt-4 sm:mt-6 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28 ">
       {/* Header */}
       <div className='border-b border-gray-200'>
         <h1 className="text-[22px] font-semibold text-gray-900 mb-6">
-         Discover Every Detail About This Property
+          Discover Every Detail About This Property
         </h1>
       </div>
 
@@ -44,14 +128,14 @@ const HomePropertyDetails: React.FC = () => {
           {/* Property Address & Price */}
           <div className="mb-6">
             <h2 className="text-[18px] font-semibold text-[#082D5B] mb-2">
-              6391 Eigin St. Celina, Delware 10299
+              {property?.property_name}
             </h2>
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              Offer from $2,500
+              Built Area: {property?.built_area} Sqft
             </p>
             <div className="flex items-center gap-2 text-sm text-[#082D5B]">
               <Home size={16} />
-              <span>X sq ft/m2 acres/hectares for land</span>
+              <span>{property?.location}</span>
             </div>
           </div>
 
@@ -125,14 +209,12 @@ const HomePropertyDetails: React.FC = () => {
               {/* Investment Section */}
               <div className="mb-4">
                 <h3 className="text-xl font-semibold text-[#082D5B] mb-3">
-                  Snap up This Great Investment
+                  Key Specifications
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed mb-5">
-                  Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
-                  Ipsum has been the industry's standard dummy text ever since the 1500s, when an
-                  unknown printer took a galley of type and scrambled it to make a type specimen
-                  book. It has survived not only five centuries, but also the leap into electronic
-                  typesetting, remaining essentially unchanged.
+                  {property?.key_specification || "No key specifications available."}
+                  <br />
+                  {property?.any_further_details}
                 </p>
                 <div className='border-b'></div>
               </div>
@@ -147,8 +229,8 @@ const HomePropertyDetails: React.FC = () => {
                     <FileText size={18} />
                     <span className="text-[14px] font-medium">Brochure</span>
                   </button>
-                   <button className="flex items-center gap-2 px-6 py-3 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-                    <img src={playButton} alt="play-button" className='w-8 h-8'/>
+                  <button className="flex items-center gap-2 px-6 py-3 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                    <img src={playButton} alt="play-button" className='w-8 h-8' />
                     <span className="text-[14px] font-medium">Fly Through</span>
                   </button>
                 </div>
@@ -164,51 +246,51 @@ const HomePropertyDetails: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   <div className="flex text-sm">
                     <li className="text-gray-600">Area-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">X sq ft/m2 acres/hectares for land</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.built_area} sq ft</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Type of roller shutter-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.roller_shutter_type}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Length & Width-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">2400<sub>cm</sub> X 1200<sub>cm</sub></span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.length_width}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Height & width of shutters-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.dimensions_roller_shutter}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Office space included-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">YES</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.office_space} sq ft</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Type of lighting-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.lighting_type}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Eaves height-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">800</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.eaves_height}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">EPC Rating-</li>
-                    <span className="text-gray-900 ml-1 font-medium">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.epc_rating}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Power capacity-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">X<sub>KVA</sub></span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.power_capacity} KVA</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">User restrictions-</li>
-                    <span className="text-gray-900 ml-1 font-medium">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.other_restrictions || "None"}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Single or Three phase-</li>
-                    <span className="text-gray-900 ml-1 font-medium">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.electricity_supply}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Any further details-</li>
-                    <span className="text-gray-900 ml-1 font-medium">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.any_further_details}</span>
                   </div>
                 </div>
               </div>
@@ -223,19 +305,19 @@ const HomePropertyDetails: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Yard space included-</li>
-                    <span className="text-gray-900 ml-1 font-medium">2400<sub>cm</sub> X 1200<sub>cm</sub></span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_space}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Yard surface-</li>
-                    <span className="text-gray-900 ml-1 font-medium">Concrete/tarmac</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_surface}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Area of yard-</li>
-                    <span className="text-gray-900 ml-1 font-medium">YES</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_area}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Parking included-</li>
-                    <span className="text-gray-900 ml-1 font-medium">Three</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.parking_include}</span>
                   </div>
                 </div>
               </div>
@@ -277,7 +359,7 @@ const HomePropertyDetails: React.FC = () => {
         </div>
 
         {/* Right Side - Contact Information */}
-        <div className="p-4 w-full lg:w-1/2 bg-white lg:ml-8 flex flex-col justify-start lg:overflow-y-auto border border-[#B6D1F3] rounded-md max-w-full">
+        <div className="p-4 w-full lg:w-1/2 h-auto bg-white lg:ml-8 flex flex-col justify-start lg:overflow-y-auto border border-[#B6D1F3] rounded-md max-w-full">
           {/* Contact Us Section */}
           <div className="mb-8 lg:mb-12">
             <h1 className="text-2xl sm:text-3xl font-bold text-[#101828] mb-4 sm:mb-6">Contact Us</h1>
@@ -289,18 +371,24 @@ const HomePropertyDetails: React.FC = () => {
             <div className="space-y-4">
               {/* WhatsApp and Phone Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button className="bg-green-500 hover:bg-green-600 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <a href={`https://wa.me/${property?.whatsapp_number}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 hover:bg-green-600 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <MessageCircle size={20} />
                   WhatsApp
-                </button>
-                <button className="bg-gray-900 hover:bg-gray-800 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
+                </a>
+                <a href={`tel:${property?.phone_number}`} className="bg-gray-900 hover:bg-gray-800 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <Phone size={20} />
-                  000 2569 06541
-                </button>
+                  {property?.phone_number}
+                </a>
               </div>
 
               {/* Chat Now Button */}
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
+              <button
+                onClick={() => {
+                  dispatch(setChatbotView('survey'));
+                  dispatch(openChatbot());
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors"
+              >
                 <MessageCircle size={20} />
                 Chat Now
               </button>
@@ -315,14 +403,14 @@ const HomePropertyDetails: React.FC = () => {
               {/* Property ID */}
               <div className="flex justify-between items-center py-1 border-gray-200">
                 <span className="text-gray-700 text-base font-medium">Property ID:</span>
-                <span className="text-gray-900 text-base font-semibold">1</span>
+                <span className="text-gray-900 text-base font-semibold">{property?.id}</span>
               </div>
 
               {/* Min. Financials */}
-              <div className="flex justify-between items-center py-1 border-gray-200">
-                <span className="text-gray-700 text-base font-medium">Min. Financials:</span>
-                <span className="text-gray-900 text-base font-semibold">£4,500</span>
-              </div>
+              {/* <div className="flex justify-between items-center py-1 border-gray-200">
+                  <span className="text-gray-700 text-base font-medium">Min. Financials:</span>
+                  <span className="text-gray-900 text-base font-semibold">{property?.min_financials}</span>
+                </div> */}
             </div>
           </div>
         </div>
@@ -336,15 +424,15 @@ const HomePropertyDetails: React.FC = () => {
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {properties.slice(0, 4).map((property) => (
+          {property?.related_properties?.slice(0, 4).map((relProperty) => (
             <div
-              key={property.id}
+              key={relProperty.id}
               className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E7F0FB] p-3  transition-shadow duration-300"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <img
-                  src={property.images[0]}
-                  alt={property.title}
+                  src={getImageUrl(relProperty.image)}
+                  alt={relProperty.property_name}
                   className="w-full h-full rounded-[8px] object-cover hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -352,31 +440,28 @@ const HomePropertyDetails: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[#126AD8] font-semibold text-2xl">
-                    {property.type}
+                    {relProperty.property_type}
                   </span>
                   <div className="flex items-center bg-[#C8FFDD] py-1 px-2 rounded-[20px]">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-[#0C7233] text-xs font-medium ml-1">
-                      {property.status}
+                      {relProperty.transaction}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-gray-900 font-semibold text-xl">
-                    {property.title}
+                    {relProperty.property_name}
                   </h3>
-                  <span className="text-gray-900 font-semibold text-xs ml-2">
-                    {property.price}
-                  </span>
                 </div>
 
                 <p className="text-[#82868A] leading-5 text-sm mb-4 line-clamp-2">
-                  {property.description}
+                  {relProperty.location_description}
                 </p>
 
                 <button
-                  // onClick={() => navigate(`/details/${property.id}`)}
+                  // onClick={() => navigate(`/details/${relProperty.id}`)}
                   className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
                 >
                   View Details
@@ -386,9 +471,7 @@ const HomePropertyDetails: React.FC = () => {
             </div>
           ))}
         </div>
-
       </div>
-
     </div>
   );
 };
