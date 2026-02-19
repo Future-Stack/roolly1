@@ -2,7 +2,7 @@ import { Instagram, Mail, MessageCircle } from 'lucide-react';
 import React from 'react';
 import footerImg from '../assets/footerImg.png';
 import logoImg from '../assets/logo.svg';
-import { useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   const navigate = useNavigate()
@@ -53,7 +53,7 @@ const Footer: React.FC = () => {
 
         {/* Logo and Social */}
         <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 -z-1">
-          <img src={logoImg} alt="Logo" className="w-24 sm:w-32" />
+          <button onClick={() => navigate("/")}><img src={logoImg} alt="Logo" className="w-24 sm:w-32" /></button>
 
           <div className="flex flex-col items-center gap-1 sm:gap-2">
             <span className="text-black text-sm sm:text-base font-medium">Follow us</span>
@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
             <p>© 2025 All Rights Reserved</p>
             <div className="flex gap-4">
               <button onClick={() => navigate('/privecy-policy')} className='cursor-pointer'>Privacy Policy</button>
-              <button onClick={() => navigate('/terms')} className='cursor-pointer'>Terms of Use</button>
+              {/* <button onClick={() => navigate('/terms')} className='cursor-pointer'>Terms of Use</button> */}
             </div>
           </div>
         </div>

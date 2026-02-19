@@ -1,6 +1,6 @@
 // import { useFeaturedPropertyQuery } from '@/redux/features/users/featuredPropertyApi';
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
-import { Bath, Bed, Square, Building } from 'lucide-react';
+import {  Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Random image URLs for properties
@@ -45,9 +45,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   period,
   title,
   address,
-  bedrooms,
-  bathrooms,
-  privatePool,
+  // bedrooms,
+  // bathrooms,
+  // privatePool,
   forRent,
 }) => {
 
@@ -79,7 +79,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <p className="text-gray-500 text-sm mb-4">{address}</p>
 
         {/* Features */}
-        <div className="flex items-center gap-4 text-gray-600 text-xs mb-4">
+        {/* <div className="flex items-center gap-4 text-gray-600 text-xs mb-4">
           <div className="flex items-center gap-1">
             <Bed size={14} />
             <span>{bedrooms} bedroom</span>
@@ -92,7 +92,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             <Square size={14} />
             <span>{privatePool} private pool</span>
           </div>
-        </div>
+        </div> */}
 
         {/* View Details Button */}
         <Link to={`/details/${id}`}>
@@ -215,32 +215,34 @@ const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full p-2 sm:p-4">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
             {search ? `Properties in ${search}` : "Top Commercial Spaces"}
           </h1>
+          {search && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100 whitespace-nowrap">
+                {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
+              </span>
+            </div>
+          )}
         </div>
         {search && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-              {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
-            </span>
-            <p className="text-xs text-gray-500 italic">Click markers on the map to switch areas</p>
-          </div>
+          <p className="text-[10px] sm:text-xs text-gray-500 italic">Click markers on the map to switch areas</p>
         )}
       </div>
 
       {/* Property Grid */}
       {properties.length === 0 ? (
-        <div className="text-center py-12">
-          <Building className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 font-medium font-outfit">No properties available in {search}</p>
+        <div className="text-center py-12 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+          <Building className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 text-sm sm:text-base font-medium font-outfit">No properties available in {search}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           {properties.map((property) => (
             <PropertyCard key={property.id} {...property} />
           ))}

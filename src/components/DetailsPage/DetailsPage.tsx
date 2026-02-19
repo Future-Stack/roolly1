@@ -64,6 +64,21 @@ interface PropertyDetails {
   occupied: boolean;
 }
 
+const coordinateLookup: Record<string, [number, number]> = {
+  'Dhaka': [23.8103, 90.4125],
+  'Mirpur': [23.8041, 90.3673],
+  'Dhanmondi': [23.7461, 90.3742],
+  'Uttara': [23.8759, 90.3795],
+  'Gulshan': [23.7925, 90.4078],
+  'Banani': [23.7937, 90.4066],
+  'Mohammadpur': [23.7662, 90.3589],
+  'Manchester': [53.4808, -2.2426],
+  'Liverpool': [53.4084, -2.9916],
+  'Lancashire': [53.7632, -2.7044],
+  'Preston': [53.7632, -2.7044],
+  'North Wales': [53.1362, -4.0954],
+};
+
 const HomePropertyDetails: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const { id } = useParams();
@@ -90,8 +105,13 @@ const HomePropertyDetails: React.FC = () => {
     setCurrentImage((prev) => (prev - 1 + totalImages) % totalImages);
   };
 
-  const latitude = 39.7392;
-  const longitude = -104.9903;
+  const getCoords = () => {
+    if (!property?.location) return [53.4808, -2.2426]; // Default to Manchester
+    const normalized = property.location.split(',')[0].trim();
+    return coordinateLookup[normalized] || coordinateLookup[Object.keys(coordinateLookup).find(k => normalized.toLowerCase().includes(k.toLowerCase())) || 'Manchester'] || [53.4808, -2.2426];
+  };
+
+  const [latitude, longitude] = getCoords();
 
   if (isLoading) {
     return (

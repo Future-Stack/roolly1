@@ -1,6 +1,6 @@
 import { AlertTriangle, Check, Info, Shield, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 interface RiskProfile {
     id: string;
@@ -32,13 +32,14 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
     onRestrictionChange,
     onOtherRestrictionsChange
 }) => {
+    const { id } = useParams();
     const [riskProfiles, setRiskProfiles] = useState<RiskProfile[]>([
         { id: 'low', checked: false },
         { id: 'medium', checked: false },
         { id: 'high', checked: false }
     ]);
 
-    const [isOtherEnabled, setIsOtherEnabled] = useState(otherRestrictions.length > 0);
+    const [isOtherEnabled, setIsOtherEnabled] = useState((otherRestrictions || '').length > 0);
 
     const toggleRiskProfile = (id: string) => {
         setRiskProfiles(prev =>
@@ -94,15 +95,17 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
                     {/* Step Indicator */}
                     <div className="flex items-center justify-center mb-8">
                         <div className="flex items-center gap-0">
-                            <Link to='/vendor-dashboard/properties/1'>
+                            <Link to={`/vendor-dashboard/edit-property/${id}`}>
                                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-[14px] font-medium">
                                     1
                                 </div>
                             </Link>
                             <div className="w-20 h-0.5 bg-blue-600"></div>
+                            {/* <Link to={`/vendor-dashboard/properties/${id}/risk`}> */}
                             <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-[14px] font-medium">
                                 2
                             </div>
+                            {/* </Link> */}
                         </div>
                     </div>
 

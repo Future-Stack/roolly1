@@ -429,7 +429,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Price (£) *
+                                        Price (£) or POA *
                                     </label>
                                     <input
                                         type="number"
@@ -528,7 +528,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Length & Width */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Length & Width
+                                        Length & Width (m)
                                     </label>
                                     <input
                                         type="text"
@@ -558,7 +558,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Office Space */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Office space included (sq ft)
+                                        Office space included (sq m)
                                     </label>
                                     <input
                                         type="text"
@@ -592,7 +592,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Eaves Height */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Eaves height (ft)
+                                        Eaves height (m)
                                     </label>
                                     <input
                                         type="text"
@@ -626,7 +626,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Power Capacity */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Power capacity
+                                        Power capacity (Amps or KVA)
                                     </label>
                                     <input
                                         type="text"

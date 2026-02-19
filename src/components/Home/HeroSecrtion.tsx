@@ -21,12 +21,12 @@ const HeroSection: React.FC = () => {
 
 
             {/* Main Heading */}
-            <h1 className="text-white text-center font-roboto text-3xl sm:text-4xl md:text-5xl  font-bold leading-tight mb-3 sm:mb-4 px-4">
+            <h1 className="text-white text-center font-roboto text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mb-3 sm:mb-4 px-4 max-w-4xl">
               Bridging the gap between enquiry and opportunity
             </h1>
 
             {/* Subheading */}
-            <p className="text-white text-center text-xl sm:text-2xl md:text-5xl  font-roboto font-medium mb-8 sm:mb-10 md:mb-8  px-4">
+            <p className="text-white text-center text-lg sm:text-2xl md:text-3xl font-roboto font-medium mb-8 sm:mb-10 md:mb-8 px-4 max-w-2xl">
               to create better connections
             </p>
 

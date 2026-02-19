@@ -26,7 +26,7 @@ interface PropertyFormData {
     description: string;
     built_area: string;
     length_width: string;
-    office_space: string;
+    office_space: string ;
     eaves_height: string;
     power_capacity: string;
     electricity_supply: string;
@@ -52,7 +52,7 @@ interface PropertyFormData {
     plastic_recycling_use: boolean;
     floor_plans: boolean;
     other_restrictions: string;
-    dimensions_roller_shutter: string;
+    dimensions_roller_shutter: string ;
     existing_images: string;
 }
 
@@ -214,6 +214,7 @@ const AddProperty: React.FC = () => {
             if (brochureVideoFile) {
                 formDataToSend.append('brochure_video', brochureVideoFile);
             }
+            // formDataToSend.append('office_space', (parseFloat(formData.office_space) / 10.76).toFixed(2));
 
             // Call API to add property
             const response = await addProperty(formDataToSend).unwrap();
@@ -362,7 +363,7 @@ const AddProperty: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Price (£) *
+                                        Price (£) or POA *
                                     </label>
                                     <input
                                         type="text"
@@ -470,7 +471,7 @@ const AddProperty: React.FC = () => {
                                 {/* Height to apex/pitch */}
                                 <div className="">
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Height to apex/pitch
+                                        Height to apex/pitch (m)
                                     </label>
                                     <input
                                         type="text"
@@ -528,7 +529,7 @@ const AddProperty: React.FC = () => {
                                 {/* Length & Width */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Length & Width
+                                        Length & Width (m)
                                     </label>
                                     <input
                                         type="text"
@@ -558,7 +559,7 @@ const AddProperty: React.FC = () => {
                                 {/* Office Space */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Office space included (sq ft)
+                                        Office space included (sq m)
                                     </label>
                                     <input
                                         type="text"
@@ -635,7 +636,7 @@ const AddProperty: React.FC = () => {
                                             const val = e.target.value === 'yes';
                                             setFormData(prev => ({ ...prev, ev_chaging: val }));
                                         }}
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full h-[38px] capitalize px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
                                         {evChanging.map(option => (
                                             <option key={option} value={option}>
@@ -656,7 +657,7 @@ const AddProperty: React.FC = () => {
                                             const val = e.target.value === 'yes';
                                             setFormData(prev => ({ ...prev, solar_panels: val }));
                                         }}
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full h-[38px] capitalize px-3 text-[13px] text-gray-900 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     >
                                         {solarPanel.map(option => (
                                             <option key={option} value={option}>
@@ -669,7 +670,7 @@ const AddProperty: React.FC = () => {
 
 
                                 {/* Power Capacity */}
-                                <div>
+                                {/* <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Power capacity
                                     </label>
@@ -681,7 +682,7 @@ const AddProperty: React.FC = () => {
                                         placeholder="e.g., 207.83"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
-                                </div>
+                                </div> */}
 
                                 {/* Phase */}
                                 {/* <div>

@@ -23,7 +23,8 @@ const Login: React.FC = () => {
     try {
       const res = await login({ email, password }).unwrap();
       const user = verifyToken(res?.access);
-      dispacth(setUser({ user: user, token: res.access, refreshToken: res.refresh }));
+      dispacth(setUser({ user: user, token: res.access, refreshToken: res.refresh, role: res.role }));
+      console.log(res);
 
       toast.success('Login Successful');
 
@@ -59,9 +60,11 @@ const Login: React.FC = () => {
         <div className="relative z-10 flex flex-col justify-between w-full h-full px-6 sm:px-9 py-6 sm:py-8">
 
           {/* Logo - Top */}
+          <Link to="/">
           <div className="flex items-center gap-2 bg-gray-200 rounded-[12px] px-4 py-2 shadow-lg w-max">
             <img src={logoImg} alt="logo" />
           </div>
+          </Link>
 
           {/* Bottom Text - Bottom */}
           <div className="text-white">
@@ -148,12 +151,12 @@ const Login: React.FC = () => {
             </button>
 
             {/* Register Link */}
-            <div className="text-center text-sm text-gray-600">
+            {/* <div className="text-center text-sm text-gray-600">
               I don't have an account ?{' '}
               <Link to="/register" className="text-blue-600 font-medium transition">
                 Register
               </Link>
-            </div>
+            </div> */}
           </form>
 
           {/* Mobile Showcase Text */}

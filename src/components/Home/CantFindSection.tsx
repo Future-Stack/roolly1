@@ -87,12 +87,12 @@ const CantFindSection: React.FC = () => {
   };
 
   return (
-    <div className="bg-white w-full mt-12">
+    <div className="bg-white w-full mt-10 sm:mt-12 md:mt-16">
       <div className="px-4 sm:px-6 md:px-0">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:pr-5">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-start lg:pr-5">
           {/* Left Side - Image */}
-          <div className="relative">
-            <div className="rounded-2xl overflow-hidden">
+          <div className="relative order-2 lg:order-1">
+            <div className="rounded-2xl overflow-hidden shadow-lg">
               <img
                 src={finImg}
                 alt="Modern building with blue sky"
@@ -102,14 +102,14 @@ const CantFindSection: React.FC = () => {
           </div>
 
           {/* Right Side - Content */}
-          <div className="space-y-6">
+          <div className="space-y-8 order-1 lg:order-2">
             {/* Heading */}
             <div className='sm:px-4 md:px-8 lg:px-0'>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-black mb-4 leading-tight">
-                Can't find what you <br /> are looking for?
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-black mb-4 leading-tight">
+                Can't find what you <br className="hidden sm:block" /> are looking for?
               </h2>
 
-              <p className="text-[#303539] text-base sm:text-lg md:text-xl font-medium leading-7 sm:leading-8 md:leading-9 mb-6">
+              <p className="text-[#303539] text-base sm:text-lg md:text-xl font-medium leading-relaxed sm:leading-8 md:leading-9 mb-8">
                 Let us know your requirements. We're always updating our listings and if a property
                 comes up that matches what you need, you'll be the first to know, with early access
                 before it goes live.
@@ -118,33 +118,33 @@ const CantFindSection: React.FC = () => {
               {/* Explore Button */}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="w-full sm:w-auto px-8 py-3 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[8px] text-base font-semibold transition-colors duration-300"
+                className="w-full sm:w-auto px-10 py-4 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[10px] text-lg font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                Enquiry
+                Enquire Now
               </button>
             </div>
 
             {/* Feature Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 sm:mt-16 lg:mt-20 sm:px-4 md:px-8 lg:px-0">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-4 mt-8 lg:mt-12 sm:px-4 md:px-8 lg:px-0">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="bg-blue-50 hover:bg-blue-100 rounded-xl p-6 text-center h-[200px] transition-colors duration-300 border border-[#B6D1F3]"
+                  className="bg-blue-50 hover:bg-blue-100 rounded-xl p-5 text-center min-h-[160px] sm:h-[200px] flex flex-col items-center justify-center transition-all duration-300 border border-[#B6D1F3] group hover:shadow-md"
                 >
-                  <div className="flex justify-center mb-3">
-                    <div className="w-12 h-12 flex items-center justify-center">
+                  <div className="mb-3 transition-transform group-hover:scale-110">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
                       {typeof feature.icon === 'string' ? (
-                        <img src={feature.icon} alt={feature.title} />
+                        <img src={feature.icon} alt={feature.title} className="w-full h-full object-contain" />
                       ) : (
                         feature.icon
                       )}
                     </div>
                   </div>
 
-                  <h3 className="text-[#1D1F22] font-medium text-xl mb-1">
+                  <h3 className="text-[#1D1F22] font-semibold text-lg sm:text-xl mb-0.5">
                     {feature.title}
                   </h3>
-                  <p className="text-[#1D1F22] text-xl font-medium">
+                  <p className="text-[#1D1F22] text-lg sm:text-xl font-semibold">
                     {feature.subtitle}
                   </p>
                 </div>

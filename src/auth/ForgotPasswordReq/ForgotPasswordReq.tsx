@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
-import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForgotPassReqMutation } from '@/redux/features/auth/forgotPassReqApi';
 import { toast } from 'react-toastify';
@@ -8,10 +8,10 @@ import { toast } from 'react-toastify';
 const ForgotPasswordReq = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  
+
   const [forgotPasswordReq] = useForgotPassReqMutation();
 
   const validateEmail = (email: string): boolean => {
@@ -38,15 +38,17 @@ const ForgotPasswordReq = () => {
     try {
       const response = await forgotPasswordReq(email).unwrap();
       console.log('API Response:', response);
+      navigate('/verify-email');
 
       if (response?.message) {
-        setIsSubmitted(true);
         toast.success(response.message || 'Password reset link sent successfully!');
-      } 
+        // Navigate to verify email page with email in state
+        navigate('/verify-email', { state: { email } });
+      }
 
     } catch (error: any) {
       console.error('Forgot Password Error:', error);
-        setError(error?.data?.email ? error.data.email[0] : 'An error occurred. Please try again.');
+      setError(error?.data?.email ? error.data.email[0] : 'An error occurred. Please try again.');
     }
   };
 
@@ -83,71 +85,65 @@ const ForgotPasswordReq = () => {
 
           {/* Form */}
           <div className="p-6 md:p-8">
-            {!isSubmitted && (
-              <>
-                <div className="mb-6">
-                  <p className="text-gray-600">
-                    Enter the email address associated with your account and we'll send you a link to reset your password.
-                  </p>
-                </div>
+            <>
+              <div className="mb-6">
+                <p className="text-gray-600">
+                  Enter the email address associated with your account and we'll send you a link to reset your password.
+                </p>
+              </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setError('');
-                        }}
-                        disabled={submitting}
-                        className={`block w-full pl-10 pr-4 py-3 text-base border ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed`}
-                        placeholder="you@example.com"
-                        aria-describedby={error ? "email-error" : undefined}
-                        required
-                        autoComplete="email"
-                      />
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
                     </div>
-                    
-                    {error && (
-                      <div id="email-error" className="mt-2 flex items-start gap-2 text-sm text-red-600 animate-fade-in">
-                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>{error}</span>
-                      </div>
-                    )}
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError('');
+                      }}
+                      disabled={submitting}
+                      className={`block w-full pl-10 pr-4 py-3 text-base border ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed`}
+                      placeholder="you@example.com"
+                      aria-describedby={error ? "email-error" : undefined}
+                      required
+                      autoComplete="email"
+                    />
                   </div>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={submitting || isSubmitted}
-                    className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-2 ${submitting || isSubmitted ? 'bg-blue-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]'}`}
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Sending Reset Link...
-                      </>
-                    ) : isSubmitted ? (
-                      <>
-                        <CheckCircle className="w-5 h-5" />
-                        Link Sent!
-                      </>
-                    ) : (
-                      'Send Reset Link'
-                    )}
-                  </button>
-                </form>
-              </>
-            )}
+                  {error && (
+                    <div id="email-error" className="mt-2 flex items-start gap-2 text-sm text-red-600 animate-fade-in">
+                      <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-2 ${submitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]'}`}
+                >
+                  {submitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Sending Reset Link...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </button>
+              </form>
+            </>
 
             {/* Back to Login Link */}
             <div className="mt-6 text-center">
@@ -167,8 +163,8 @@ const ForgotPasswordReq = () => {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
             Need help?{' '}
-            <a 
-              href="/support" 
+            <a
+              href="/support"
               className="text-blue-600 hover:text-blue-800 font-medium focus:outline-none focus:underline"
             >
               Contact Support

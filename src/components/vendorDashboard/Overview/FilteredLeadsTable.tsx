@@ -68,10 +68,10 @@ const FilteredLeadsTable: React.FC<FilteredLeadsTableProps> = ({ selectedFilters
                                 <td className="px-4 py-4">
                                     <div className="flex items-center gap-2">
                                         <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Call">
-                                            <Phone className="w-4 h-4 text-gray-500" />
+                                            <Phone onClick={() => window.location.href = `tel:${lead.broker_phone_number}`} className="w-4 h-4 text-gray-500" />
                                         </button>
                                         <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Email">
-                                            <Mail className="w-4 h-4 text-gray-500" />
+                                            <Mail onClick={() => window.location.href = `mailto:${lead.broker_email_address}`} className="w-4 h-4 text-gray-500" />
                                         </button>
                                     </div>
                                 </td>

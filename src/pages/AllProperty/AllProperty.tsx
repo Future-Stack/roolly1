@@ -50,7 +50,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     badge,
     title,
     subtitle,
-    description,
+    // location_description,
     propertyType,
     transaction,
 }) => {
@@ -103,7 +103,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                 <div className="flex items-center text-gray-500 text-sm mb-2">
                     <span className="truncate">{subtitle}</span>
                 </div>
-                <p className="text-gray-500 text-sm mb-4 line-clamp-2">{description}</p>
+                {/* <p className="text-gray-500 text-sm mb-4 line-clamp-2">{description}</p> */}
                 <Link to={`/details/${id}`}>
                     <button className="w-full py-2.5 hover:bg-gray-50 text-black border border-[#126AD8] text-sm font-medium rounded transition-colors hover:bg-blue-50">
                         View Details
@@ -138,7 +138,7 @@ const AllProperty: React.FC = () => {
         industrial: urlPropertyType.includes('industrial'),
         retail: urlPropertyType.includes('retail'),
         land: urlPropertyType.includes('land'),
-        house: urlPropertyType.includes('house'),
+        // house: urlPropertyType.includes('house'),
     });
 
     // State to store first result and all results
@@ -286,7 +286,7 @@ const AllProperty: React.FC = () => {
             industrial: false,
             retail: false,
             land: false,
-            house: false,
+            // house: false,
         });
         setSearchTerm('');
         setCurrentPage(1);
@@ -362,7 +362,7 @@ const AllProperty: React.FC = () => {
                                     industrial: false,
                                     retail: false,
                                     land: false,
-                                    house: false,
+                                    // house: false,
                                 })}
                                 className="text-xs text-blue-600 hover:text-blue-800"
                             >

@@ -1,6 +1,6 @@
 import Pagination from '@/components/vendorDashboard/Leads/Pagination';
 import { useGetVendorLeadsQuery, type VendorLead } from '@/redux/features/vendor/getVendorLeadsApi';
-import { Mail, MessageSquare, MoreVertical, Phone, Search } from 'lucide-react';
+import { Mail, MessageSquare, Phone, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
 // interface Lead {
@@ -23,7 +23,7 @@ import React, { useState } from 'react';
 const LeadManagement: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
-    const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
+    // const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
     const { data: leadsResponse, isLoading } = useGetVendorLeadsQuery({ page: currentPage });
 
     
@@ -201,17 +201,17 @@ const LeadManagement: React.FC = () => {
                                 <td className="px-6 py-5 relative">
                                     <div className="flex items-center gap-3">
                                         <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title={`Contact: ${lead.broker_phone_number}`}>
-                                            <Phone className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                                            <Phone onClick={() => window.location.href = `tel:${lead.broker_phone_number}`} className="w-5 h-5 text-gray-600" strokeWidth={2} />
                                         </button>
                                         <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title={`Email: ${lead.broker_email_address}`}>
-                                            <Mail className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                                            <Mail onClick={() => window.location.href = `mailto:${lead.broker_email_address}`} className="w-5 h-5 text-gray-600" strokeWidth={2} />
                                         </button>
-                                        <button
+                                        {/* <button
                                             onClick={() => setOpenMenuIndex(openMenuIndex === index ? null : index)}
                                             className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                                         >
                                             <MoreVertical className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                                        </button>
+                                        </button> */}
                                     </div>
                                 </td>
                             </tr>
