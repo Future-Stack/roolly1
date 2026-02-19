@@ -6,14 +6,15 @@ import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingle
 import { useAppSelector } from '@/redux/hook';
 import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
 import { getCurrentUserId } from '@/utils/userUtils';
-import { Check, CheckCheck, Clock, Menu, MoreVertical, Search, SendHorizontal, X } from 'lucide-react';
+import { Check, CheckCheck, Menu,  Search, SendHorizontal, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const BrokerMessage: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'admin'>('chat');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'broker'>('chat');
   const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -39,6 +40,39 @@ const BrokerMessage: React.FC = () => {
   } = useGetAllMessagesQuery(undefined, {
     skip: !token,
   });
+  const formatLastSeen = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    // Format time (09:08 AM)
+    // const formattedTime = date.toLocaleTimeString([], {
+    //   hour: '2-digit',
+    //   minute: '2-digit',
+    //   hour12: true,
+    // });
+
+    if (diffDays > 0) {
+      return `Last seen ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    }
+
+    if (diffHours > 0) {
+      return `Last seen ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    }
+
+    if (diffMinutes > 0) {
+      return `Last seen ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    }
+
+    return 'Last seen just now';
+  };
+
+  const lastTimestamp = formatLastSeen(conversationsData?.results?.[0]?.last_message?.timestamp);
+  const lastText = conversationsData?.results?.[0]?.last_message?.text;
 
   // Fetch single user messages
   const {
@@ -627,7 +661,7 @@ const BrokerMessage: React.FC = () => {
 
   // Filter users by type
   const vendorUsers = allChatUsers.filter(user => user.userType === 'vendor');
-  const adminUsers = allChatUsers.filter(user => user.userType === 'admin');
+  const brokerUsers = allChatUsers.filter(user => user.userType === 'broker');
 
   // Get current user info
   const currentUser = selectedChat ? {
@@ -650,20 +684,33 @@ const BrokerMessage: React.FC = () => {
   const tabCounts = {
     chat: allChatUsers.length,
     vendor: vendorUsers.length,
-    admin: adminUsers.length
+    broker: brokerUsers.length
   };
 
   const getCurrentUsers = () => {
+    let users = [];
     switch (activeTab) {
       case 'chat':
-        return allChatUsers;
+        users = allChatUsers;
+        break;
       case 'vendor':
-        return vendorUsers;
-      case 'admin':
-        return adminUsers;
+        users = vendorUsers;
+        break;
+      case 'broker':
+        users = brokerUsers;
+        break;
       default:
-        return allChatUsers;
+        users = allChatUsers;
     }
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      return users.filter(user =>
+        user.name.toLowerCase().includes(term) ||
+        user.message?.toLowerCase().includes(term)
+      );
+    }
+    return users;
   };
 
   // Get connection status
@@ -751,25 +798,23 @@ const BrokerMessage: React.FC = () => {
       </div>
 
       {/* Chat Interface */}
-      <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] md:h-[calc(100vh-150px)] p-2 md:p-4 border-gray-200 border rounded-xl md:rounded-2xl">
+      <div className="flex flex-col md:flex-row h-[calc(100dvh-180px)] md:h-[calc(100vh-150px)] p-1.5 md:p-4 border-gray-200 border rounded-xl md:rounded-2xl bg-white overflow-hidden">
         {/* Left Sidebar - Chat List */}
         <div className={`
-          ${isChatListOpen ? 'block' : 'hidden'}
-          md:block
-          w-full md:w-[380px] 
+          ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          fixed md:relative
+          inset-y-0 left-0
+          w-[280px] sm:w-[320px] md:w-[380px]
           md:border-r 
           border-gray-200 
           flex flex-col 
           bg-white 
           p-3
-          rounded-lg
-          md:rounded-none
-          absolute md:relative
-          top-0 left-0
-          h-full md:h-auto
-          z-10 md:z-auto
-          shadow-lg md:shadow-none
+          transition-transform duration-300 ease-in-out
+          z-30 md:z-auto
+          shadow-xl md:shadow-none
         `}>
+
           {/* Mobile header */}
           <div className="flex items-center justify-between mb-4 md:hidden">
             <h2 className="text-lg font-semibold">Chats</h2>
@@ -788,8 +833,18 @@ const BrokerMessage: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search conversations"
-                className="w-full h-10 md:h-[44px] pl-10 pr-4 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-10 md:h-[44px] pl-10 pr-10 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -815,15 +870,15 @@ const BrokerMessage: React.FC = () => {
                 Vendor <span className="ml-1">({tabCounts.vendor})</span>
               </button>
             )}
-            {tabCounts.admin > 0 && (
+            {tabCounts.broker > 0 && (
               <button
-                onClick={() => setActiveTab('admin')}
-                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
+                onClick={() => setActiveTab('broker')}
+                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'broker'
                   ? 'text-blue-600 bg-blue-50'
                   : 'text-gray-600 hover:bg-gray-100'
                   }`}
               >
-                Admin <span className="ml-1">({tabCounts.admin})</span>
+                Admin <span className="ml-1">({tabCounts.broker})</span>
               </button>
             )}
           </div>
@@ -865,17 +920,17 @@ const BrokerMessage: React.FC = () => {
                         {user.time}
                       </span>
                     </div>
-                    <p className="text-xs md:text-[13px] text-gray-500 truncate">
-                      {user.message}
+                    <p className="text-xs md:text-[13px] text-gray-500 truncate w-[80%]">
+                      {lastText}
                     </p>
-                    {!user.isSeen && user.lastSeen && (
+                    {/* {!user.isSeen && user.lastSeen && (
                       <div className="flex items-center gap-1 mt-1">
                         <Clock size={10} className="text-gray-400" />
                         <span className="text-[10px] text-gray-500">
                           {user.lastSeen === 'online' ? 'Online' : `Last seen ${user.lastSeen}`}
                         </span>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </button>
               ))
@@ -884,43 +939,53 @@ const BrokerMessage: React.FC = () => {
         </div>
 
         {/* Right Side - Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full bg-white relative">
+          {/* Overlay for mobile when sidebar is open */}
+          {isChatListOpen && (
+            <div
+              className="fixed inset-0 bg-black/20 z-25 md:hidden"
+              onClick={() => setIsChatListOpen(false)}
+            />
+          )}
+
           {/* Chat Header */}
-          <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-200 bg-white sticky top-0 z-20">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsChatListOpen(true)}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-full"
+                className="md:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600"
               >
                 <Menu size={20} />
               </button>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <div className="relative">
                   <img
                     src={currentUser.avatar}
                     alt={currentUser.name}
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+                    className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover border border-gray-100"
                   />
                   {currentUser.isOnline && connectionStatus === 'connected' && (
-                    <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm md:text-[16px] font-semibold text-gray-900">
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 leading-tight">
                     {currentUser.name}
                   </h3>
-                  <p className="text-xs md:text-[13px] text-gray-500">
-                    {currentUser.status}
-                    {connectionStatus !== 'connected' && ' • Connection issue'}
+                  <p className="text-[10px] md:text-xs text-gray-500 font-medium">
+                    {lastTimestamp}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="md:hidden">
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <MoreVertical size={20} />
+            {/* <div className="flex items-center gap-1">
+              <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+                <Search size={18} />
               </button>
-            </div>
+              <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+                <MoreVertical size={18} />
+              </button>
+            </div> */}
           </div>
 
           {/* Messages Area */}
@@ -1029,15 +1094,15 @@ const BrokerMessage: React.FC = () => {
                   <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
                 </button> */}
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                  <EmojiPickerButton
-                                    onEmojiSelect={handleEmojiSelect}
-                                    disabled={connectionStatus !== 'connected' || !!connectionError}
-                                  />
-                                </div>
+                  <EmojiPickerButton
+                    onEmojiSelect={handleEmojiSelect}
+                    disabled={connectionStatus !== 'connected' || !!connectionError}
+                  />
+                </div>
               </div>
               <button
                 onClick={sendMessage}
-                disabled={!messageInput.trim() || connectionStatus !== 'connected' }
+                disabled={!messageInput.trim() || connectionStatus !== 'connected'}
                 className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim() && connectionStatus === 'connected' && !connectionError
                   ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                   : 'bg-gray-300 cursor-not-allowed'

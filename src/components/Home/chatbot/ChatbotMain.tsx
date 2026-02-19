@@ -56,8 +56,8 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
 
     // Common Wrapper to maintain consistency and responsiveness
     const ChatWindow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-        <div className="fixed inset-0 sm:inset-auto sm:right-6 sm:bottom-6 z-50 flex items-end justify-center sm:block p-4 sm:p-0">
-            <div className="w-full sm:w-[400px] bg-[#FDFEFF] rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[85vh] sm:h-[600px] border border-gray-100 transition-all duration-300 ease-in-out">
+        <div className="fixed inset-0 sm:inset-auto sm:right-6 sm:bottom-6 z-[60] flex items-end justify-center sm:block">
+            <div className="w-full sm:w-[400px] bg-[#FDFEFF] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[100dvh] sm:h-[600px] border-t sm:border border-gray-100 transition-all duration-300 ease-in-out">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
                     <div className="flex items-center gap-3">

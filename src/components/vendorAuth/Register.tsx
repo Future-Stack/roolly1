@@ -629,9 +629,11 @@ const Register: React.FC = () => {
         <div className="relative z-10 flex flex-col justify-between w-full h-full px-6 sm:px-9 py-6 sm:py-8">
 
           {/* Logo - Top */}
+          <Link to="/">
           <div className="flex items-center gap-2 bg-gray-200 rounded-[12px] px-4 py-2 shadow-lg w-max">
             <img src={logoImg} alt="logo" />
           </div>
+          </Link>
 
           {/* Bottom Text - Bottom */}
           <div className="text-white">

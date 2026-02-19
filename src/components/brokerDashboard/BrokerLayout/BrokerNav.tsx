@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Bell, Menu, Search, MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot } from "lucide-react";
+import { Bell, Menu, Search, MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot} from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import logo from '../../../assets/logo.png'
@@ -7,6 +7,7 @@ import { useCurrentToken } from "@/redux/features/auth/authSlice";
 import { useAppSelector } from "@/redux/hook";
 import BrokerProfileDropdown from "../BrokerProfileDropdown/BrokerProfileDropdown";
 import { useGetBrokerProfileQuery } from "@/redux/features/broker/settings/getBrokerProfileApi";
+import { useNavigate } from "react-router-dom";
 
 // Notification Types
 interface Notification {
@@ -173,6 +174,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
 // Main BrokerNav Component
 const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [, setNotifications] = useState<Notification[]>([]);
@@ -555,9 +557,10 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
           </button>
 
           {/* Logo - Hidden on mobile, visible from sm upwards */}
-          <div className="hidden sm:block">
+
+          <button onClick={() => navigate("/")} className="hidden sm:block">
             <img src={logo} alt="logo" className="w-28 md:w-36" />
-          </div>
+          </button>
         </div>
 
         {/* Search Bar - Center aligned on larger screens */}

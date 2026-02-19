@@ -212,7 +212,7 @@ const PropertyManagement: React.FC = () => {
                 {/* Property Image */}
                 <div className="relative w-full h-[280px]">
                   <img
-                    src={property.image || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'}
+                    src={property?.image || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'}
                     alt={property.property_name}
                     className="w-full h-full object-cover rounded-xl"
                   />

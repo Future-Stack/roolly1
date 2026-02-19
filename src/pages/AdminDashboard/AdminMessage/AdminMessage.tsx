@@ -5,7 +5,7 @@ import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingle
 import { useAppSelector } from '@/redux/hook';
 import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
 import { getCurrentUserId } from '@/utils/userUtils';
-import { Check, CheckCheck, Clock, FileText, Image as ImageIcon, Menu, MoreVertical,  Search, SendHorizontal,  X as XIcon } from 'lucide-react';
+import { Check, CheckCheck, FileText, Image as ImageIcon, Menu, Search, SendHorizontal, X as XIcon } from 'lucide-react';
 import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
 // import FileUploadButton from '@/components/shared/FileUploadButton';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -28,6 +28,7 @@ const AdminMessage: React.FC = () => {
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   console.log(setNewConversations)
 
   const location = useLocation();
@@ -41,6 +42,41 @@ const AdminMessage: React.FC = () => {
   } = useGetAllMessagesQuery(undefined, {
     skip: !token,
   });
+
+  const formatLastSeen = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    // Format time (09:08 AM)
+    // const formattedTime = date.toLocaleTimeString([], {
+    //   hour: '2-digit',
+    //   minute: '2-digit',
+    //   hour12: true,
+    // });
+
+    if (diffDays > 0) {
+      return `Last seen ${diffDays} day${diffDays > 1 ? 's' : ''} ago `;
+    }
+
+    if (diffHours > 0) {
+      return `Last seen ${diffHours} hour${diffHours > 1 ? 's' : ''} ago `;
+    }
+
+    if (diffMinutes > 0) {
+      return `Last seen ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    }
+
+    return 'Last seen just now';
+  };
+
+  const lastTimestamp = formatLastSeen(conversationsData?.results?.[0]?.last_message?.timestamp);
+  const lastText = conversationsData?.results?.[0]?.last_message?.text;
+
 
   // Fetch single user messages
   const {
@@ -197,9 +233,10 @@ const AdminMessage: React.FC = () => {
       return;
     }
 
-    console.log('📊 API Response:', apiResponse);
-    console.log('👤 Current User ID:', currentUserId);
-    console.log('👥 Chat User ID:', selectedChat.userId);
+    // console.log('📊 API Response:', apiResponse);
+    // console.log('👤 Current User ID:', currentUserId);
+    // console.log('👤 Current User:', currentUser);
+    // console.log('👥 Chat User ID:', selectedChat.userId);
 
     let messagesArray: ApiMessage[] = [];
 
@@ -245,7 +282,9 @@ const AdminMessage: React.FC = () => {
         conversationId: selectedChat.id,
         status: isUserMessage ? (msg.is_read ? 'read' : 'sent') : undefined,
       };
+      console.log(msg.timestamp);
     });
+    console.log(formattedMessages);
 
     // Sort by timestamp (newest first for display)
     formattedMessages.sort((a, b) =>
@@ -645,6 +684,7 @@ const AdminMessage: React.FC = () => {
   const vendorUsers = allChatUsers.filter(user => user.userType === 'vendor');
   const brokerUsers = allChatUsers.filter(user => user.userType === 'broker');
 
+  console.log(selectedChat)
   // Get current user info
   const currentUser = selectedChat ? {
     name: selectedChat.name,
@@ -670,16 +710,29 @@ const AdminMessage: React.FC = () => {
   };
 
   const getCurrentUsers = () => {
+    let users = [];
     switch (activeTab) {
       case 'chat':
-        return allChatUsers;
+        users = allChatUsers;
+        break;
       case 'vendor':
-        return vendorUsers;
+        users = vendorUsers;
+        break;
       case 'broker':
-        return brokerUsers;
+        users = brokerUsers;
+        break;
       default:
-        return allChatUsers;
+        users = allChatUsers;
     }
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      return users.filter(user =>
+        user.name.toLowerCase().includes(term) ||
+        user.message?.toLowerCase().includes(term)
+      );
+    }
+    return users;
   };
 
   // // Get connection status
@@ -767,24 +820,21 @@ const AdminMessage: React.FC = () => {
       </div>
 
       {/* Chat Interface */}
-      <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] md:h-[calc(100vh-150px)] p-2 md:p-4 border-gray-200 border rounded-xl md:rounded-2xl">
+      <div className="flex flex-col md:flex-row h-[calc(100dvh-180px)] md:h-[calc(100vh-150px)] p-1.5 md:p-4 border-gray-200 border rounded-xl md:rounded-2xl bg-white overflow-hidden">
         {/* Left Sidebar - Chat List */}
         <div className={`
-          ${isChatListOpen ? 'block' : 'hidden'}
-          md:block
-          w-full md:w-[380px] 
+          ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          fixed md:relative
+          inset-y-0 left-0
+          w-[280px] sm:w-[320px] md:w-[380px]
           md:border-r 
           border-gray-200 
           flex flex-col 
           bg-white 
           p-3
-          rounded-lg
-          md:rounded-none
-          absolute md:relative
-          top-0 left-0
-          h-full md:h-auto
-          z-10 md:z-auto
-          shadow-lg md:shadow-none
+          transition-transform duration-300 ease-in-out
+          z-30 md:z-auto
+          shadow-xl md:shadow-none
         `}>
           {/* Mobile header */}
           <div className="flex items-center justify-between mb-4 md:hidden">
@@ -798,14 +848,24 @@ const AdminMessage: React.FC = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="pb-2 pt-0 md:pt-4">
+          <div className="pb-3 pt-0 md:pt-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Search conversations"
-                className="w-full h-10 md:h-[44px] pl-10 pr-4 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-10 md:h-[44px] pl-10 pr-10 text-sm text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <XIcon size={16} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -859,7 +919,7 @@ const AdminMessage: React.FC = () => {
                 <button
                   key={user.id}
                   onClick={() => handleChatSelect(user)}
-                  className={`w-full flex items-center gap-3 px-3 md:px-4 py-3 hover:bg-blue-50 hover:rounded-sm transition-colors ${selectedChat?.id === user.id ? 'bg-blue-50' : ''
+                  className={`w-full flex items-center gap-3 px-3 py-3 hover:bg-gray-50 rounded-xl transition-all ${selectedChat?.id === user.id ? 'bg-blue-50 ring-1 ring-blue-100' : ''
                     }`}
                 >
                   <div className="relative flex-shrink-0">
@@ -881,17 +941,18 @@ const AdminMessage: React.FC = () => {
                         {user.time}
                       </span>
                     </div>
-                    <p className="text-xs md:text-[13px] text-gray-500 truncate">
-                      {user.message}
+                    <p className="text-xs md:text-[13px] text-gray-500 truncate w-[80%]">
+                      {/* {user.message} */}
+                      {lastText}
                     </p>
-                    {!user.isSeen && user.lastSeen && (
+                    {/* {!user.isSeen && user.lastSeen && (
                       <div className="flex items-center gap-1 mt-1">
                         <Clock size={10} className="text-gray-400" />
                         <span className="text-[10px] text-gray-500">
-                          {user.lastSeen === 'online' ? 'Online' : `Last seen ${user.lastSeen}`}
+                          {user.isOnline === true ? 'Online' : `Last seen ${user.lastSeen}`}
                         </span>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </button>
               ))
@@ -900,47 +961,56 @@ const AdminMessage: React.FC = () => {
         </div>
 
         {/* Right Side - Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full bg-white relative">
+          {/* Overlay for mobile when sidebar is open */}
+          {isChatListOpen && (
+            <div
+              className="fixed inset-0 bg-black/20 z-25 md:hidden"
+              onClick={() => setIsChatListOpen(false)}
+            />
+          )}
           {/* Chat Header */}
-          <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-200 bg-white sticky top-0 z-20">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsChatListOpen(true)}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-full"
+                className="md:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600"
               >
                 <Menu size={20} />
               </button>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <div className="relative">
                   <img
                     src={currentUser.avatar}
                     alt={currentUser.name}
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+                    className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover border border-gray-100"
                   />
                   {currentUser.isOnline && connectionStatus === 'connected' && (
-                    <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm md:text-[16px] font-semibold text-gray-900">
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 leading-tight">
                     {currentUser.name}
                   </h3>
-                  <p className="text-xs md:text-[13px] text-gray-500">
-                    {currentUser.status}
-                    {/* {connectionStatus !== 'connected' && ' • Connection issue'} */}
+                  <p className="text-[10px] md:text-xs text-gray-500 font-medium">
+                    {lastTimestamp}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="md:hidden">
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <MoreVertical size={20} />
+            {/* <div className="flex items-center gap-1">
+              <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+                <Search size={18} />
               </button>
-            </div>
+              <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+                <MoreVertical size={18} />
+              </button>
+            </div> */}
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-[#ECEDEE]">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-[#ECEDEE] ">
             {isLoadingMessages || isLoadingSingleMessages ? (
               <div className="flex justify-center items-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -965,21 +1035,20 @@ const AdminMessage: React.FC = () => {
                 >
                   {/* LEFT SIDE: Other person's messages (RECEIVED) */}
                   {message.sender === 'other' && (
-                    <div className="flex items-start gap-2 md:gap-3 max-w-[85%] md:max-w-[600px]">
-                      {/* Other person's avatar - ALWAYS ON LEFT */}
+                    <div className="flex items-start gap-2 md:gap-3 max-w-[90%] md:max-w-[80%]">
+                      {/* Avatar - Smaller on mobile */}
                       <img
                         src={message.avatar}
                         alt="Other User"
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm"
                       />
 
-                      {/* Message bubble - LEFT */}
                       <div className="flex flex-col">
-                        <div className="bg-white border border-gray-200 text-gray-900 px-3 md:px-4 py-2 md:py-3 rounded-2xl shadow-sm">
-                          <p className="text-sm md:text-[14px] leading-relaxed">{message.text}</p>
+                        <div className="bg-white border border-gray-100 text-gray-800 px-3.5 md:px-4 py-2 md:py-3 rounded-2xl rounded-tl-none shadow-sm">
+                          <p className="text-xs md:text-sm font-medium leading-relaxed">{message.text}</p>
                         </div>
-                        <div className="flex items-center gap-2 mt-1 ml-1">
-                          <span className="text-xs text-gray-500">
+                        <div className="flex items-center gap-2 mt-1 ml-1 scale-90 md:scale-100 origin-left">
+                          <span className="text-[10px] md:text-xs text-gray-400 font-medium">
                             {message.time}
                           </span>
                         </div>
@@ -989,28 +1058,25 @@ const AdminMessage: React.FC = () => {
 
                   {/* RIGHT SIDE: Your messages (SENT) */}
                   {message.sender === 'user' && (
-                    <div className="flex items-start gap-2 md:gap-3 max-w-[85%] md:max-w-[600px]">
-                      {/* Message bubble - RIGHT */}
-                      <div className="flex flex-col items-end">
-                        <div className="bg-blue-50 text-gray-900 px-3 md:px-4 py-2 md:py-3 rounded-2xl shadow-sm">
-                          <p className="text-sm md:text-[14px] leading-relaxed">{message.text}</p>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1 mr-1">
-                          <span className="text-xs text-gray-500">
-                            {message.time}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {getReadReceiptIcon(message.status, message.isSeen)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Your avatar - ALWAYS ON RIGHT */}
+                    <div className="flex flex-row-reverse items-start gap-2 md:gap-3 max-w-[90%] md:max-w-[80%]">
+                      {/* Avatar */}
                       <img
                         src={message.avatar}
                         alt="You"
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm"
                       />
+
+                      <div className="flex flex-col items-end">
+                        <div className="bg-blue-600 text-white px-3.5 md:px-4 py-2 md:py-3 rounded-2xl rounded-tr-none shadow-sm">
+                          <p className="text-xs md:text-sm font-medium leading-relaxed">{message.text}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 mr-1 scale-90 md:scale-100 origin-right">
+                          <span className="text-[10px] md:text-xs text-gray-300 font-medium">
+                            {message.time}
+                          </span>
+                          {getReadReceiptIcon(message.status, message.isSeen)}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1048,7 +1114,7 @@ const AdminMessage: React.FC = () => {
             )}
 
             <div className="flex items-center gap-2 md:gap-3">
-              
+
               <div className="flex-1 relative">
                 <input
                   type="text"

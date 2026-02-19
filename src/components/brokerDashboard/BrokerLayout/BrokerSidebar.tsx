@@ -52,7 +52,7 @@ const BrokerSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
         />
         <div className="flex flex-col">
           <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>
-          <span className="text-lg text-[#A9ACAF] mt-0.5">{profile?.email}</span>
+          <span className="text-sm text-[#A9ACAF] mt-0.5">{profile?.email}</span>
         </div>
       </div>
 

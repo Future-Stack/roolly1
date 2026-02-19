@@ -35,7 +35,7 @@ const LeadStatusDistribution: React.FC<LeadStatusDistributionProps> = ({ onFilte
     },
     {
       count: data?.red ?? 0,
-      label: 'Hot Lead',
+      label: 'Cold Lead',
       value: 'red',
       bgColor: 'bg-orange-50',
       textColor: 'text-orange-600',
