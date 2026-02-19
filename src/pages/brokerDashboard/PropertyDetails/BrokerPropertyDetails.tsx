@@ -107,6 +107,7 @@ const BrokerPropertyDetails: React.FC = () => {
     }
 
     const propertyData = property as PropertyDetailsType;
+    console.log(propertyData)
 
     // Helper to format image URL
     const getFullImageUrl = (url: string) => {
@@ -359,11 +360,11 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Length & Width-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
-                                            {propertyData.length_width || 'N/A'}
+                                            {propertyData.length_width ? `${propertyData.length_width} m` : 'N/A'} 
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
-                                        <li className="text-gray-600">Height & width of shutters-</li>
+                                        <li className="text-gray-600">Dimensions of Roller Shutter-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
                                             {propertyData.dimensions_roller_shutter || 'N/A'}
                                         </span>
@@ -371,7 +372,7 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Office space included-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
-                                            {propertyData.office_space ? `${propertyData.office_space} sq ft` : 'N/A'}
+                                            {propertyData.office_space ? `${propertyData.office_space} sq m` : 'N/A'}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
@@ -383,13 +384,13 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Eaves height-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
-                                            {propertyData.eaves_height || 'N/A'}
+                                            {propertyData.eaves_height ? `${propertyData.eaves_height} m` : 'N/A'}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">EPC Rating-</li>
                                         <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.epc_rating || 'N/A'}
+                                            {propertyData.epc_rating ?`${propertyData.epc_rating} Amps or KVA` : 'N/A'}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">

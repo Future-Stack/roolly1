@@ -478,7 +478,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* Rent or purchase estimated price */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Price (£)
+                                        Price (£) or POA
                                     </label>
                                     <input
                                         type="number"
@@ -547,7 +547,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* Eaves Height */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Eaves Height
+                                        Eaves Height (m)
                                     </label>
                                     <input
                                         type="text"
@@ -577,7 +577,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* Length & Width */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Length & Width
+                                        Length & Width (m)
                                     </label>
                                     <input
                                         type="text"
@@ -622,7 +622,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* Office Space */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Office space included (sq ft)
+                                        Office space included (sq m)
                                     </label>
                                     <input
                                         type="text"
@@ -678,7 +678,7 @@ const PropertyEdit: React.FC = () => {
                                 {/* Power Capacity */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Power capacity
+                                        Power capacity (Amps or KVA)
                                     </label>
                                     <input
                                         type="text"

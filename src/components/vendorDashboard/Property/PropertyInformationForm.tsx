@@ -239,7 +239,7 @@ const PropertyInformationForm: React.FC = () => {
                             {/* Rent or purchase estimated price */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Price
+                                    Price or POA
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
                                     £{propertyData.estimated_price} {propertyData.transaction === 'lease' ? '/month' : ''}
@@ -318,10 +318,10 @@ const PropertyInformationForm: React.FC = () => {
                             {/* Length & Width */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
-                                    Length & Width
+                                    Length & Width (m)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.length_width}
+                                    {propertyData.length_width} 
                                 </div>
                             </div>
 
@@ -338,10 +338,10 @@ const PropertyInformationForm: React.FC = () => {
                             {/* Office Space */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
-                                    Office space included (sq ft)
+                                    Office space included (sq m)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.office_space} sq ft
+                                    {propertyData.office_space} sq m
                                 </div>
                             </div>
 
@@ -397,7 +397,7 @@ const PropertyInformationForm: React.FC = () => {
                             {/* Power Capacity */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
-                                    Power capacity
+                                    Power capacity (Amps or KVA)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
                                     {propertyData.power_capacity} kVA

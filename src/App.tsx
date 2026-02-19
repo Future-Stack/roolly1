@@ -33,10 +33,10 @@ const App = () => {
         <>
           <button
             onClick={() => dispatch(openChatbot())}
-            className="fixed bottom-6 right-6 w-14 h-14 sm:w-14 sm:h-14 bg-blue-600 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 cursor-pointer z-50 focus:outline-none"
+            className="fixed bottom-6 right-4 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 bg-blue-600 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 cursor-pointer z-[55] focus:outline-none"
             aria-label="Open Chatbot"
           >
-            <img src={chatbotImg} alt="chatbot" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+            <img src={chatbotImg} alt="chatbot" className="w-7 h-7 sm:w-10 sm:h-10 object-contain" />
           </button>
 
           {isChatbotOpen && (

@@ -28,11 +28,14 @@ import AdminMessage from "@/pages/AdminDashboard/AdminMessage/AdminMessage";
 import AdminAnalytics from "@/pages/AdminDashboard/AdminAnalytics/AdminAnalytics";
 import Broker from "@/pages/AdminDashboard/Broker/Broker";
 import AdminSettings from "@/pages/AdminDashboard/AdminSettings/AdminSettings";
+import VendorManagement from "@/pages/AdminDashboard/Vendor/VendorManagement";
 import HomePropertyDetails from "@/components/DetailsPage/DetailsPage";
 import AllProperty from "@/pages/AllProperty/AllProperty";
 import ProtectedRoute from "@/layout/ProtectedRoute";
 // import ForgotPassword from "@/auth/ForgotPassword/ForgotPassword";
 import ForgotPasswordReq from "@/auth/ForgotPasswordReq/ForgotPasswordReq";
+import ForgotPasswordConfirm from "@/auth/ForgotPasswordConfirm/ForgotPasswordConfirm";
+import VerifyEmail from "@/auth/VerifyEmail/VerifyEmail";
 import AddProperty from "@/pages/vendorDashboard/AddProperty/AddProperty";
 import UpdateVendorProperty from "@/pages/vendorDashboard/UpdateVendorProperty/UpdateVendorProperty";
 import CreateNewLead from "@/pages/brokerDashboard/CreateNewLead/CreateNewLead";
@@ -42,6 +45,11 @@ import PropertyDetails from "@/pages/Users/PropertyDetails/PropertyDetails";
 import BrokerPropertyDetails from "@/pages/brokerDashboard/PropertyDetails/BrokerPropertyDetails";
 import PrivacyPolicy from "@/components/Home/PrivecyPolicy";
 import Terms from "@/components/Home/Terms";
+import RiskProfileInformation from "@/components/vendorDashboard/Property/RiskProfileInformation";
+
+
+
+import PublicRoute from "@/layout/PublicRoute";
 
 
 const routes = createBrowserRouter([
@@ -53,176 +61,213 @@ const routes = createBrowserRouter([
         path: "/",
         element: <Home />,
       },
-       {
-        path: "details/:id",  
+      {
+        path: "details/:id",
         element: <HomePropertyDetails />,
       },
       {
-        path:'/login',
-        element:<Login/>
+        path: '/login',
+        element: <PublicRoute><Login /></PublicRoute>
+      },
+      // {
+      //   path: '/login',
+      //   element: <Login />
+      // },
+      {
+        path: '/register',
+        element: <PublicRoute><Register /></PublicRoute>
+      },
+      // {
+      //   path: '/register',
+      //   element: <Register />
+      // },
+      {
+        path: '/all-properties',
+        element: <AllProperty />
       },
       {
-        path:'/register',
-        element:<Register/>
+        path: '/property-details/:id',
+        element: <PropertyDetails />
       },
       {
-        path:'/all-properties',
-        element:<AllProperty/>
+        path: '/forgot-password-req',
+        element: <PublicRoute><ForgotPasswordReq /></PublicRoute>
       },
       {
-        path:'/property-details/:id',
-        element:<PropertyDetails/>
+        path: '/forgot-password-confirm',
+        element: <PublicRoute><ForgotPasswordConfirm /></PublicRoute>
       },
       {
-        path:'/forgot-password-req',
-        element:<ForgotPasswordReq/>
+        path: '/verify-email',
+        element: <PublicRoute><VerifyEmail /></PublicRoute>
+      },
+      // {
+      //   path: '/forgot-password-req',
+      //   element: <ForgotPasswordReq />
+      // },
+      // {
+      //   path: '/forgot-password-confirm',
+      //   element: <ForgotPasswordConfirm />
+      // },
+      // {
+      //   path: '/verify-email',
+      //   element: <VerifyEmail />
+      // },
+
+      {
+        path: '/privecy-policy',
+        element: <PrivacyPolicy />
       },
       {
-        path:'/privecy-policy',
-        element:<PrivacyPolicy/>
-      },
-      {
-        path:'/terms',
-        element:<Terms/>
+        path: '/terms',
+        element: <Terms />
       },
     ],
   },
 
   {
-    path:'/vendor-dashboard',
-    element:<ProtectedRoute><VendorLayout/></ProtectedRoute>,
-    children:[
+    path: '/vendor-dashboard',
+    element: <ProtectedRoute allowedRoles={['VENDOR']}><VendorLayout /></ProtectedRoute>,
+    children: [
       {
-        index:true,
-        element:<Overview/>
+        index: true,
+        element: <Overview />
       },
       {
-        path:'overview',
-        element:<Overview/>
+        path: 'overview',
+        element: <Overview />
       },
       {
-        path:'leads',
-        element:<LeadManagement/>
+        path: 'leads',
+        element: <LeadManagement />
       },
       {
-        path:'properties',
-        element:<PropertyManagement/>
+        path: 'properties',
+        element: <PropertyManagement />
       },
       {
-        path:'properties/:id',
-        element:<PropertyInformationForm/>
+        path: 'properties/:id',
+        element: <PropertyInformationForm />
       },
+      {
+        path: 'properties/:id/risk',
+        element: <RiskProfileInformation />
+      },
+      {
+        path: 'edit-property/:id',
+        element: <UpdateVendorProperty />
+      },
+      {
+        path: 'messages',
+        element: <CommunicationWithBroker />
+      },
+      {
+        path: 'reports',
+        element: <AnalyticsReporting />
+      },
+      {
+        path: 'settings',
+        element: <Settings />
+      },
+      {
+        path: 'add-property',
+        element: <AddProperty />
+      }
       // {
-      //   path:'properties/:id/risk',
-      //   element:<RiskProfileManagementForm/>
-      // },
+      //   path:'add-property',
+      //   element:<AddProperty/>
+      // }
+    ]
+  },
+  {
+    path: '/broker-dashboard',
+    element: <ProtectedRoute allowedRoles={['BROKER']}><BrokerLayout /></ProtectedRoute>,
+    children: [
       {
-        path:'edit-property/:id',
-        element:<UpdateVendorProperty/>
+        index: true,
+        element: <BrokerDashboardOverview />
       },
       {
-        path:'messages',
-        element:<CommunicationWithBroker/>
+        path: 'leads',
+        element: <BrokerLeadManagement />
       },
       {
-        path:'reports',
-        element:<AnalyticsReporting/>
+        path: 'update-lead/:id',
+        element: <UpdateLead />
       },
       {
-        path:'settings',
-        element:<Settings/>
+        path: 'schedule',
+        element: <BrokerSchedule />
       },
       {
-        path:'add-property',
-        element:<AddProperty/>
+        path: 'property',
+        element: <BrokerProperty />
+      },
+      {
+        path: 'create-lead',
+        element: <CreateNewLead />
+      },
+      {
+        path: 'property/:id',
+        element: <PropertyEdit />
+      },
+      {
+        path: 'property/:id/view',
+        element: <BrokerPropertyDetails />
+      },
+      {
+        path: 'messages',
+        element: <BrokerMessage />
+      },
+      {
+        path: 'reports',
+        element: <BrokerAnalytics />
+      },
+      {
+        path: 'settings',
+        element: <BrokerSettings />
       }
     ]
   },
   {
-    path:'/broker-dashboard',
-    element:<BrokerLayout/>,
-    children:[
+    path: '/admin-dashboard',
+    element: <ProtectedRoute allowedRoles={['ADMIN']}><AdminLayout /></ProtectedRoute>,
+    children: [
       {
-        index:true,
-        element:<BrokerDashboardOverview/>
+        index: true,
+        element: <AdminOverview />
       },
       {
-        path:'leads',
-        element:<BrokerLeadManagement/>
+        path: 'overview',
+        element: <AdminOverview />
       },
       {
-        path:'update-lead/:id',
-        element:<UpdateLead/>
+        path: 'leads',
+        element: <AdminLeads />
       },
       {
-        path:'schedule',
-        element:<BrokerSchedule/>
+        path: 'property',
+        element: <AdminProperty />
       },
       {
-        path:'property',
-        element:<BrokerProperty/>
+        path: 'messages',
+        element: <AdminMessage />
       },
       {
-        path:'create-lead',
-        element:<CreateNewLead/>
+        path: 'reports',
+        element: <AdminAnalytics />
       },
       {
-        path:'property/:id',
-        element:<PropertyEdit/>
+        path: 'broker',
+        element: <Broker />
       },
       {
-        path:'property/:id/view',
-        element:<BrokerPropertyDetails/>
+        path: 'vendor',
+        element: <VendorManagement />
       },
       {
-        path:'messages',
-        element:<BrokerMessage/>
-      },
-      {
-        path:'reports',
-        element:<BrokerAnalytics/>
-      },
-      {
-        path:'settings',
-        element:<BrokerSettings/>
-      }
-    ]
-  },
-  {
-    path:'/admin-dashboard',
-    element:<ProtectedRoute><AdminLayout/></ProtectedRoute>,
-    children:[
-      {
-        index:true,
-        element:<AdminOverview/>
-      },
-      {
-        path:'overview',
-        element:<AdminOverview/>
-      },
-      {
-        path:'leads',
-        element:<AdminLeads/>
-      },
-      {
-        path:'property',
-        element:<AdminProperty/>
-      },
-      {
-        path:'messages',
-        element:<AdminMessage/>
-      },
-      {
-        path:'reports',
-        element:<AdminAnalytics/>
-      },
-      {
-        path:'broker',
-        element:<Broker/>
-      },
-      {
-        path:'settings',
-        element:<AdminSettings/>
+        path: 'settings',
+        element: <AdminSettings />
       }
     ]
   }

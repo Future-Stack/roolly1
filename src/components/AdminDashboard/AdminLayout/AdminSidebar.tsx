@@ -7,6 +7,7 @@ import {
   Settings,
   UserCog,
   Users,
+  UserSquare,
   X
 } from 'lucide-react';
 import React from 'react';
@@ -18,13 +19,14 @@ interface BrokerSidebarProps {
 
 const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
   const location = useLocation();
-  const {data:profile} = useGetAdminProfileQuery(undefined)
+  const { data: profile } = useGetAdminProfileQuery(undefined)
 
   const menuItems = [
     { icon: LayoutGrid, label: 'Overview', path: '/admin-dashboard', badge: null },
     { icon: Users, label: 'Leads', path: '/admin-dashboard/leads', badge: null },
     { icon: Building2, label: 'Property', path: '/admin-dashboard/property', badge: null },
-    { icon: UserCog , label: 'Broker Management', path: '/admin-dashboard/broker', badge: null },
+    { icon: UserCog, label: 'Broker Management', path: '/admin-dashboard/broker', badge: null },
+    { icon: UserSquare, label: 'Vendor Management', path: '/admin-dashboard/vendor', badge: null },
     { icon: MessageSquare, label: 'Messages', path: '/admin-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/admin-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/admin-dashboard/settings', badge: null },
@@ -52,7 +54,7 @@ const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
         />
         <div className="flex flex-col">
           <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>
-          <span className="text-lg text-[#A9ACAF] mt-0.5">{profile?.email}</span>
+          <span className="text-sm text-[#A9ACAF] mt-0.5">{profile?.email}</span>
         </div>
       </div>
 

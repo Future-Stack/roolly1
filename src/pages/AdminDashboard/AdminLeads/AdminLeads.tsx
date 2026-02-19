@@ -79,29 +79,29 @@ const AdminLeads = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
-    
+
     // Build query params object
     const buildQueryParams = useCallback(() => {
         const params: QueryParams = {
             page: currentPage,
             page_size: pageSize
         };
-        
+
         // Add search if exists
         if (searchTerm.trim()) {
             params.search = searchTerm;
         }
-        
+
         // Add lead_status filter if not 'All'
         if (selectedAssignment !== 'All') {
             params.lead_status = selectedAssignment.toLowerCase();
         }
-        
+
         // Add property type filter if not 'All Sources'
         if (selectedSource !== 'All Sources') {
             params.property__property_type = selectedSource.toLowerCase();
         }
-        
+
         return params;
     }, [currentPage, pageSize, searchTerm, selectedAssignment, selectedSource]);
 
@@ -165,7 +165,7 @@ const AdminLeads = () => {
             console.log('API Data:', apiData);
 
             setTotalLeads(apiData.count);
-            
+
             // Calculate total pages
             const calculatedPages = Math.ceil(apiData.count / pageSize);
             setTotalPages(calculatedPages > 0 ? calculatedPages : 1);
@@ -295,23 +295,32 @@ const AdminLeads = () => {
 
     return (
         <div onClick={closeAllDropdowns}>
-            <h1 className='font-bold text-2xl mb-3'>Dashboard Overview</h1>
-            <p className='mb-5'>Welcome back! Here's what's happening with your platform today.</p>
+            <div className="mb-6">
+                <h1 className='font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-2'>Dashboard Overview</h1>
+                <p className='text-sm sm:text-base text-gray-600'>Welcome back! Here's what's happening with your platform today.</p>
+            </div>
             <div className='bg-[#F8FAFC] p-2 rounded-lg'>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     {statCards.map((card, idx) => (
-                        <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                            <div className="flex justify-end mb-4">
-                                <div className="bg-blue-600 p-2.5 rounded-lg">
-                                    <card.icon className="w-5 h-5 text-white" />
+                        <div key={idx} className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    {card.label}
+                                </div>
+                                <div className="bg-blue-50 p-2 rounded-xl">
+                                    <card.icon className="w-5 h-5 text-blue-600" />
                                 </div>
                             </div>
-                            <div className={`text-3xl font-bold mb-1 ${card.value === unassignedLeads.toString() && unassignedLeads > 0 ? 'text-[#D81212]' : 'text-blue-600 '}`}>
-                                {card.value}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600 uppercase tracking-wide">
-                                {card.label}
-                                {card.trend && <span className="text-green-500 text-xl font-bold">↑</span>}
+                            <div className="flex items-baseline gap-2">
+                                <div className={`text-3xl sm:text-4xl font-black ${card.value === unassignedLeads.toString() && unassignedLeads > 0 ? 'text-[#D81212]' : 'text-gray-900'}`}>
+                                    {card.value}
+                                </div>
+                                {card.trend && (
+                                    <span className="text-green-500 flex items-center text-sm font-bold">
+                                        <ArrowDown className="w-4 h-4 rotate-180" />
+                                        12%
+                                    </span>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -324,11 +333,11 @@ const AdminLeads = () => {
 
                             {/* Search — 2/3 */}
                             <div className="relative w-full lg:w-2/3">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
                                     type="text"
-                                    placeholder="Search here"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                                    placeholder="Search leads..."
+                                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-sm"
                                     onChange={handleSearchChange}
                                     defaultValue={searchTerm}
                                 />
@@ -343,43 +352,28 @@ const AdminLeads = () => {
                                             e.stopPropagation();
                                             toggleAssignmentFilter();
                                         }}
-                                        className="flex justify-between items-center px-4 py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white cursor-pointer"
+                                        className="flex justify-between items-center px-5 py-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 hover:bg-white hover:border-blue-500 transition-all bg-gray-50 cursor-pointer shadow-sm"
                                     >
-                                        <button className="flex-1 text-left">{selectedAssignment}</button>
+                                        <span className="flex-1 text-left">{selectedAssignment}</span>
                                         <ArrowDown className={`w-4 h-4 flex-shrink-0 transition-transform ${assignmentFilterOpen ? 'rotate-180' : ''}`} />
                                     </div>
 
                                     {/* Assignment Dropdown */}
                                     {assignmentFilterOpen && (
                                         <div
-                                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
                                             onClick={(e) => e.stopPropagation()}
                                         >
-                                            <div className="p-2">
-                                                <button
-                                                    onClick={() => handleAssignmentSelect('All')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    All
-                                                </button>
-                                                <button
-                                                    onClick={() => handleAssignmentSelect('enquired')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    Enquired
-                                                </button>
-                                                <button
-                                                    onClick={() => handleAssignmentSelect('viewed')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    Viewed
-                                                </button>
-                                                <button
-                                                    onClick={() => handleAssignmentSelect('new')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    New
-                                                </button>
+                                            <div className="p-1">
+                                                {['All', 'enquired', 'viewed', 'new'].map((opt) => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => handleAssignmentSelect(opt)}
+                                                        className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-gray-700 rounded-lg text-sm font-medium transition-colors capitalize"
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
@@ -392,61 +386,28 @@ const AdminLeads = () => {
                                             e.stopPropagation();
                                             toggleSourceFilter();
                                         }}
-                                        className="flex justify-between items-center px-4 py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white cursor-pointer"
+                                        className="flex justify-between items-center px-5 py-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 hover:bg-white hover:border-blue-500 transition-all bg-gray-50 cursor-pointer shadow-sm"
                                     >
-                                        <button className="flex-1 text-left">{selectedSource}</button>
+                                        <span className="flex-1 text-left">{selectedSource}</span>
                                         <ArrowDown className={`w-4 h-4 flex-shrink-0 transition-transform ${sourceFilterOpen ? 'rotate-180' : ''}`} />
                                     </div>
 
                                     {/* Source Dropdown */}
                                     {sourceFilterOpen && (
                                         <div
-                                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
                                             onClick={(e) => e.stopPropagation()}
                                         >
-                                            <div className="p-2">
-                                                <button
-                                                    onClick={() => handleSourceSelect('All Sources')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    All Sources
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSourceSelect('industrial')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    Industrial
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSourceSelect('land')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                   Land
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSourceSelect('office')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    Office
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSourceSelect('retail')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    Retail
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSourceSelect('house')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                    House
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSourceSelect('other')}
-                                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 rounded text-sm"
-                                                >
-                                                   Other
-                                                </button>
+                                            <div className="p-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                                {['All Sources', 'industrial', 'land', 'office', 'retail', 'house', 'other'].map((opt) => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => handleSourceSelect(opt)}
+                                                        className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-gray-700 rounded-lg text-sm font-medium transition-colors capitalize"
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
@@ -496,10 +457,10 @@ const AdminLeads = () => {
                                 </div>
 
                                 {/* Alert Message */}
-                                <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-5">
-                                    <div className="flex gap-2">
-                                        <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                                        <p className="text-[13px] text-blue-800 font-medium">{lead.alertMessage}</p>
+                                <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6">
+                                    <div className="flex gap-3">
+                                        <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                                        <p className="text-sm text-blue-900 font-semibold">{lead.alertMessage}</p>
                                     </div>
                                 </div>
 
@@ -516,8 +477,8 @@ const AdminLeads = () => {
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Source</p>
                                         <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${lead.source === 'AI'
-                                                ? 'border-orange-500 text-orange-600'
-                                                : 'border-blue-500 text-blue-600'
+                                            ? 'border-orange-500 text-orange-600'
+                                            : 'border-blue-500 text-blue-600'
                                             }`}>
                                             {lead.source}
                                         </span>
@@ -546,7 +507,7 @@ const AdminLeads = () => {
                 </div>
             </div>
             <div className='flex justify-center mt-6'>
-                <Pagination 
+                <Pagination
                     totalPages={totalPages}
                     currentPage={currentPage}
                     onPageChange={handlePageChange}

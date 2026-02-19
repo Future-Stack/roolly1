@@ -82,65 +82,66 @@ const FeaturedProperties = () => {
   }
 
   return (
-    <div className="w-full mx-auto mt-4 sm:mt-6 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28">
-      <div>
-        <h1 className="text-3xl sm:text-4xl text-black font-semibold mb-12 mt-5">
+    <div className="w-full mx-auto mt-6 sm:mt-10 lg:mt-16 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28">
+      <div className="max-w-[1440px] mx-auto">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl text-black font-semibold mb-8 sm:mb-12 mt-2 sm:mt-5">
           Featured Properties
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {featured.map((property: FeaturedProperty) => (
             <div
               key={property.id}
-              className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E7F0FB] p-3 transition-shadow duration-300"
+              className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E7F0FB] p-3 transition-all duration-300 hover:shadow-md group"
             >
-              <div className="relative aspect-[4/3] overflow-hidden">
+              <div className="relative aspect-[4/3] overflow-hidden mb-3">
                 <img
                   src={getImageUrl(property.image, property.property_type)}
                   alt={property.property_name}
-                  className="w-full h-full rounded-[8px] object-cover hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full rounded-[8px] object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[#126AD8] font-semibold text-2xl">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#126AD8] font-bold text-xl sm:text-2xl">
                     {property.transaction === 'sale' ? 'For Sale' : 'For Lease'}
                   </span>
-                  <div className="flex items-center bg-[#C8FFDD] py-1 px-2 rounded-[20px]">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-[#0C7233] text-xs font-medium ml-1">
-                      {property.transaction === 'sale' ? 'Sale' : 'Lease'}
+                  <div className="flex items-center bg-[#C8FFDD] py-1 px-2.5 rounded-full">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-[#0C7233] text-[10px] sm:text-xs font-semibold ml-1.5 uppercase tracking-wider">
+                      {property.transaction}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-gray-900 font-semibold text-xl">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-gray-900 font-bold text-lg sm:text-xl line-clamp-1">
                     {property.property_name}
                   </h3>
-                  <span className={`text-xs font-medium px-2 py-1 rounded ${property.property_type === 'office' ? 'bg-blue-100 text-blue-800' :
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide shrink-0 ${property.property_type === 'office' ? 'bg-blue-100 text-blue-800' :
                     property.property_type === 'industrial' ? 'bg-orange-100 text-orange-800' :
                       property.property_type === 'retail' ? 'bg-purple-100 text-purple-800' :
                         property.property_type === 'land' ? 'bg-green-100 text-green-800' :
                           property.property_type === 'house' ? 'bg-red-100 text-red-800' :
                             'bg-gray-100 text-gray-800'
                     }`}>
-                    {property.property_type.charAt(0).toUpperCase() + property.property_type.slice(1)}
+                    {property.property_type}
                   </span>
                 </div>
 
-                <p className="text-[#82868A] leading-5 text-sm mb-4 line-clamp-2">
+                <p className="text-[#82868A] leading-relaxed text-sm line-clamp-2 h-10">
                   {property.description}
                 </p>
 
-                <div className="text-gray-600 text-sm mb-4">
-                  📍 {property.location}
+                <div className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
+                  <span className="shrink-0">📍</span>
+                  <span className="truncate">{property.location}</span>
                 </div>
 
                 <button
                   onClick={() => navigate(`/details/${property.id}`)}
-                  className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
+                  className="w-full py-3 mt-2 border-2 border-[#126AD8] hover:bg-[#126AD8] hover:text-white text-[#126AD8] rounded-lg font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm"
                 >
                   View Details
                 </button>

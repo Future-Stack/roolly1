@@ -81,7 +81,7 @@ const dynamicLocations = React.useMemo(() => {
 
         {/* Left Side - MAP */}
         <div className="w-full lg:w-1/2 min-h-[280px] lg:min-h-full z-10">
-          <div className="h-[400px] sm:h-[450px] lg:h-[800px] w-full">
+          <div className="h-[400px] sm:h-[450px] lg:h-[730px] w-full">
             <MapContainer
               center={center}
               zoom={11}
@@ -128,7 +128,7 @@ const dynamicLocations = React.useMemo(() => {
               </button>
             </div>
           )}
-          <div className="w-full h-full overflow-y-auto max-h-[800px] custom-scrollbar">
+          <div className="w-full h-full overflow-y-auto max-h-[730px] custom-scrollbar">
             <PropertyListing search={selectedLocation} />
           </div>
         </div>

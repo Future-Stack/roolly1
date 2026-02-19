@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { Image, Upload, X } from 'lucide-react';
+import { Upload, User, X } from 'lucide-react';
 import NotificationsUpdate from '@/components/AdminDashboard/AdminSettings/NotificationsUpdate';
 import PrivacyPolicy from '@/components/AdminDashboard/AdminSettings/SiteSettings/PrivacyPolicy';
 import { useAdminChangePasswordMutation } from '@/redux/features/admin/settings/adminChangePasswordApi';
@@ -32,6 +32,8 @@ const AdminSettings: React.FC = () => {
     const [imageError, setImageError] = useState<string>('');
     const [imageSuccess, setImageSuccess] = useState<string>('');
     const [imageLoading, setImageLoading] = useState<boolean>(false);
+    const [imageLoadError, setImageLoadError] = useState<boolean>(false);
+    const [basicInfoImageError, setBasicInfoImageError] = useState<boolean>(false);
 
     // Password states
     const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
@@ -68,6 +70,8 @@ const AdminSettings: React.FC = () => {
                 email: profile.email || '',
                 phone_number: profile.phone_number || ''
             });
+            setImageLoadError(false);
+            setBasicInfoImageError(false);
         }
     }, [profile]);
 
@@ -97,6 +101,7 @@ const AdminSettings: React.FC = () => {
         const reader = new FileReader();
         reader.onloadend = () => {
             setSelectedImage(reader.result as string);
+            setImageLoadError(false);
         };
         reader.readAsDataURL(file);
     };
@@ -105,6 +110,7 @@ const AdminSettings: React.FC = () => {
         setSelectedFile(null);
         setSelectedImage(profile?.image || null);
         setImageError('');
+        setImageLoadError(false);
     };
 
     const handleImageSubmit = async (e: React.FormEvent) => {
@@ -394,12 +400,13 @@ const AdminSettings: React.FC = () => {
                                 <p className="text-sm font-medium text-gray-900 mb-4">Upload Profile image</p>
 
                                 <div className="relative bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                                    {selectedImage ? (
+                                    {selectedImage && !imageLoadError ? (
                                         <>
                                             <img
                                                 src={selectedImage}
                                                 alt="Profile"
                                                 className="w-full h-full rounded-full object-cover"
+                                                onError={() => setImageLoadError(true)}
                                             />
                                             {selectedFile && (
                                                 <button
@@ -412,7 +419,7 @@ const AdminSettings: React.FC = () => {
                                             )}
                                         </>
                                     ) : (
-                                        <Image size={40} className="text-gray-400" />
+                                        <User size={40} className="text-gray-400" />
                                     )}
                                 </div>
 
@@ -482,15 +489,16 @@ const AdminSettings: React.FC = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-900 mb-2">Profile Image</label>
                                 <div className="flex items-center space-x-4">
-                                    {profile?.image ? (
+                                    {profile?.image && !basicInfoImageError ? (
                                         <img
                                             src={profile.image}
                                             alt="Profile"
                                             className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                                            onError={() => setBasicInfoImageError(true)}
                                         />
                                     ) : (
                                         <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <Image size={32} className="text-gray-400" />
+                                            <User size={32} className="text-gray-400" />
                                         </div>
                                     )}
                                 </div>

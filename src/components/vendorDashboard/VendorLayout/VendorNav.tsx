@@ -7,6 +7,7 @@ import { useCurrentToken } from "@/redux/features/auth/authSlice";
 import { useAppSelector } from "@/redux/hook";
 import { useGetVendorProfileQuery } from "@/redux/features/vendor/getVendorProfileApi";
 import ProfileDropdown from "./ProfileDropdown";
+import { useNavigate } from "react-router-dom";
 
 // Notification Types
 interface Notification {
@@ -172,6 +173,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
 // Main BrokerNav Component
 const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [, setNotifications] = useState<Notification[]>([]);
@@ -554,9 +556,11 @@ const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
           </button>
 
           {/* Logo - Hidden on mobile, visible from sm upwards */}
-          <div className="hidden sm:block">
+          {/* <Link to="/"> */}
+          <button onClick={() => navigate("/")} className="hidden sm:block">
             <img src={logo} alt="logo" className="w-28 md:w-36" />
-          </div>
+          </button>
+          {/* </Link> */}
         </div>
 
         {/* Search Bar - Center aligned on larger screens */}

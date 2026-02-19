@@ -26,6 +26,8 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
     const [threadId, setThreadId] = useState<string | null>(null);
     const [message, setMessage] = useState("");
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
+    const [isTyping, setIsTyping] = useState(false);
 
     const [createChatThread] = useCreateChatThreadMutation();
     const [sendChatMessage] = useSendChatMessageMutation();
@@ -53,13 +55,72 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
         }
     };
 
-    const handleSubmit = async () => {
-        try {
-            if (!name || !email) {
-                alert("Name and Email are required");
-                return;
-            }
+    const validate = () => {
+        const newErrors: { name?: string; email?: string; phone?: string } = {};
 
+        if (!name.trim()) {
+            newErrors.name = "Name is required";
+        } else if (name.trim().length < 2) {
+            newErrors.name = "Name must be at least 2 characters";
+        }
+
+        if (!email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newErrors.email = "Invalid email format";
+        }
+
+        if (!phone.trim()) {
+            newErrors.phone = "Phone number is required";
+        } else if (!/^\d+$/.test(phone.replace(/\s/g, ''))) {
+            newErrors.phone = "Phone number must be numeric";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const extractErrorMessage = (errorData: any): string => {
+        if (!errorData) return "An unexpected error occurred.";
+
+        const detail = errorData.detail;
+        if (!detail) return errorData.message || "An unexpected error occurred.";
+
+        // Special handling for the format: "Failed to create lead: {"phone_number":["..."]}"
+        if (typeof detail === 'string' && detail.includes("Failed to create lead: {")) {
+            try {
+                const jsonString = detail.split("Failed to create lead: ")[1];
+                const parsed = JSON.parse(jsonString);
+
+                // Extract first error from any field (usually phone_number or email)
+                for (const key in parsed) {
+                    if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
+                        return parsed[key][0];
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing error detail:", e);
+            }
+        }
+
+        if (typeof detail === 'string') return detail;
+
+        // Handle case where detail might already be an object
+        if (typeof detail === 'object') {
+            for (const key in detail) {
+                if (Array.isArray(detail[key]) && detail[key].length > 0) {
+                    return detail[key][0];
+                }
+            }
+        }
+
+        return "Failed to process request.";
+    };
+
+    const handleSubmit = async () => {
+        if (!validate()) return;
+
+        try {
             const payload = {
                 client_name: name,
                 email_address: email,
@@ -77,7 +138,7 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: err?.data?.detail || "Failed to create thread.",
+                text: extractErrorMessage(err?.data),
             });
         }
     };
@@ -102,7 +163,9 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
                 payload.property = propertyId;
             }
 
+            setIsTyping(true);
             const res = await sendChatMessage(payload).unwrap();
+            setIsTyping(false);
 
             const botReply = res.reply;
             const replyText = typeof botReply === 'string' ? botReply : (botReply?.message || "");
@@ -119,12 +182,13 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
                 },
             ]);
 
-        } catch (error) {
+        } catch (error: any) {
+            setIsTyping(false);
             console.error("Chat error:", error);
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Failed to send message.",
+                text: extractErrorMessage(error?.data) || "Failed to send message.",
             });
         }
     };
@@ -137,6 +201,7 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
                 setMessage={setMessage}
                 handleSendMessage={handleSendMessage}
                 navigate={navigate}
+                isTyping={isTyping}
             />
         );
     }
@@ -144,14 +209,24 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
     return (
         <SurveyForm
             name={name}
-            setName={setName}
+            setName={(val) => {
+                setName(val);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+            }}
             email={email}
-            setEmail={setEmail}
+            setEmail={(val) => {
+                setEmail(val);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            }}
             phone={phone}
-            setPhone={setPhone}
+            setPhone={(val) => {
+                setPhone(val);
+                if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+            }}
             countryCode={countryCode}
             setCountryCode={setCountryCode}
             onSubmit={handleSubmit}
+            errors={errors}
         />
     );
 };

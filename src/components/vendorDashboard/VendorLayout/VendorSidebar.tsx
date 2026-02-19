@@ -45,13 +45,13 @@ const VendorSidebar: React.FC<VendorSidebarProps> = ({ onClose }) => {
       {/* User Profile */}
       <div className="flex items-center gap-3 px-4 py-4 border border-[#F1F5F9] rounded-sm">
         <img
-          src={profile?.image || '/default-profile.png'}
+          src={profile?.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
           <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>
-          <span className="text-lg text-[#A9ACAF] mt-0.5">{profile?.email}</span>
+          <span className="text-sm text-[#A9ACAF] mt-0.5">{profile?.email}</span>
         </div>
       </div>
 

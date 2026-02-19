@@ -21,7 +21,7 @@ const Banner: React.FC = () => {
     { label: 'Land', value: 'land' },
     { label: 'Office', value: 'office' },
     { label: 'Retail', value: 'retail' },
-    { label: 'House', value: 'house' },
+    // { label: 'House', value: 'house' },
     { label: 'Other', value: 'other' }
   ];
 
@@ -183,7 +183,7 @@ const Banner: React.FC = () => {
             </div>
 
             {/* Transaction Dropdown */}
-            <div className="flex-1 min-w-[180px] relative">
+              <div className="relative w-full lg:flex-1">
               <div
                 onClick={(e) => {
                   e.stopPropagation();
@@ -320,7 +320,7 @@ const Banner: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+      </div>
   );
 };
 
