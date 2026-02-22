@@ -1,5 +1,5 @@
-import React, {  useState } from 'react';
-import { Target, TrendingUp, Plus, FileText, ChartLine } from 'lucide-react';
+import React, { useState } from 'react';
+import { Target, Plus, FileText, ChartLine } from 'lucide-react';
 import BrokerLeads from '@/components/brokerDashboard/Overview/BrokerLeads';
 import LeadGenerationEnquiryForm from '@/components/brokerDashboard/BrokerLeads/LeadGenerationEnquiryForm';
 import PropertyCribSheet from '@/components/brokerDashboard/BrokerLeads/PropertyCribSheet';
@@ -10,11 +10,11 @@ import { useGetBrokerOverviewQuery } from '@/redux/features/broker/overview/getB
 
 const BrokerDashboardOverview: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my' | 'available'>('my');
-  const [newLeadModalOpen, setNewLeadModalOpen] = useState(false); 
-  const [propertyCribModalOpen, setPropertyCribModalOpen] = useState(false); 
-  const {data:brokerLeads} = useGetBrokerLeadsQuery(undefined);
-  const {data:availableLeads} = useGetAvailableLeadsQuery(undefined);
-  const {data:brokerOverview} = useGetBrokerOverviewQuery(undefined);
+  const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
+  const [propertyCribModalOpen, setPropertyCribModalOpen] = useState(false);
+  const { data: brokerLeads } = useGetBrokerLeadsQuery(undefined);
+  const { data: availableLeads } = useGetAvailableLeadsQuery(undefined);
+  const { data: brokerOverview } = useGetBrokerOverviewQuery(undefined);
 
   const openNewLeadModal = () => {
     setNewLeadModalOpen(true);
@@ -57,7 +57,7 @@ const BrokerDashboardOverview: React.FC = () => {
               Welcome back! Here's what's happening with your platform today.
             </p>
           </div>
-          <button 
+          <button
             onClick={openPropertyCribModal}
             className="bg-[#EA580C] hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors"
           >
@@ -67,7 +67,7 @@ const BrokerDashboardOverview: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
           {/* Assigned Leads */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-start justify-between mb-6">
@@ -93,7 +93,7 @@ const BrokerDashboardOverview: React.FC = () => {
           </div>
 
           {/* Avg Response Time */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          {/* <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-start justify-between mb-6">
               <span className="text-[13px] text-gray-600 font-normal">Avg Response Time</span>
               <TrendingUp className="w-5 h-5 text-blue-600" strokeWidth={2} />
@@ -101,7 +101,7 @@ const BrokerDashboardOverview: React.FC = () => {
             <div>
               <p className="text-[32px] font-bold text-gray-900">1.2h</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Closed Deals */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -125,7 +125,7 @@ const BrokerDashboardOverview: React.FC = () => {
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
             >
-              My leads({brokerLeads?.length|| 0})
+              My leads({brokerLeads?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab('available')}
@@ -137,7 +137,7 @@ const BrokerDashboardOverview: React.FC = () => {
               Available leads({availableLeads?.results?.length || 0})
             </button>
           </div>
-          <button 
+          <button
             onClick={openNewLeadModal}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 text-base font-medium transition-colors"
           >

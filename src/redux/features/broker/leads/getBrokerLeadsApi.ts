@@ -6,7 +6,8 @@ const getBrokerLeadsApi = baseApi.injectEndpoints({
             query : () => ({
                 url : '/brokers/my-leads-overview/',
                 method: 'GET',
-            })
+            }),
+            providesTags: ["Leads"]
         })
     }),
 })
