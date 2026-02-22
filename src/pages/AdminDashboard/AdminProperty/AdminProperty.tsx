@@ -88,6 +88,7 @@ const AdminProperty: React.FC = () => {
     const propertiesData: PropertyData[] = useMemo(() =>
         propertyResponse?.results || propertyResponse || []
         , [propertyResponse]);
+    console.log(propertiesData);
 
     // Calculate pagination values
     const totalProperties = propertyResponse?.count || 0;
@@ -638,7 +639,7 @@ const AdminProperty: React.FC = () => {
                                                 {/* Action Buttons */}
                                                 <div className="flex gap-3 md:ml-auto md:pt-5">
                                                     <button
-                                                        onClick={() => handleCreateMessage(property.propertyData.property_onwer?.id)}
+                                                        onClick={() => handleCreateMessage(property.propertyData.broker?.id)}
                                                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-medium transition-colors"
                                                     >
                                                         <MessageSquare className="w-4 h-4" />

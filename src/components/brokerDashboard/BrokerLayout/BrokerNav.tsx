@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Bell, Menu, Search, MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot} from "lucide-react";
+import { Bell, Menu, Search, MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import logo from '../../../assets/logo.png'
@@ -58,6 +58,22 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   error,
   onRetry,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(notifications.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentNotifications = notifications.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    } else {
+      setCurrentPage(1); // Cycle back to first page
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleNotificationClick = async (notificationId: number) => {
@@ -76,7 +92,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           Notifications
         </h3>
         {notifications.some(n => n.isUnread) && (
-          <button 
+          <button
             onClick={onMarkAllAsRead}
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
@@ -111,7 +127,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             <p className="text-sm text-gray-400 mt-1">You're all caught up!</p>
           </div>
         ) : (
-          notifications.map((notification) => (
+          currentNotifications.map((notification) => (
             <button
               key={notification.id}
               onClick={() => handleNotificationClick(notification.id)}
@@ -144,11 +160,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {notification.title}
                   </p>
-                  {notification.badge && (
+                  {/* {notification.badge && (
                     <span className="text-md font-medium text-emerald-600">
                       ● <span className="text-[#3B82F6]">{notification.badge}</span>
                     </span>
-                  )}
+                  )} */}
                 </div>
                 {notification.subtitle && (
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -161,11 +177,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         )}
       </div>
 
+
       {/* Footer */}
       <div className="px-4 py-3 border-t border-gray-200">
-        <button className="w-full text-center text-md font-medium text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1">
-          View all Notification
-          <ChevronRight className="w-4 h-4" />
+        <button
+          onClick={handleNextPage}
+          className="w-full text-center text-md font-medium text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1"
+        >
+          {notifications.length > itemsPerPage
+            ? `View More Notifications`
+            : "View all Notification"}
+          <ChevronRight className={`w-4 h-4 transition-transform ${currentPage > 1 ? "rotate-90" : ""}`} />
         </button>
       </div>
     </div>
@@ -186,7 +208,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
   const token = useAppSelector(useCurrentToken);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
-    const {data:profile} = useGetBrokerProfileQuery(undefined);
+  const { data: profile } = useGetBrokerProfileQuery(undefined);
 
   // Format timestamp
   const formatTimestamp = (timestamp: string): string => {
@@ -224,7 +246,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
     return notifs.map(notification => {
       let icon = "message";
       let badge = ""; // Initialize badge with empty string
-      
+
       switch (notification.type) {
         case "new_lead":
           icon = "clipboard";
@@ -280,7 +302,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       if (!token) {
         setError("Please login to view notifications");
         setIsLoading(false);
@@ -300,27 +322,27 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
           timeout: 10000
         }
       );
-      
+
       console.log("API Response:", response.data);
-      
+
       // Check if response is valid
       if (response.data && typeof response.data === 'object') {
         const data = response.data;
-        
+
         // Check for PRO FEATURE ONLY response
         const responseData = response.data as any;
-        const isProFeatureOnly = 
-          responseData === 'PRO FEATURE ONLY' || 
+        const isProFeatureOnly =
+          responseData === 'PRO FEATURE ONLY' ||
           (typeof responseData === 'string' && responseData.includes('PRO FEATURE')) ||
           (data && typeof data === 'object' && 'detail' in data && data.detail === 'PRO FEATURE ONLY');
-        
+
         if (isProFeatureOnly) {
           throw new Error("API is not available in demo mode");
         }
-        
+
         // Cast to NotificationsResponse
         const notificationData = data as NotificationsResponse;
-        
+
         // Check if results is an array
         if (notificationData.results && Array.isArray(notificationData.results)) {
           setNotifications(notificationData.results);
@@ -332,15 +354,15 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
       } else {
         throw new Error("Invalid response format");
       }
-      
+
     } catch (err: any) {
       console.error("Error fetching notifications:", err);
-      
+
       // Check for specific error types
       if (err.response) {
         // Server responded with error
         console.error("Response error:", err.response.status, err.response.data);
-        
+
         if (err.response.status === 401) {
           setError("Session expired. Please login again.");
         } else if (err.response.status === 403) {
@@ -361,7 +383,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
       } else {
         setError("Failed to load notifications. Please try again.");
       }
-      
+
       // Clear any existing data
       setNotifications([]);
       setFormattedNotifications([]);
@@ -391,7 +413,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
           timeout: 5000
         }
       );
-      
+
       // Update local state
       setNotifications(prev =>
         prev.map(notification =>
@@ -400,7 +422,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
             : notification
         )
       );
-      
+
       setFormattedNotifications(prev =>
         prev.map(notif =>
           notif.id === notificationId
@@ -408,13 +430,13 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
             : notif
         )
       );
-      
+
       setUnreadCount(prev => Math.max(0, prev - 1));
-      
-      
+
+
     } catch (err: any) {
       console.error("Error marking notification as read:", err);
-      
+
       // Even if API fails, update UI for better UX
       setFormattedNotifications(prev =>
         prev.map(notif =>
@@ -424,7 +446,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-      
+
       // Show error but continue
       if (err.response?.data === 'PRO FEATURE ONLY') {
         console.log("Read operation requires premium subscription");
@@ -452,29 +474,29 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
           timeout: 5000
         }
       );
-      
+
       // Update local state
       setNotifications(prev =>
         prev.map(notification => ({ ...notification, is_read: true }))
       );
-      
+
       setFormattedNotifications(prev =>
         prev.map(notif => ({ ...notif, isUnread: false, badge: "" }))
       );
-      
+
       setUnreadCount(0);
-      
+
       console.log("All notifications marked as read successfully");
-      
+
     } catch (err: any) {
       console.error("Error marking all notifications as read:", err);
-      
+
       // Even if API fails, update UI for better UX
       setFormattedNotifications(prev =>
         prev.map(notif => ({ ...notif, isUnread: false, badge: "" }))
       );
       setUnreadCount(0);
-      
+
       // Show error but continue
       if (err.response?.data === 'PRO FEATURE ONLY') {
         console.log("Read-all operation requires premium subscription");
@@ -509,9 +531,9 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
     const fetchInitialCount = async () => {
       try {
         if (!token) return;
-        
+
         console.log("Fetching initial notification count");
-        
+
         const response = await axios.get<NotificationsResponse>(
           "https://broker360re.com/api/notifications/list/",
           {
@@ -522,7 +544,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
             timeout: 5000
           }
         );
-        
+
         if (response.data && typeof response.data === 'object') {
           setUnreadCount(response.data.unread_count || 0);
           console.log("Initial unread count:", response.data.unread_count);
@@ -532,10 +554,10 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
         setUnreadCount(0);
       }
     };
-    
+
     if (token) {
       fetchInitialCount();
-      
+
       // Refresh every 5 minutes
       const interval = setInterval(fetchInitialCount, 5 * 60 * 1000);
       return () => clearInterval(interval);
@@ -548,8 +570,8 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
 
         {/* Mobile Menu Button and Logo */}
         <div className="flex items-center gap-3">
-          <button 
-            onClick={onMenuClick} 
+          <button
+            onClick={onMenuClick}
             className="lg:hidden block p-2 rounded-lg hover:bg-gray-100"
             aria-label="Menu"
           >

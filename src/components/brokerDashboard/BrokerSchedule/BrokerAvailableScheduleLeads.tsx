@@ -306,11 +306,11 @@ const BrokerAvailableScheduleLeads = () => {
                                     <div className="flex items-center gap-4 text-[13px] text-gray-600 mb-4">
                                         <div className="flex items-center gap-1.5 text-[#717182]">
                                             <MapPin className="w-4 h-4" strokeWidth={2} />
-                                            <span>{lead.lead.property.property_name}</span>
+                                            <span>{lead.lead.property?.property_name}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-[#717182]">
                                             <Clock className="w-4 h-4" strokeWidth={2} />
-                                            <span>{getTimeAgo(lead.lead.property.created_at)}</span>
+                                            <span>{getTimeAgo(lead.lead.property?.created_at)}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-[#717182]">
                                             <Calendar className="w-4 h-4" strokeWidth={2} />
@@ -332,7 +332,7 @@ const BrokerAvailableScheduleLeads = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-5">
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Property Type</p>
-                                            <p className="text-sm text-gray-900 font-normal capitalize">{lead.lead.property.property_type}</p>
+                                            <p className="text-sm text-gray-900 font-normal capitalize">{lead.lead.property?.property_type}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Budget</p>

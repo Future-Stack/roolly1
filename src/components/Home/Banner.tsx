@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import bannerImg from '../../assets/bnnnerImg.svg';
+import bannerImg from '../../assets/bannerImg.webp';
 import { useNavigate } from 'react-router-dom';
 
 const Banner: React.FC = () => {
   const navigate = useNavigate();
+  // const [loaded, setLoaded] = useState(false);
+
   // States
   const [propertyType, setPropertyType] = useState('');
   const [transaction, setTransaction] = useState('');
@@ -104,6 +106,18 @@ const Banner: React.FC = () => {
           filter: 'brightness(0.6)',
         }}
       />
+      {/* <div
+        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-700 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        style={{ backgroundImage: `url(${bannerImg})` }}
+      >
+        <img
+          src={bannerImg}
+          className="hidden"
+          onLoad={() => setLoaded(true)}
+        />
+      </div> */}
 
       <div
         className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12 sm:px-6 xl:px-8"

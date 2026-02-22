@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Pagination from '@/components/ui/Pagination';
 import { useGetBrokerLeadsListQuery } from '@/redux/features/broker/leads/getBrokerLeadsListApi';
-import { ArrowDown, Mail, MoreVertical, Phone, Plus, Search, X } from 'lucide-react';
+import { ArrowDown, Mail, MessageSquare, MoreVertical, Phone, Plus, Search, X } from 'lucide-react';
+import AddCommentModal from '@/components/brokerDashboard/Overview/AddCommentModal';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -80,6 +81,9 @@ const BrokerLeadManagement: React.FC = () => {
   const leads: Lead[] = leadsData?.results || [];
   const totalCount = leadsData?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [selectedLeadForComment, setSelectedLeadForComment] = useState<{ id: number; name: string } | null>(null);
 
   const getTrafficColor = (traffic: string) => {
     switch (traffic.toLowerCase()) {
@@ -161,6 +165,8 @@ const BrokerLeadManagement: React.FC = () => {
     return status ? status.label : 'Status';
   };
 
+
+
   const handleEditLead = (leadId: string | number, leadData: any) => {
     // Convert leadId to string if it's a number
     const idString = typeof leadId === 'number' ? leadId.toString() : leadId;
@@ -219,77 +225,77 @@ const BrokerLeadManagement: React.FC = () => {
         {/* Filters Bar */}
         <div className='flex flex-col lg:flex-row justify-between gap-4 mb-5'>
           {/* <div className=''> */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              {/* Search Input */}
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search leads..."
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Status Filter */}
-              <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search leads..."
+                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                  className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'
-                >
-                  <span className="text-gray-700">{getSelectedStatusLabel()}</span>
-                  <ArrowDown className={`w-4 h-4 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Status Dropdown */}
-                {statusDropdownOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-30"
-                      onClick={closeStatusDropdown}
-                    />
-                    <div className="absolute top-full mt-2 z-40 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                      <div className="p-2 max-h-60 overflow-y-auto">
-                        {statusOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={() => handleStatusSelect(option.value)}
-                            className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedStatus === option.value
-                              ? 'bg-blue-50 text-blue-600'
-                              : 'text-gray-700 hover:bg-gray-50'
-                              }`}
-                          >
-                            {option.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Clear Filters Button */}
-              {(selectedStatus || searchQuery) && (
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-4 h-4" />
-                  Clear Filters
                 </button>
               )}
             </div>
-            {/* ✅ NEW: Traffic Filter Checkboxes */}
-            {/* <div className="flex items-center gap-4 my-6">
+
+            {/* Status Filter */}
+            <div className="relative">
+              <button
+                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                className='flex justify-between items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white w-40'
+              >
+                <span className="text-gray-700">{getSelectedStatusLabel()}</span>
+                <ArrowDown className={`w-4 h-4 transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Status Dropdown */}
+              {statusDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={closeStatusDropdown}
+                  />
+                  <div className="absolute top-full mt-2 z-40 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-2 max-h-60 overflow-y-auto">
+                      {statusOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleStatusSelect(option.value)}
+                          className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${selectedStatus === option.value
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Clear Filters Button */}
+            {(selectedStatus || searchQuery) && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </button>
+            )}
+          </div>
+          {/* ✅ NEW: Traffic Filter Checkboxes */}
+          {/* <div className="flex items-center gap-4 my-6">
               <span className="text-sm font-medium text-gray-700">Filter by Traffic:</span>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -364,6 +370,7 @@ const BrokerLeadManagement: React.FC = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Budget</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Traffic</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Comments</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Contact</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Action</th>
@@ -388,6 +395,18 @@ const BrokerLeadManagement: React.FC = () => {
                         <span className={`inline-flex items-center px-3 py-2 rounded-sm text-xs font-medium text-white ${getStatusColor(lead.lead_status)}`}>
                           {formatStatus(lead.lead_status)}
                         </span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <button
+                          onClick={() => {
+                            setSelectedLeadForComment({ id: lead.id, name: lead.client_name });
+                            setCommentModalOpen(true);
+                          }}
+                          className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                          title="Add/View Comment"
+                        >
+                          <MessageSquare className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                        </button>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-700">{formatDate(lead.created_at)}</td>
                       <td className="px-4 py-4">
@@ -451,6 +470,12 @@ const BrokerLeadManagement: React.FC = () => {
             </table>
           </div>
         </div>
+        <AddCommentModal
+          isOpen={commentModalOpen}
+          onClose={() => setCommentModalOpen(false)}
+          leadId={selectedLeadForComment?.id || null}
+          leadName={selectedLeadForComment?.name || ''}
+        />
 
         {/* Pagination */}
         {totalPages > 0 && (

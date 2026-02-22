@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropertyListing from './PropertyListing';
 import "leaflet/dist/leaflet.css";
+import "./leafletConfig";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
@@ -27,40 +28,40 @@ const MapPropertySection: React.FC = () => {
   const normalizeLocation = (loc: string) => loc.split(',')[0].trim();
 
 
-const dynamicLocations = React.useMemo(() => {
-  const results = Array.isArray(propertiesData)
-    ? propertiesData
-    : (propertiesData as any)?.results;
-  if (!Array.isArray(results)) return [];
+  const dynamicLocations = React.useMemo(() => {
+    const results = Array.isArray(propertiesData)
+      ? propertiesData
+      : (propertiesData as any)?.results;
+    if (!Array.isArray(results)) return [];
 
-  const areaMap = new Map<string, { name: string; count: number }>();
+    const areaMap = new Map<string, { name: string; count: number }>();
 
-  results.forEach((p: any) => {
-    const locName = p.location;
-    if (!locName) return;
+    results.forEach((p: any) => {
+      const locName = p.location;
+      if (!locName) return;
 
-    const normalized = normalizeLocation(locName);
+      const normalized = normalizeLocation(locName);
 
-    const areaKey = Object.keys(coordinateLookup).find(k =>
-      normalized.toLowerCase() === k.toLowerCase()
-    ) || "Others";
+      const areaKey = Object.keys(coordinateLookup).find(k =>
+        normalized.toLowerCase() === k.toLowerCase()
+      ) || "Others";
 
-    // if (!areaKey) return;
+      // if (!areaKey) return;
 
-    const existing = areaMap.get(areaKey);
-    if (existing) {
-      existing.count++;
-    } else {
-      areaMap.set(areaKey, { name: areaKey, count: 1 });
-    }
-  });
+      const existing = areaMap.get(areaKey);
+      if (existing) {
+        existing.count++;
+      } else {
+        areaMap.set(areaKey, { name: areaKey, count: 1 });
+      }
+    });
 
-  return Array.from(areaMap.values())
-    .map(item => ({
-      ...item,
-      position: coordinateLookup[item.name] || [23.8103, 90.4125]
-    }));
-}, [propertiesData]);
+    return Array.from(areaMap.values())
+      .map(item => ({
+        ...item,
+        position: coordinateLookup[item.name] || [23.8103, 90.4125]
+      }));
+  }, [propertiesData]);
 
 
   const center: LatLngExpression = React.useMemo(() => {
@@ -86,7 +87,7 @@ const dynamicLocations = React.useMemo(() => {
               center={center}
               zoom={11}
               className="h-full w-full rounded-xl"
-              key={center.toString()} // forces re-render when center changes
+              key={center.toString()}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

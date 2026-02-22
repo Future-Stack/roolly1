@@ -3,6 +3,11 @@ import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
 import { useGetBrokerLeadsQuery } from '@/redux/features/broker/leads/getBrokerLeadsApi';
 import { useGetSingleScheduleQuery } from '@/redux/features/broker/schedule/getSingleScheduleApi';
+import AddScheduleModal from './AddScheduleModal';
+import { useGetBrokerLeadsListQuery } from '@/redux/features/broker/leads/getBrokerLeadsListApi';
+import { useUpdateLeadMutation } from '@/redux/features/broker/leads/updateLeadApi';
+import { toast } from 'react-toastify';
+
 
 interface Property {
   property_name: string;
@@ -12,6 +17,7 @@ interface Property {
 }
 
 interface Lead {
+  id: number;
   property: Property | null;
   client_name: string;
   source: string;
@@ -25,7 +31,7 @@ interface Lead {
 }
 
 interface FormattedLead {
-  id: string;
+  id: number;
   name: string;
   status: 'Green' | 'Blue' | 'Red' | 'Amber';
   secondaryStatus: string;
@@ -44,23 +50,32 @@ interface FormattedLead {
 }
 
 const BrokerLeads = () => {
-  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [addScheduleModalOpen, setAddScheduleModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<{ id: number; name: string } | null>(null);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
-  const { data: brokerLeadsData, isLoading, isError } = useGetBrokerLeadsQuery(undefined);
+  const { data: brokerLeadsData, isLoading, isError, refetch } = useGetBrokerLeadsQuery(undefined);
+  const { data: brokerLeadsListData } = useGetBrokerLeadsListQuery(undefined);
+  const [updateLead, { isLoading: isUpdatingStatus }] = useUpdateLeadMutation();
+  // const leadsData = brokerLeadsData?.results || [];
   console.log('API Data:', brokerLeadsData);
+  console.log('API Data List:', brokerLeadsListData);
+  // if(brokerLeadsListData?.map((leadList) => lead.email_address) === brokerLeadsData?.map((lead) => lead.email_address)){
+  //   console.log('Lead ID:', brokerLeadsListData?.map((lead) => lead.id));
+  // }
 
-  const { 
-    data: scheduleData, 
+  const {
+    data: scheduleData,
     isLoading: scheduleLoading,
-    isError: scheduleError 
+    isError: scheduleError
   } = useGetSingleScheduleQuery(selectedScheduleId?.toString() || undefined, {
     skip: !selectedScheduleId,
   });
 
   const getTimeAgo = (dateString: string | undefined | null) => {
     if (!dateString) return 'Just now';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -79,14 +94,14 @@ const BrokerLeads = () => {
 
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) return 'N/A';
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB');
   };
 
   const getTrafficStatus = (traffic: string): 'Green' | 'Blue' | 'Red' | 'Amber' => {
     if (!traffic) return 'Blue';
-    
+
     switch (traffic.toLowerCase()) {
       case 'green': return 'Green';
       case 'blue': return 'Blue';
@@ -98,13 +113,13 @@ const BrokerLeads = () => {
 
   const formatStatus = (status: string) => {
     if (!status) return 'Not Specified';
-    
+
     return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const getAlertMessage = (source: string, status: string) => {
     if (!source || !status) return 'New lead received. Follow up required.';
-    
+
     if (source.toLowerCase() === 'ai') {
       return 'New AI chat lead. Ready to proceed quickly.';
     } else if (source.toLowerCase() === 'whatsapp') {
@@ -120,7 +135,7 @@ const BrokerLeads = () => {
 
   const formatBusinessType = (propertyType: string | undefined | null) => {
     if (!propertyType) return 'Not specified';
-    
+
     switch (propertyType.toLowerCase()) {
       case 'office': return 'Office Space';
       case 'industrial': return 'Industrial';
@@ -133,14 +148,16 @@ const BrokerLeads = () => {
 
   const formatBudget = (budgetRange: string | null) => {
     if (!budgetRange) return 'Not specified';
-    
+
     if (budgetRange.includes('-')) {
       const [min, max] = budgetRange.split('-');
       return `£${min}-£${max}`;
     }
-    
+
     return `£${budgetRange}`;
   };
+
+
 
   const transformLeads = (data: Lead[]): FormattedLead[] => {
     if (!data || !Array.isArray(data)) return [];
@@ -148,21 +165,21 @@ const BrokerLeads = () => {
     return data.map((lead, index) => {
       // Use actual data or fallbacks
       const hasProperty = lead.property !== null;
-      
+
       return {
-        id: `${Date.now()}-${index}`,
+        id: lead.id,
         name: lead.client_name || 'Unknown Client',
         status: getTrafficStatus(lead.lead_traffic),
         secondaryStatus: formatStatus(lead.lead_status),
         propertyId: `PR${(index + 1).toString().padStart(3, '0')}`,
-        propertyName: hasProperty && lead.property?.property_name 
-          ? lead.property.property_name 
+        propertyName: hasProperty && lead.property?.property_name
+          ? lead.property.property_name
           : 'No Property Linked',
         timeAgo: getTimeAgo(hasProperty ? lead.property?.created_at : null),
         date: formatDate(hasProperty ? lead.property?.created_at : null),
         businessType: formatBusinessType(hasProperty ? lead.property?.property_type : null),
         budget: formatBudget(lead.budget_range),
-        source: lead.source 
+        source: lead.source
           ? lead.source.charAt(0).toUpperCase() + lead.source.slice(1)
           : 'Unknown',
         financials: lead.financials_details ? 'Provided' : 'Not provided',
@@ -176,7 +193,7 @@ const BrokerLeads = () => {
 
   const leads: FormattedLead[] = brokerLeadsData ? transformLeads(brokerLeadsData) : [];
 
-  const handleMoreClick = (leadId: string) => {
+  const handleMoreClick = (leadId: number) => {
     setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
   };
 
@@ -198,7 +215,33 @@ const BrokerLeads = () => {
     setModalOpen(false);
     setSelectedScheduleId(null);
   };
+  console.log("leads", leads);
 
+  const handleAddSchedule = (lead: FormattedLead) => {
+    setSelectedLead({ id: lead.id, name: lead.name });
+    console.log("FormattedLead", lead);
+    setAddScheduleModalOpen(true);
+  };
+
+
+  const closeAddScheduleModal = () => {
+    setAddScheduleModalOpen(false);
+    setSelectedLead(null);
+  };
+
+  const handleStatusUpdate = async (leadId: number, status: string) => {
+    try {
+      await updateLead({ id: leadId, data: { lead_status: status } }).unwrap();
+      toast.success(`Lead status updated to "${status.replace(/_/g, ' ')}"`);
+      refetch();
+      closeActionMenu();
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { detail?: string } };
+      toast.error(apiErr?.data?.detail || 'Failed to update lead status');
+    }
+  };
+
+  console.log("selectedLead", selectedLead);
   // Loading state
   if (isLoading) {
     return (
@@ -267,7 +310,14 @@ const BrokerLeads = () => {
         isLoading={scheduleLoading}
         isError={scheduleError}
       />
-      
+
+      <AddScheduleModal
+        isOpen={addScheduleModalOpen}
+        onClose={closeAddScheduleModal}
+        leadId={selectedLead?.id || null}
+        leadName={selectedLead?.name || ''}
+      />
+
       <div className="space-y-4 relative">
         {leads.map((lead) => (
           <div key={lead.id} className="bg-white rounded-xl border border-gray-200 p-5 relative">
@@ -275,22 +325,20 @@ const BrokerLeads = () => {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <h3 className="text-[16px] font-semibold text-gray-900">{lead.name}</h3>
-                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
-                  lead.status === 'Green' ? 'bg-green-500 text-white' :
+                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.status === 'Green' ? 'bg-green-500 text-white' :
                   lead.status === 'Blue' ? 'bg-blue-600 text-white' :
-                  lead.status === 'Red' ? 'bg-red-500 text-white' :
-                  'bg-amber-500 text-white'
-                }`}>
+                    lead.status === 'Red' ? 'bg-red-500 text-white' :
+                      'bg-amber-500 text-white'
+                  }`}>
                   {lead.status}
                 </span>
-                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
-                  lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
+                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
                   lead.secondaryStatus.toLowerCase().includes('enquired') ? 'bg-blue-600 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
-                  'bg-gray-600 text-white'
-                }`}>
+                    lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
+                      lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
+                        lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
+                          'bg-gray-600 text-white'
+                  }`}>
                   {lead.secondaryStatus}
                 </span>
               </div>
@@ -313,27 +361,33 @@ const BrokerLeads = () => {
 
                     {/* Menu */}
                     <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-
-                      {/* Menu Items */}
-                      <div className="p-2">
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Enquired
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Viewed
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Terms sent
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          In legal
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Completed
-                        </button>
-                        <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
-                          Closed
-                        </button>
+                      {/* Status Update Buttons */}
+                      <div className="px-2 py-2">
+                        <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Update Status</p>
+                        {[
+                          { label: 'Enquired', value: 'enquired' },
+                          { label: 'Viewed', value: 'viewed' },
+                          { label: 'Terms Sent', value: 'terms_sent' },
+                          { label: 'In Legals', value: 'in_legals' },
+                          { label: 'Completed', value: 'completed' },
+                          { label: 'Closed', value: 'closed' },
+                        ].map((s) => {
+                          const isActive = lead.secondaryStatus.toLowerCase().replace(/ /g, '_') === s.value ||
+                            lead.secondaryStatus.toLowerCase() === s.label.toLowerCase();
+                          return (
+                            <button
+                              key={s.value}
+                              disabled={isUpdatingStatus || isActive}
+                              onClick={() => handleStatusUpdate(lead.id, s.value)}
+                              className={`w-full text-left px-4 py-1 hover:bg-gray-50 text-sm rounded transition-colors ${isActive
+                                  ? 'text-blue-600 font-semibold bg-blue-50'
+                                  : 'text-gray-700'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {s.label}{isActive && ' ✓'}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </>
@@ -383,11 +437,10 @@ const BrokerLeads = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">Financials Details</p>
-                <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${
-                  lead.financials === 'Provided' 
-                    ? 'border-orange-500 text-orange-600' 
-                    : 'border-gray-400 text-gray-600'
-                }`}>
+                <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${lead.financials === 'Provided'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-gray-400 text-gray-600'
+                  }`}>
                   {lead.financials}
                 </span>
               </div>
@@ -408,14 +461,26 @@ const BrokerLeads = () => {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => handleScheduleViewing(lead)}
-                className="bg-[#126AD8] disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
-                disabled={!lead.scheduleId}
-              >
-                <Calendar className="w-4 h-4" strokeWidth={2} />
-                {lead.scheduleId ? 'View Schedule' : 'No Schedule'}
-              </button>
+              <div className="flex items-center gap-2">
+                {lead.scheduleId && (
+                  <button
+                    onClick={() => handleScheduleViewing(lead)}
+                    className="bg-[#126AD8] disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
+                    disabled={!lead.scheduleId}
+                  >
+                    <Calendar className="w-4 h-4" strokeWidth={2} />
+                    {lead.scheduleId && 'View Schedule'}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleAddSchedule(lead)}
+                  className="bg-[#126AD8] disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed hover:bg-blue-700 text-white px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors"
+                >
+                  <Calendar className="w-4 h-4" strokeWidth={2} />
+                  Add Schedule
+                </button>
+
+              </div>
             </div>
           </div>
         ))}
