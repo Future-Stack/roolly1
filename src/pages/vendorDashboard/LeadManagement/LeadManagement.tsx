@@ -1,6 +1,6 @@
 import Pagination from '@/components/vendorDashboard/Leads/Pagination';
 import { useGetVendorLeadsQuery, type VendorLead } from '@/redux/features/vendor/getVendorLeadsApi';
-import { Mail, MessageSquare, Phone, Search } from 'lucide-react';
+import { Mail, Phone, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
 // interface Lead {
@@ -32,9 +32,9 @@ const LeadManagement: React.FC = () => {
     const [selectedFilters, setSelectedFilters] = useState<string[]>(['green', 'amber', 'red']);
     
     // ✅ NEW: Comment modal state
-    const [commentModalOpen, setCommentModalOpen] = useState(false);
-    const [selectedLeadForComment, setSelectedLeadForComment] = useState<number | null>(null);
-    const [comments, setComments] = useState<{ [key: number]: string }>({});
+    // const [commentModalOpen, setCommentModalOpen] = useState(false);
+    // const [selectedLeadForComment, setSelectedLeadForComment] = useState<number | null>(null);
+    // const [comments, setComments] = useState<{ [key: number]: string }>({});
 
     const getTrafficColor = (traffic: string) => {
         switch (traffic.toLowerCase()) {
@@ -68,12 +68,12 @@ const LeadManagement: React.FC = () => {
         );
     };
 
-    const handleCommentSave = () => {
-        if (selectedLeadForComment !== null) {
-            setCommentModalOpen(false);
-            setSelectedLeadForComment(null);
-        }
-    };
+    // const handleCommentSave = () => {
+    //     if (selectedLeadForComment !== null) {
+    //         setCommentModalOpen(false);
+    //         setSelectedLeadForComment(null);
+    //     }
+    // };
 
     if (isLoading) {
         return <div className="p-8 text-center text-gray-500">Loading leads...</div>;
@@ -160,12 +160,12 @@ const LeadManagement: React.FC = () => {
                             <th className="text-left px-6 py-2 text-[15px] font-semibold text-gray-900 border-b border-gray-200">Budget</th>
                             <th className="text-left px-6 py-2 text-[15px] font-semibold text-gray-900 border-b border-gray-200">Traffic</th>
                             <th className="text-left px-6 py-2 text-[15px] font-semibold text-gray-900 border-b border-gray-200">Date</th>
-                            <th className="text-left px-6 py-2 text-[15px] font-semibold text-gray-900 border-b border-gray-200">Comments</th>
+                            {/* <th className="text-left px-6 py-2 text-[15px] font-semibold text-gray-900 border-b border-gray-200">Comments</th> */}
                             <th className="text-left px-6 py-2 text-[15px] font-semibold text-gray-900 border-b border-gray-200">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredLeads.map((lead, index) => (
+                        {filteredLeads.map((lead) => (
                             <tr
                                 key={lead.id}
                                 className="hover:bg-gray-50 transition-colors border-b border-gray-200"
@@ -183,7 +183,7 @@ const LeadManagement: React.FC = () => {
                                 <td className="px-6 py-5 text-[15px] text-gray-900 font-normal whitespace-nowrap">
                                     {new Date(lead.created_at).toLocaleDateString()}
                                 </td>
-                                <td className="px-6 py-5">
+                                {/* <td className="px-6 py-5">
                                     <button
                                         onClick={() => {
                                             setSelectedLeadForComment(index);
@@ -197,7 +197,7 @@ const LeadManagement: React.FC = () => {
                                             <span className="ml-1 text-xs text-blue-600">•</span>
                                         )}
                                     </button>
-                                </td>
+                                </td> */}
                                 <td className="px-6 py-5 relative">
                                     <div className="flex items-center gap-3">
                                         <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title={`Contact: ${lead.broker_phone_number}`}>
@@ -221,7 +221,7 @@ const LeadManagement: React.FC = () => {
             </div>
 
             {/* Comment Modal */}
-            {commentModalOpen && selectedLeadForComment !== null && (
+            {/* {commentModalOpen && selectedLeadForComment !== null && (
                 <div
                     className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
                     onClick={() => setCommentModalOpen(false)}
@@ -256,7 +256,7 @@ const LeadManagement: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* Pagination */}
             <Pagination 

@@ -66,16 +66,17 @@ const BrokerScheduleLeads = () => {
     // Function to open modal with schedule data
     const openScheduleModal = (lead: LeadResponse) => {
         const scheduleData = {
-            property_name: lead.lead.property.property_name,
-            viewing_date: lead.viewing_date,
-            viewing_time: lead.viewing_time,
-            broker: lead.lead.client_name || "Unknown Broker"
+            property_name: lead?.lead?.property?.property_name || "N/A",
+            viewing_date: lead?.viewing_date || "N/A",
+            viewing_time: lead?.viewing_time || "N/A",
+            broker: lead?.lead?.client_name || "Unknown Broker"
         };
         setSelectedSchedule(scheduleData);
         setModalOpen(true);
     };
 
     const formatDate = (dateString: string): string => {
+        if (!dateString) return "N/A";
         try {
             const date = new Date(dateString);
             return date.toLocaleDateString('en-GB');
@@ -86,6 +87,7 @@ const BrokerScheduleLeads = () => {
 
     // Format time from HH:mm:ss to HH:mm
     const formatTime = (timeString: string): string => {
+        if (!timeString) return "N/A";
         try {
             return timeString.split(':').slice(0, 2).join(':');
         } catch {
@@ -94,6 +96,7 @@ const BrokerScheduleLeads = () => {
     };
 
     const getTimeAgo = (createdAt: string): string => {
+        if (!createdAt) return 'N/A';
         try {
             const created = new Date(createdAt);
             const now = new Date();
@@ -120,7 +123,7 @@ const BrokerScheduleLeads = () => {
             'amber': { status: 'Amber', color: 'bg-amber-500' },
             'red': { status: 'Red', color: 'bg-red-600' },
         };
-        return statusMap[status] || { status: 'Unknown', color: 'bg-gray-500' };
+        return statusMap[status?.toLowerCase()] || { status: status || 'Unknown', color: 'bg-gray-500' };
     };
 
     // Map lead_status to secondary status display
@@ -133,7 +136,7 @@ const BrokerScheduleLeads = () => {
             'completed': { status: 'Completed', color: 'bg-green-600' },
             'closed': { status: 'Closed', color: 'bg-gray-600' },
         };
-        return statusMap[status] || { status: status, color: 'bg-blue-600' };
+        return statusMap[status?.toLowerCase()] || { status: status || 'Unknown', color: 'bg-blue-600' };
     };
 
     const getSourceDisplay = (source: string): string => {
@@ -144,7 +147,7 @@ const BrokerScheduleLeads = () => {
             'ai': 'AI',
             'other': 'Other'
         };
-        return sourceMap[source] || source;
+        return sourceMap[source?.toLowerCase()] || source || 'N/A';
     };
 
     const getFinancialsDisplay = (financials: boolean): string => {
@@ -152,6 +155,7 @@ const BrokerScheduleLeads = () => {
     };
 
     const handleCompleteSchedule = async (scheduleId: number) => {
+        if (!scheduleId) return;
         try {
             await makeCompleteSchedule(scheduleId).unwrap();
             refetch();
@@ -162,6 +166,7 @@ const BrokerScheduleLeads = () => {
     };
 
     const handleCancelSchedule = async (scheduleId: number) => {
+        if (!scheduleId) return;
         try {
             await makeCancelSchedule(scheduleId).unwrap();
             refetch();
@@ -221,11 +226,11 @@ const BrokerScheduleLeads = () => {
                 <>
                     <div className="space-y-4 relative">
                         {currentLeads.map((lead, index) => {
-                            const trafficStatus = getStatusDisplay(lead.lead.lead_traffic);
-                            const secondaryStatus = getSecondaryStatusDisplay(lead.lead.lead_status);
+                            const trafficStatus = getStatusDisplay(lead?.lead?.lead_traffic);
+                            const secondaryStatus = getSecondaryStatusDisplay(lead?.lead?.lead_status);
 
                             return (
-                                <div key={lead.id || `lead-${startIndex + index}`} className="bg-white rounded-xl border border-gray-200 p-5 relative">
+                                <div key={lead?.id || `lead-${startIndex + index}`} className="bg-white rounded-xl border border-gray-200 p-5 relative">
                                     {/* Lead Header */}
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
@@ -233,7 +238,7 @@ const BrokerScheduleLeads = () => {
                                                 className="text-[16px] font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
                                                 onClick={() => openScheduleModal(lead)}
                                             >
-                                                {lead.lead.client_name}
+                                                {lead?.lead?.client_name || "Unknown Client"}
                                             </h3>
                                             <span className={`px-3 py-1.5 rounded text-[12px] font-semibold ${trafficStatus.color} text-white`}>
                                                 {trafficStatus.status}
@@ -255,7 +260,7 @@ const BrokerScheduleLeads = () => {
                                             </button>
 
                                             {/* Action Menu Popup */}
-                                            {openActionMenuId === (lead.id || `lead-${startIndex + index}`) && (
+                                            {openActionMenuId === (lead?.id || `lead-${startIndex + index}`) && (
                                                 <>
                                                     {/* Backdrop */}
                                                     <div
@@ -274,7 +279,7 @@ const BrokerScheduleLeads = () => {
                                                                 View Details
                                                             </button>
                                                             <button
-                                                                onClick={() => handleCompleteSchedule(lead.lead.schedule_id)}
+                                                                onClick={() => handleCompleteSchedule(lead?.lead?.schedule_id)}
                                                                 disabled={isCompleting || isCancelling}
                                                                 className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             >
@@ -284,7 +289,7 @@ const BrokerScheduleLeads = () => {
                                                                 Complete
                                                             </button>
                                                             <button
-                                                                onClick={() => handleCancelSchedule(lead.lead.schedule_id)}
+                                                                onClick={() => handleCancelSchedule(lead?.lead?.schedule_id)}
                                                                 disabled={isCompleting || isCancelling}
                                                                 className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             >
@@ -304,15 +309,15 @@ const BrokerScheduleLeads = () => {
                                     <div className="flex items-center gap-4 text-[13px] text-gray-600 mb-4">
                                         <div className="flex items-center gap-1.5 text-[#717182]">
                                             <MapPin className="w-4 h-4" strokeWidth={2} />
-                                            <span>{lead.lead.property.property_name}</span>
+                                            <span>{lead?.lead?.property?.property_name || "N/A"}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-[#717182]">
                                             <Clock className="w-4 h-4" strokeWidth={2} />
-                                            <span>{getTimeAgo(lead.lead.property.created_at)}</span>
+                                            <span>{getTimeAgo(lead?.lead?.property?.created_at)}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-[#717182]">
                                             <Calendar className="w-4 h-4" strokeWidth={2} />
-                                            <span>{formatDate(lead.viewing_date)} {formatTime(lead.viewing_time)}</span>
+                                            <span>{formatDate(lead?.viewing_date)} {formatTime(lead?.viewing_time)}</span>
                                         </div>
                                     </div>
 
@@ -321,7 +326,7 @@ const BrokerScheduleLeads = () => {
                                         <div className="flex gap-2">
                                             <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" strokeWidth={2} />
                                             <p className="text-[13px] text-blue-800 font-medium">
-                                                {lead.notes || `Viewing scheduled for ${formatDate(lead.viewing_date)} at ${formatTime(lead.viewing_time)}`}
+                                                {lead?.notes || `Viewing scheduled for ${formatDate(lead?.viewing_date)} at ${formatTime(lead?.viewing_time)}`}
                                             </p>
                                         </div>
                                     </div>
@@ -330,22 +335,22 @@ const BrokerScheduleLeads = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-5">
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Property Type</p>
-                                            <p className="text-sm text-gray-900 font-normal capitalize">{lead.lead.property.property_type}</p>
+                                            <p className="text-sm text-gray-900 font-normal capitalize">{lead?.lead?.property?.property_type || "N/A"}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Budget</p>
-                                            <p className="text-[14px] text-gray-900 font-normal">{lead.lead.budget_range}</p>
+                                            <p className="text-[14px] text-gray-900 font-normal">{lead?.lead?.budget_range || "N/A"}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Source</p>
                                             <span className="inline-block px-3 py-1 bg-white border border-orange-500 text-orange-600 rounded text-sm font-medium">
-                                                {getSourceDisplay(lead.lead.source)}
+                                                {getSourceDisplay(lead?.lead?.source)}
                                             </span>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Financials Details</p>
                                             <span className="inline-block px-3 py-1 bg-white border border-orange-500 text-orange-600 rounded text-sm font-medium">
-                                                {getFinancialsDisplay(lead.lead.financials_details)}
+                                                {getFinancialsDisplay(lead?.lead?.financials_details)}
                                             </span>
                                         </div>
                                     </div>
@@ -357,11 +362,11 @@ const BrokerScheduleLeads = () => {
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2 text-[13px] text-gray-700">
                                                     <Phone className="w-4 h-4 text-gray-500" strokeWidth={2} />
-                                                    <span className='font-medium'>{lead.lead.phone_number}</span>
+                                                    <span className='font-medium'>{lead?.lead?.phone_number || "N/A"}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-[13px] text-gray-700">
                                                     <Mail className="w-4 h-4 text-gray-500" strokeWidth={2} />
-                                                    <span className='font-medium'>{lead.lead.email_address}</span>
+                                                    <span className='font-medium'>{lead?.lead?.email_address || "N/A"}</span>
                                                 </div>
                                             </div>
                                         </div>

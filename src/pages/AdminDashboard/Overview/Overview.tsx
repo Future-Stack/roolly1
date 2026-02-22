@@ -4,8 +4,8 @@ import { useBrokerPerformanceQuery } from '@/redux/features/admin/overview/broke
 import { useGetLeadsStatusQuery } from '@/redux/features/admin/overview/getLeadsStatusApi';
 import { useGetOverviewQuery } from '@/redux/features/admin/overview/getOverviewApi';
 import { useGetPerformanceQuery } from '@/redux/features/admin/overview/getPerformanceApi';
-import { Clock, Mail, MessageSquare, MoreVertical, Phone, TrendingUp, User } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import { Clock, Mail, Phone, TrendingUp, User } from 'lucide-react';
+import React, { useMemo } from 'react';
 
 interface BrokerPerformanceData {
     id: string;
@@ -20,23 +20,23 @@ interface BrokerPerformanceData {
 }
 
 const AdminOverview: React.FC = () => {
-    const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+    // const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
     const { data: brokerPerformanceResponse, isLoading, error } = useBrokerPerformanceQuery(undefined);
-    const {data:leadsStatus} = useGetLeadsStatusQuery(undefined);
-    const {data:overview} = useGetOverviewQuery(undefined);
-    const {data:performance} = useGetPerformanceQuery(undefined);
+    const { data: leadsStatus } = useGetLeadsStatusQuery(undefined);
+    const { data: overview } = useGetOverviewQuery(undefined);
+    const { data: performance } = useGetPerformanceQuery(undefined);
     const { data: leadSourceData } = useGetLeadSourceQuery(undefined);
-    
+
     console.log(performance)
-    
+
     const brokerPerformance: BrokerPerformanceData[] = brokerPerformanceResponse?.results || brokerPerformanceResponse || [];
 
 
     const statCards = [
         { icon: User, value: overview?.total_lead, label: 'TOTAL LEADS', trend: 'up' },
         { icon: Clock, value: overview?.total_listed_property, label: 'Total Listed Property', trend: 'up' },
-        { icon: MessageSquare, value: overview?.auto_reply_success_rate, label: 'AUTO-REPLY SUCCESS', trend: 'up' },
-        { icon: TrendingUp, value: overview?. brokers_online, label: 'BROKERS ONLINE', trend: null }
+        // { icon: MessageSquare, value: overview?.auto_reply_success_rate, label: 'AUTO-REPLY SUCCESS', trend: 'up' },
+        { icon: TrendingUp, value: overview?.brokers_online, label: 'BROKERS ONLINE', trend: null }
     ];
 
     const metricCards = [
@@ -72,7 +72,7 @@ const AdminOverview: React.FC = () => {
         const joinDateObj = new Date(joinDate);
         const diffTime = currentDate.getTime() - joinDateObj.getTime();
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
-        
+
         if (diffDays > 365) { // More than 1 year
             return 'text-green-600';
         } else {
@@ -117,7 +117,7 @@ const AdminOverview: React.FC = () => {
     // Helper function to get placeholder image URL
     const getImageUrl = (broker: BrokerPerformanceData, index: number): string => {
         if (broker.image) return broker.image;
-        
+
         // Use a placeholder service or initials
         const placeholderImages = [
             'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
@@ -126,28 +126,28 @@ const AdminOverview: React.FC = () => {
             'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
             'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
         ];
-        
+
         return placeholderImages[index % placeholderImages.length];
     };
 
-    const toggleDropdown = (index: number) => {
-        setActiveDropdown(activeDropdown === index ? null : index);
-    };
+    // const toggleDropdown = (index: number) => {
+    //     setActiveDropdown(activeDropdown === index ? null : index);
+    // };
 
-    const handleActive = (brokerName: string) => {
-        console.log(`Active clicked for ${brokerName}`);
-        setActiveDropdown(null);
-    };
+    // const handleActive = (brokerName: string) => {
+    //     console.log(`Active clicked for ${brokerName}`);
+    //     setActiveDropdown(null);
+    // };
 
-    const handleDeactive = (brokerName: string) => {
-        console.log(`Deactive clicked for ${brokerName}`);
-        setActiveDropdown(null);
-    };
+    // const handleDeactive = (brokerName: string) => {
+    //     console.log(`Deactive clicked for ${brokerName}`);
+    //     setActiveDropdown(null);
+    // };
 
-    const handleRemove = (brokerName: string) => {
-        console.log(`Remove clicked for ${brokerName}`);
-        setActiveDropdown(null);
-    };
+    // const handleRemove = (brokerName: string) => {
+    //     console.log(`Remove clicked for ${brokerName}`);
+    //     setActiveDropdown(null);
+    // };
 
     return (
         <div>
@@ -155,7 +155,7 @@ const AdminOverview: React.FC = () => {
             <p className='mb-5'>Welcome back! Here's what's happening with your platform today.</p>
             <div className='bg-[#F8FAFC] p-2 rounded-lg'>
                 {/* Top Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     {statCards?.map((card, idx) => (
                         <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                             <div className="flex justify-end mb-4">
@@ -240,7 +240,7 @@ const AdminOverview: React.FC = () => {
                             </p>
 
                             <div className="space-y-4">
-                                {performance?.map((property:any, index:number) => (
+                                {performance?.map((property: any, index: number) => (
                                     <div
                                         key={index}
                                         className="bg-[#E8F1FD] rounded-lg px-5 py-3 flex items-center justify-between"
@@ -361,7 +361,7 @@ const AdminOverview: React.FC = () => {
                                                             <a href={`tel:${broker.phone_number}`} className="p-1.5 hover:bg-gray-100 rounded">
                                                                 <Phone className="w-5 h-5 text-gray-500" />
                                                             </a>
-                                                            <div className="relative">
+                                                            {/* <div className="relative">
                                                                 <button 
                                                                     className="p-1.5 hover:bg-gray-100 rounded"
                                                                     onClick={() => toggleDropdown(idx)}
@@ -369,7 +369,7 @@ const AdminOverview: React.FC = () => {
                                                                     <MoreVertical className="w-5 h-5 text-gray-500" />
                                                                 </button>
                                                                 
-                                                                {/* Dropdown Menu */}
+                                                                
                                                                 {activeDropdown === idx && (
                                                                     <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                                                                         <button 
@@ -391,8 +391,8 @@ const AdminOverview: React.FC = () => {
                                                                             Remove
                                                                         </button>
                                                                     </div>
-                                                                )}
-                                                            </div>
+                                                                )} 
+                                                            </div> */}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -427,7 +427,7 @@ const AdminOverview: React.FC = () => {
                                                     <div className="text-xs text-gray-600">{broker.email}</div>
                                                     <div className="text-xs text-gray-500">{broker.phone_number}</div>
                                                 </div>
-                                                <div className="relative">
+                                                {/* <div className="relative">
                                                     <button 
                                                         className="p-1.5 hover:bg-gray-100 rounded"
                                                         onClick={() => toggleDropdown(idx)}
@@ -435,7 +435,7 @@ const AdminOverview: React.FC = () => {
                                                         <MoreVertical className="w-5 h-5 text-gray-500" />
                                                     </button>
                                                     
-                                                    {/* Mobile Dropdown Menu */}
+                                                    
                                                     {activeDropdown === idx && (
                                                         <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                                                             <button 
@@ -458,7 +458,7 @@ const AdminOverview: React.FC = () => {
                                                             </button>
                                                         </div>
                                                     )}
-                                                </div>
+                                                </div> */}
                                             </div>
                                             <div className="grid grid-cols-2 gap-3 text-xs">
                                                 <div>

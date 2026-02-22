@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import {
-   MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot
+  MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot
 } from "lucide-react";
 
 const NotificationDropdown = ({
@@ -8,6 +8,22 @@ const NotificationDropdown = ({
   notifications,
   dropdownRef
 }: any) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(notifications.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentNotifications = (notifications || []).slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    } else {
+      setCurrentPage(1); // Cycle back to first page
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -27,7 +43,7 @@ const NotificationDropdown = ({
 
       {/* Items */}
       <div className="max-h-[400px] overflow-y-auto">
-        {notifications.map((notification: any) => (
+        {currentNotifications.map((notification: any) => (
           <button
             key={notification.id}
             className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
@@ -76,11 +92,17 @@ const NotificationDropdown = ({
         ))}
       </div>
 
+
       {/* Footer */}
       <div className="px-4 py-3 border-t border-gray-200">
-        <button className="w-full text-center text-md font-medium text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1">
-          View all Notification
-          <ChevronRight className="w-4 h-4" />
+        <button
+          onClick={handleNextPage}
+          className="w-full text-center text-md font-medium text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1"
+        >
+          {notifications.length > itemsPerPage
+            ? `View More Notifications (Page ${currentPage} of ${totalPages})`
+            : "View all Notification"}
+          <ChevronRight className={`w-4 h-4 transition-transform ${currentPage > 1 ? "rotate-90" : ""}`} />
         </button>
       </div>
     </div>

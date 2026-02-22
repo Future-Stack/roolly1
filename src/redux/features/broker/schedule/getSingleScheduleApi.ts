@@ -6,7 +6,8 @@ const getSingleScheduleApi = baseApi.injectEndpoints({
             query : (id) => ({
                 url : `/brokers/viewing-schedule/${id}/`,
                 method: 'GET',
-            })
+            }),
+            providesTags: ["Schedule"]
         })
     }),
 })

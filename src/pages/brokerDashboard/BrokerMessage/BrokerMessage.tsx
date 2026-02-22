@@ -6,7 +6,7 @@ import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingle
 import { useAppSelector } from '@/redux/hook';
 import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
 import { getCurrentUserId } from '@/utils/userUtils';
-import { Check, CheckCheck, Menu,  Search, SendHorizontal, X } from 'lucide-react';
+import { Check, CheckCheck, Menu, Search, SendHorizontal, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -14,7 +14,8 @@ const BrokerMessage: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'broker'>('chat');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'admin'>('chat');
   const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -33,46 +34,32 @@ const BrokerMessage: React.FC = () => {
   const { res: initialConversation } = location.state || {};
   const token = useAppSelector(useCurrentToken);
 
-  // Fetch all conversations
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Fetch all conversations for counts
   const {
-    data: conversationsData,
-    isLoading: isLoadingConversations
+    data: allConversationsData,
   } = useGetAllMessagesQuery(undefined, {
     skip: !token,
   });
-  const formatLastSeen = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
 
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  // Fetch filtered conversations for the list
+  const {
+    data: conversationsData,
+    isLoading: isLoadingConversations
+  } = useGetAllMessagesQuery({
+    role: activeTab === 'chat' ? undefined : activeTab,
+    search: debouncedSearchTerm,
+  }, {
+    skip: !token,
+  });
 
-    // Format time (09:08 AM)
-    // const formattedTime = date.toLocaleTimeString([], {
-    //   hour: '2-digit',
-    //   minute: '2-digit',
-    //   hour12: true,
-    // });
-
-    if (diffDays > 0) {
-      return `Last seen ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    }
-
-    if (diffHours > 0) {
-      return `Last seen ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    }
-
-    if (diffMinutes > 0) {
-      return `Last seen ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
-    }
-
-    return 'Last seen just now';
-  };
-
-  const lastTimestamp = formatLastSeen(conversationsData?.results?.[0]?.last_message?.timestamp);
-  const lastText = conversationsData?.results?.[0]?.last_message?.text;
 
   // Fetch single user messages
   const {
@@ -88,6 +75,8 @@ const BrokerMessage: React.FC = () => {
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialAppliedRef = useRef(false);
+  
 
   // Get current user ID
   useEffect(() => {
@@ -127,16 +116,17 @@ const BrokerMessage: React.FC = () => {
 
       setConversations(conversationsArray);
 
-      if (initialConversation) {
+      if (initialConversation && !initialAppliedRef.current) {
         const chatUser = convertConversationToChatUser(initialConversation);
         setSelectedChat(chatUser);
+        initialAppliedRef.current = true;
       } else if (!selectedChat && conversationsArray.length > 0) {
         const firstChat = conversationsArray[0];
         const chatUser = convertConversationToChatUser(firstChat);
         setSelectedChat(chatUser);
       }
     }
-  }, [conversationsData, selectedChat, initialConversation]);
+  }, [conversationsData, initialConversation]);
 
   // Load single user messages when chat is selected
   useEffect(() => {
@@ -176,21 +166,27 @@ const BrokerMessage: React.FC = () => {
   // Convert conversation to chat user
   const convertConversationToChatUser = (conversation: Conversation): ChatUser => {
     const otherUser = conversation.other_user;
-    const lastSeen = conversation.other_user.is_active === 'offline'
-      ? conversation.other_user.is_active
-      : 'online';
+
+    // Check if is_active is a timestamp or a literal status
+    const isActiveTimestamp = otherUser.is_active && !['online', 'offline'].includes(otherUser.is_active) && !isNaN(Date.parse(otherUser.is_active));
+
+    const isOnline = otherUser.is_active === 'online' || (isActiveTimestamp && (Date.now() - Date.parse(otherUser.is_active!)) < 5 * 60 * 1000);
+
+    const lastSeen = isActiveTimestamp
+      ? formatTime(otherUser.is_active!)
+      : (otherUser.is_active === 'online' ? 'online' : 'offline');
 
     return {
       id: conversation.id,
       name: otherUser.full_name || otherUser.username || 'Unknown User',
       avatar: otherUser.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-      message: conversation.last_message?.message || 'Start a conversation',
+      message: conversation.last_message?.text || conversation.last_message?.message || 'Start a conversation',
       time: conversation.last_message
         ? formatTime(conversation.last_message.timestamp)
         : formatTime(conversation.created_at),
-      isOnline: otherUser.is_active === 'online',
+      isOnline: !!isOnline,
       lastSeen: lastSeen,
-      isSeen: conversation.last_message?.is_seen || false,
+      isSeen: conversation.last_message?.is_read || conversation.last_message?.is_seen || false,
       userId: otherUser.id,
       userType: otherUser.user_type,
     };
@@ -653,15 +649,22 @@ const BrokerMessage: React.FC = () => {
     updateActivityTime();
   };
 
-  // Combine all conversations
+  // Combine all filtered conversations
   const allChatUsers: ChatUser[] = [
     ...conversations.map(convertConversationToChatUser),
     ...newConversations.map(convertConversationToChatUser),
   ];
 
-  // Filter users by type
-  const vendorUsers = allChatUsers.filter(user => user.userType === 'vendor');
-  const brokerUsers = allChatUsers.filter(user => user.userType === 'broker');
+  // Helper to count conversations by role from the total dataset
+  const getAllChatUsersForCounts = (): ChatUser[] => {
+    if (!allConversationsData) return [];
+    const results = allConversationsData.results || allConversationsData.data || (Array.isArray(allConversationsData) ? allConversationsData : []);
+    return results.map(convertConversationToChatUser);
+  };
+
+  const totalUsers = getAllChatUsersForCounts();
+  const vendorUsersCount = totalUsers.filter(user => user.userType === 'vendor').length;
+  const adminUsersCount = totalUsers.filter(user => user.userType === 'admin').length;
 
   // Get current user info
   const currentUser = selectedChat ? {
@@ -682,34 +685,22 @@ const BrokerMessage: React.FC = () => {
 
   // Tab counts
   const tabCounts = {
-    chat: allChatUsers.length,
-    vendor: vendorUsers.length,
-    broker: brokerUsers.length
+    chat: totalUsers.length,
+    vendor: vendorUsersCount,
+    admin: adminUsersCount
   };
 
   const getCurrentUsers = () => {
-    let users = [];
-    switch (activeTab) {
-      case 'chat':
-        users = allChatUsers;
-        break;
-      case 'vendor':
-        users = vendorUsers;
-        break;
-      case 'broker':
-        users = brokerUsers;
-        break;
-      default:
-        users = allChatUsers;
-    }
+    let users = allChatUsers;
 
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      return users.filter(user =>
+      users = users.filter(user =>
         user.name.toLowerCase().includes(term) ||
         user.message?.toLowerCase().includes(term)
       );
     }
+
     return users;
   };
 
@@ -859,28 +850,24 @@ const BrokerMessage: React.FC = () => {
             >
               Chat <span className="ml-1">({tabCounts.chat})</span>
             </button>
-            {tabCounts.vendor > 0 && (
-              <button
-                onClick={() => setActiveTab('vendor')}
-                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-              >
-                Vendor <span className="ml-1">({tabCounts.vendor})</span>
-              </button>
-            )}
-            {tabCounts.broker > 0 && (
-              <button
-                onClick={() => setActiveTab('broker')}
-                className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'broker'
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-              >
-                Admin <span className="ml-1">({tabCounts.broker})</span>
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab('vendor')}
+              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
+            >
+              Vendor {tabCounts.vendor > 0 && <span className="ml-1">({tabCounts.vendor})</span>}
+            </button>
+            <button
+              onClick={() => setActiveTab('admin')}
+              className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
+            >
+              Admin {tabCounts.admin > 0 && <span className="ml-1">({tabCounts.admin})</span>}
+            </button>
           </div>
 
           {/* Chat List */}
@@ -907,9 +894,9 @@ const BrokerMessage: React.FC = () => {
                       alt={user.name}
                       className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
                     />
-                    {user.isOnline && (
+                    {/* {user.isOnline && (
                       <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                    )}
+                    )} */}
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between">
@@ -921,7 +908,7 @@ const BrokerMessage: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-xs md:text-[13px] text-gray-500 truncate w-[80%]">
-                      {lastText}
+                      {user.message}
                     </p>
                     {/* {!user.isSeen && user.lastSeen && (
                       <div className="flex items-center gap-1 mt-1">
@@ -973,7 +960,9 @@ const BrokerMessage: React.FC = () => {
                     {currentUser.name}
                   </h3>
                   <p className="text-[10px] md:text-xs text-gray-500 font-medium">
-                    {lastTimestamp}
+                    {currentUser.isOnline
+                      ? 'Online now'
+                      : selectedChat?.time ? `Last seen ${selectedChat.time}` : 'Offline'}
                   </p>
                 </div>
               </div>

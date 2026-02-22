@@ -130,7 +130,7 @@ const FeaturedProperties = () => {
                   </span>
                 </div>
 
-                <p className="text-[#82868A] leading-relaxed text-sm line-clamp-2 h-10">
+                <p className="text-[#82868A] leading-relaxed text-sm line-clamp-2">
                   {property.description}
                 </p>
 

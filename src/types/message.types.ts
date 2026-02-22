@@ -14,10 +14,12 @@ export interface Conversation {
   created_at: string;
   last_message: {
     message: string;
+    text?: string;
     message_id: string;
     timestamp: string;
     sender_id: string;
     is_seen: boolean;
+    is_read?: boolean;
   } | null;
 }
 
