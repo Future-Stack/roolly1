@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MapPin, Clock, Calendar, Phone, Mail, MoreVertical, Info, UserCheck } from 'lucide-react';
+import { MapPin, Clock, Calendar, Phone, Mail, Info, UserCheck } from 'lucide-react';
 import ScheduleViewModal from './ScheduleViewModal';
 import { useState } from 'react';
 import { useGetSingleScheduleQuery } from '@/redux/features/broker/schedule/getSingleScheduleApi';
@@ -46,7 +46,7 @@ interface FormattedLead {
 }
 
 const BrokerAvailableLeads = () => {
-  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  // const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
   const [grabbingLeadId, setGrabbingLeadId] = useState<string | null>(null);
@@ -169,23 +169,23 @@ const BrokerAvailableLeads = () => {
 
   const leads: FormattedLead[] = brokerLeadsData?.results ? transformLeads(brokerLeadsData.results) : [];
 
-  const handleMoreClick = (leadId: string) => {
-    setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
-  };
+  // const handleMoreClick = (leadId: string) => {
+  //   setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
+  // };
 
-  const closeActionMenu = () => {
-    setOpenActionMenuId(null);
-  };
+  // const closeActionMenu = () => {
+  //   setOpenActionMenuId(null);
+  // };
 
-  const handleScheduleViewing = (lead: FormattedLead) => {
-    if (lead.scheduleId) {
-      setSelectedScheduleId(lead.scheduleId);
-      setModalOpen(true);
-      closeActionMenu();
-    } else {
-      alert('No schedule available for this lead');
-    }
-  };
+  // const handleScheduleViewing = (lead: FormattedLead) => {
+  //   if (lead.scheduleId) {
+  //     setSelectedScheduleId(lead.scheduleId);
+  //     setModalOpen(true);
+  //     closeActionMenu();
+  //   } else {
+  //     alert('No schedule available for this lead');
+  //   }
+  // };
 
   const handleGrabLead = async (leadId: string) => {
     try {
@@ -322,7 +322,7 @@ const BrokerAvailableLeads = () => {
                     {lead.secondaryStatus}
                   </span>
                 </div>
-                <div className="relative">
+                {/* <div className="relative">
                   <button
                     onClick={() => handleMoreClick(lead.id)}
                     className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -330,19 +330,18 @@ const BrokerAvailableLeads = () => {
                     <MoreVertical className="w-5 h-5 text-gray-600" strokeWidth={2} />
                   </button>
 
-                  {/* Action Menu Popup - Exact same design as image */}
                   {openActionMenuId === lead.id && (
                     <>
-                      {/* Backdrop */}
+                      
                       <div
                         className="fixed inset-0 z-40"
                         onClick={closeActionMenu}
                       />
 
-                      {/* Menu */}
+                      
                       <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
 
-                        {/* Menu Items */}
+                        
                         <div className="p-2">
                           <button className="w-full text-left px-4 py-1 hover:bg-gray-50 text-gray-700">
                             Enquired
@@ -366,7 +365,7 @@ const BrokerAvailableLeads = () => {
                       </div>
                     </>
                   )}
-                </div>
+                </div> */}
               </div>
 
               {/* Property Info */}
@@ -448,7 +447,7 @@ const BrokerAvailableLeads = () => {
                 {/* Action Buttons */}
                 <div className="flex gap-3">
                   {/* Schedule Viewing Button */}
-                  <button
+                  {/* <button
                     onClick={() => handleScheduleViewing(lead)}
                     className={`px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors ${
                       lead.scheduleId 
@@ -459,7 +458,7 @@ const BrokerAvailableLeads = () => {
                   >
                     <Calendar className="w-4 h-4" strokeWidth={2} />
                     {lead.scheduleId ? 'View Schedule' : 'No Schedule'}
-                  </button>
+                  </button> */}
                   
                   {/* Grab Lead Button */}
                   <button
