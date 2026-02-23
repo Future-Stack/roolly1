@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, FileText, Home } from 'lucide-react';
 import React, { useState } from 'react';
 import playButton from '../../../assets/play-button.png';
 import { useGetPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 // interface PropertyImage {
 //     name: string;
@@ -72,6 +72,7 @@ const MEDIA_BASE_URL = 'https://broker360re.com';
 
 const BrokerPropertyDetails: React.FC = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [currentImage, setCurrentImage] = useState(0);
     const { data: property, isLoading, isError } = useGetPropertyDetailsQuery(id);
 
@@ -302,7 +303,7 @@ const BrokerPropertyDetails: React.FC = () => {
                                     {propertyData.property_name}
                                 </h3>
                                 <p className="text-base text-gray-600 leading-relaxed mb-5">
-                                    {propertyData.description || 'No description available.'}
+                                    {propertyData.location_description || 'No description available.'}
                                 </p>
                                 <div className='border-b'></div>
                             </div>
@@ -586,7 +587,7 @@ const BrokerPropertyDetails: React.FC = () => {
                                 Update Property
                             </button>
                         </Link>
-                        <button className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-[14px] font-medium rounded-sm transition-colors">
+                        <button onClick={() => navigate('/broker-dashboard/property')} className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-[14px] font-medium rounded-sm transition-colors">
                             Cancel
                         </button>
                     </div>
