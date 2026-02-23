@@ -93,6 +93,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             <span>{privatePool} private pool</span>
           </div>
         </div> */}
+        
 
         {/* View Details Button */}
         <Link to={`/details/${id}`}>
