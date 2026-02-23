@@ -1,8 +1,8 @@
 import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, MessageCircle, Phone } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';
 
@@ -82,11 +82,16 @@ const coordinateLookup: Record<string, [number, number]> = {
 const HomePropertyDetails: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const { id } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data: propertyData, isLoading, error } = useGetUserPropertyDetailsQuery(id);
 
   const property: PropertyDetails | undefined = propertyData;
   console.log(property);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   const getImageUrl = (path: string | undefined): string => {
     if (!path) return '';
@@ -481,7 +486,7 @@ const HomePropertyDetails: React.FC = () => {
                 </p>
 
                 <button
-                  // onClick={() => navigate(`/details/${relProperty.id}`)}
+                  onClick={() => navigate(`/details/${relProperty.id}`)}
                   className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
                 >
                   View Details

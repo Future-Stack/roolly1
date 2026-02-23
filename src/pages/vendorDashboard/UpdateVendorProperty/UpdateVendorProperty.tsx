@@ -224,19 +224,56 @@ const UpdateVendorProperty: React.FC = () => {
         }
     };
 
-    const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setBrochurePdfFile(file);
-        }
-    };
+    // const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const file = e.target.files?.[0];
+    //     if (file) {
+    //         setBrochurePdfFile(file);
+    //     }
+    // };
 
-    const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
+    // const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const file = e.target.files?.[0];
+    //     if (file) {
+    //         setBrochureVideoFile(file);
+    //     }
+    // };
+        const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+    
+            if (file.type !== 'application/pdf') {
+                toast.error('Invalid file type. Please upload a PDF file.');
+                e.target.value = '';
+                return;
+            }
+            const maxSizeMB = 10;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`PDF file must be smaller than ${maxSizeMB}MB.`);
+                e.target.value = '';
+                return;
+            }
+            setBrochurePdfFile(file);
+            // toast.success(`PDF selected: ${file.name}`);
+        };
+    
+        const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+    
+            if (!file.type.startsWith('video/')) {
+                toast.error('Invalid file type. Please upload a video file.');
+                e.target.value = '';
+                return;
+            }
+            const maxSizeMB = 100;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Video file must be smaller than ${maxSizeMB}MB.`);
+                e.target.value = '';
+                return;
+            }
             setBrochureVideoFile(file);
-        }
-    };
+            // toast.success(`Video selected: ${file.name}`);
+        };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -450,7 +487,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     <input
                                         type="number"
                                         name="lease_duration"
-                                        value={formData.lease_duration}
+                                        value={formData.lease_duration || ''}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 3"
                                         step="0.5"
@@ -518,7 +555,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     <input
                                         type="text"
                                         name="roller_shutters"
-                                        value={formData.roller_shutters}
+                                        value={formData.roller_shutters || ''}
                                         onChange={handleInputChange}
                                         placeholder="e.g., 10"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -861,10 +898,23 @@ const UpdateVendorProperty: React.FC = () => {
                                                         className="hidden"
                                                     />
                                                 </label>
+                                                {brochurePdfFile ? (
+                                                    <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-md px-2 py-1 flex-1 min-w-0">
+                                                        <span className="text-green-500 text-xs">✔</span>
+                                                        <span className="text-sm text-green-800 font-medium truncate flex-1">{brochurePdfFile.name}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setBrochurePdfFile(null)}
+                                                            className="text-red-400 hover:text-red-600 text-xs font-bold shrink-0"
+                                                        >✕</button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400 mt-1 sm:mt-0 sm:ml-2">No File Chosen</span>
+                                                )}
 
-                                                <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
+                                                {/* <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
                                                     {brochurePdfFile ? brochurePdfFile.name : 'No File Chosen'}
-                                                </span>
+                                                </span> */}
                                             </div>
                                         </div>
                                     </div>
@@ -902,10 +952,23 @@ const UpdateVendorProperty: React.FC = () => {
                                                         className="hidden"
                                                     />
                                                 </label>
+                                                {brochureVideoFile ? (
+                                                    <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-md px-2 py-1 flex-1 min-w-0">
+                                                        <span className="text-green-500 text-xs">✔</span>
+                                                        <span className="text-sm text-green-800 font-medium truncate flex-1">{brochureVideoFile.name}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setBrochureVideoFile(null)}
+                                                            className="text-red-400 hover:text-red-600 text-xs font-bold shrink-0"
+                                                        >✕</button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400 mt-1 sm:mt-0 sm:ml-2">No File Chosen</span>
+                                                )}
 
-                                                <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
+                                                {/* <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
                                                     {brochureVideoFile ? brochureVideoFile.name : 'No File Chosen'}
-                                                </span>
+                                                </span> */}
                                             </div>
                                         </div>
                                     </div>
