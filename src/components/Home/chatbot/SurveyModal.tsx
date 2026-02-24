@@ -17,7 +17,7 @@ export interface ChatMessage {
     options?: string[];
 }
 
-const SurveyModal: React.FC<{ onClose: () => void }> = () => {
+const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -200,7 +200,10 @@ const SurveyModal: React.FC<{ onClose: () => void }> = () => {
                 message={message}
                 setMessage={setMessage}
                 handleSendMessage={handleSendMessage}
-                navigate={navigate}
+                onViewDetails={(id) => {
+                    onClose();
+                    navigate(`/details/${id}`);
+                }}
                 isTyping={isTyping}
             />
         );

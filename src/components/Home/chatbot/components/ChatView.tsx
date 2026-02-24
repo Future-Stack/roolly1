@@ -16,12 +16,12 @@ interface ChatViewProps {
     message: string;
     setMessage: (val: string) => void;
     handleSendMessage: (text?: string, propertyId?: string | number) => void;
-    navigate: (path: string) => void;
+    onViewDetails: (id: string | number) => void;
     isTyping: boolean;
 }
 
 const ChatView: React.FC<ChatViewProps> = ({
-    chatMessages, message, setMessage, handleSendMessage, navigate, isTyping
+    chatMessages, message, setMessage, handleSendMessage, onViewDetails, isTyping
 }) => (
     <div className="p-4 sm:p-5 flex flex-col gap-5 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300 h-full overflow-hidden">
         {/* Chat Header/Info */}
@@ -61,7 +61,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                                     <PropertyCard
                                         key={pIndex}
                                         property={prop}
-                                        onNavigate={(id) => navigate(`/details/${id}`)}
+                                        onNavigate={(id) => onViewDetails(id)}
                                         onAskAbout={(id) => handleSendMessage("I want to know more about this property", id)}
                                     />
                                 ))}
