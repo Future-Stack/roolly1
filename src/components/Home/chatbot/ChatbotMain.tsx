@@ -11,9 +11,11 @@ import BrokerFAQ from './BrokerFAQ';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '@/redux/store';
 import { setChatbotView, setSelectedCity } from '@/redux/features/chatbot/chatbotSlice';
+import { useNavigate } from 'react-router-dom';
 
 const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { view, selectedCity } = useSelector((state: RootState) => state.chatbot);
 
     const messages = [
@@ -45,13 +47,14 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         dispatch(setChatbotView('location'));
     };
 
-    const handleViewDetails = () => {
-        dispatch(setChatbotView('survey'));
-    };
-
     const handleCloseAll = () => {
         dispatch(setChatbotView('main'));
         onClose();
+    };
+
+    const handleViewDetails = (id: string | number) => {
+        handleCloseAll();
+        navigate(`/details/${id}`);
     };
 
     // Common Wrapper to maintain consistency and responsiveness

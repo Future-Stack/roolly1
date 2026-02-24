@@ -8,7 +8,7 @@ const ExploreCityModal: React.FC<{
     onClose: any;
     selectedCity: any;
     onBack?: () => void;
-    onViewDetails?: () => void;
+    onViewDetails?: (id: string | number) => void;
 }> = ({ selectedCity, onViewDetails }) => {
     const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -43,7 +43,7 @@ const ExploreCityModal: React.FC<{
             page_size: 10
         },
         {
-            skip: !selectedPricing 
+            skip: !selectedPricing
         }
     );
 
@@ -241,8 +241,8 @@ const ExploreCityModal: React.FC<{
                                 <div key={prop.id} className="animate-in zoom-in-95 duration-500">
                                     <PropertyCard
                                         property={prop}
-                                        onNavigate={() => onViewDetails?.()}
-                                        onAskAbout={() => onViewDetails?.()} // Lead to Survey/Contact
+                                        onNavigate={(id) => onViewDetails?.(id)}
+                                        onAskAbout={(id) => onViewDetails?.(id)} // Lead to Survey/Contact
                                     />
                                 </div>
                             ))
