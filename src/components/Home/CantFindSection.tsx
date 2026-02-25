@@ -120,7 +120,7 @@ const CantFindSection: React.FC = () => {
                 onClick={() => setIsModalOpen(true)}
                 className="w-full sm:w-auto px-10 py-4 bg-[#126AD8] hover:bg-blue-400 text-white rounded-[10px] text-lg font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                Enquire Now
+                Enquire
               </button>
             </div>
 

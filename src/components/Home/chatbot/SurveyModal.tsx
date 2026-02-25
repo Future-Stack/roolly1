@@ -21,8 +21,9 @@ const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [countryCode, setCountryCode] = useState('+61');
+    const [countryCode, setCountryCode] = useState('+44');
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [threadId, setThreadId] = useState<string | null>(null);
     const [message, setMessage] = useState("");
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -120,6 +121,7 @@ const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const handleSubmit = async () => {
         if (!validate()) return;
 
+        setIsSubmitting(true);
         try {
             const payload = {
                 client_name: name,
@@ -140,6 +142,8 @@ const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 title: "Error",
                 text: extractErrorMessage(err?.data),
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -230,6 +234,7 @@ const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             setCountryCode={setCountryCode}
             onSubmit={handleSubmit}
             errors={errors}
+            isSubmitting={isSubmitting}
         />
     );
 };

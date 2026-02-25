@@ -952,7 +952,7 @@ const PropertyEdit: React.FC = () => {
                                         name="phone_number"
                                         value={formData.phone_number}
                                         onChange={handleInputChange}
-                                        placeholder="e.g., +8801996629397"
+                                        placeholder="e.g., +44 07123 456789"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
@@ -966,7 +966,7 @@ const PropertyEdit: React.FC = () => {
                                         name="whatsapp_number"
                                         value={formData.whatsapp_number}
                                         onChange={handleInputChange}
-                                        placeholder="e.g., +8801712345678"
+                                        placeholder="e.g., +44 07123 456789"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>

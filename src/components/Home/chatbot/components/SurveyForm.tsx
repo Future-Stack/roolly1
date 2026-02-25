@@ -16,10 +16,11 @@ interface SurveyFormProps {
         email?: string;
         phone?: string;
     };
+    isSubmitting: boolean;
 }
 
 const SurveyForm: React.FC<SurveyFormProps> = ({
-    name, setName, email, setEmail, phone, setPhone, countryCode, setCountryCode, onSubmit, errors
+    name, setName, email, setEmail, phone, setPhone, countryCode, setCountryCode, onSubmit, errors, isSubmitting
 }) => (
     <div className="p-4 sm:p-5 flex flex-col gap-5 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="flex justify-start">
@@ -98,7 +99,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                placeholder="01234 567 890"
+                                placeholder="07123 456789"
                                 className="flex-1 min-w-0 px-2 sm:px-3 py-2.5 sm:py-3 bg-white outline-none text-sm text-gray-700"
                             />
                         </div>
@@ -109,7 +110,15 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                         onClick={onSubmit}
                         className={`w-full py-3.5 sm:py-4 text-sm sm:text-base font-medium rounded-xl transition-all active:scale-[0.98] mt-3 sm:mt-4 bg-[#126AD8] border border-[#0D4B99] text-white hover:bg-[#0D4B99] hover:border-transparent cursor-pointer`}
                     >
-                        Start chatting
+                        {
+                            isSubmitting ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                </div>
+                            ) : (
+                                "Start chatting"
+                            )
+                        }
                     </button>
                 </div>
             </div>
