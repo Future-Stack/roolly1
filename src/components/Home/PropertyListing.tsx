@@ -221,7 +221,7 @@ const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-            {search ? `Properties in ${search}` : "Top Commercial Spaces"}
+            {search ? `Properties in ${search}` : "Perfect Commercial Space Is Just a Pin Away"}
           </h1>
           {search && (
             <div className="flex items-center gap-2">
