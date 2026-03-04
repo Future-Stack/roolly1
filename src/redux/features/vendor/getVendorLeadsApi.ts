@@ -5,8 +5,10 @@ export interface VendorLead {
     client_name: string;
     property_name: string;
     property_type: string;
-    budget_range: string;
+    sqft_range: string;
+    location: string;
     lead_traffic: 'green' | 'amber' | 'red';
+    lead_status: string;
     created_at: string;
     broker_phone_number: string;
     broker_email_address: string;

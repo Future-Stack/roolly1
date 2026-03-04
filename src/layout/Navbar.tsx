@@ -40,7 +40,7 @@ const Broker360Header: React.FC = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-4">
-            <Link to="/all-properties">
+            <Link to="/login">
               <button className="px-6 py-2.5 text-black text-lg border font-inter border-[#444A50] rounded-md transition duration-150 hover:bg-gray-100 whitespace-nowrap">
                 List Your Property
               </button>

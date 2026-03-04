@@ -4,7 +4,7 @@ export const vendorManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllVendors: builder.query({
       query: (params?: { page?: number; page_size?: number; search?: string }) => ({
-        url: "/admin/vendor-list/",
+        url: "/admin/approved-vendor-list/",
         method: "GET",
         params: params,
       }),
@@ -39,6 +39,28 @@ export const vendorManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Vendor"],
     }),
+    getVendorRequests: builder.query({
+      query: (params?: { page?: number; page_size?: number; search?: string }) => ({
+        url: "/admin/new-vendor-list/",
+        method: "GET",
+        params: params,
+      }),
+      providesTags: ["Vendor"],
+    }),
+    approveVendor: builder.mutation({
+      query: (id) => ({
+        url: `/admin/approve-vendor/${id}/`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Vendor"],
+    }),
+    declineVendor: builder.mutation({
+      query: (id) => ({
+        url: `/admin/delete-vendor-request/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Vendor"],
+    }),
   }),
 });
 
@@ -48,4 +70,9 @@ export const {
   useActivateVendorMutation,
   useDeactivateVendorMutation,
   useDeleteVendorMutation,
+  useGetVendorRequestsQuery,
+  useApproveVendorMutation,
+  useDeclineVendorMutation,
 } = vendorManagementApi;
+
+

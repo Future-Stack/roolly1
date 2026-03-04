@@ -164,7 +164,7 @@ const AdminAnalytics: React.FC = () => {
                                 stroke="#3b82f6"
                                 strokeWidth={2}
                                 dot={{ fill: '#3b82f6', r: 4 }}
-                                name="leads"
+                                name="Leads"
                             />
                             <Line
                                 type="monotone"
@@ -172,7 +172,7 @@ const AdminAnalytics: React.FC = () => {
                                 stroke="#10b981"
                                 strokeWidth={2}
                                 dot={{ fill: '#10b981', r: 4 }}
-                                name="conversions"
+                                name="Conversions"
                             />
                         </LineChart>
                     </ResponsiveContainer>
@@ -199,7 +199,7 @@ const AdminAnalytics: React.FC = () => {
                                 iconType="square"
                             />
                             <Bar dataKey="views" fill="#3b82f6" name="Views" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="enquiries" fill="#10b981" name="enquiries" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="enquiries" fill="#10b981" name="Enquiries" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -221,7 +221,7 @@ const AdminAnalytics: React.FC = () => {
                             {leadSources.map((source: any, index: number) => (
                                 <div key={index}>
                                     <div className="flex items-center justify-between mb-3">
-                                        <span className="text-gray-900 text-base font-medium">
+                                        <span className="text-gray-900 text-base font-medium capitalize">
                                             {source.name}
                                         </span>
                                         <span className="text-gray-900 text-base font-semibold">
@@ -316,7 +316,7 @@ const AdminAnalytics: React.FC = () => {
 
                     <div className="flex items-center justify-center gap-2 mt-6">
                         <div className="w-3 h-3 bg-[#8B5CF6]"></div>
-                        <span className="text-[#8B5CF6] text-sm">leads Conversion</span>
+                        <span className="text-[#8B5CF6] text-sm">Leads Conversion</span>
                     </div>
                 </div>
             </div>

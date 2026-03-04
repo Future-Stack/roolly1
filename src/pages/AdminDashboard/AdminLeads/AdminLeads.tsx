@@ -47,7 +47,7 @@ interface ApiLead {
     email_address: string;
     lead_status: string;
     lead_traffic: string;
-    budget_range: string | null;
+    sqft_range: string | null;
     source: string;
     created_at: string;
 }
@@ -197,7 +197,7 @@ const AdminLeads = () => {
                     timeAgo: formatTimeAgo(apiLead.created_at),
                     date: formatDate(apiLead.created_at),
                     businessType: 'Consulting', // Default or from API if available
-                    budget: formatBudget(apiLead.budget_range),
+                    budget: formatBudget(apiLead.sqft_range),
                     source: apiLead.source || 'Unknown',
                     phone: apiLead.phone_number || 'N/A',
                     email: apiLead.email_address || 'N/A',
@@ -471,7 +471,7 @@ const AdminLeads = () => {
                                         <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Budget</p>
+                                        <p className="text-sm text-gray-500 mb-1">Sqft Range</p>
                                         <p className="text-[14px] text-gray-900 font-normal">{lead.budget}</p>
                                     </div>
                                     <div>

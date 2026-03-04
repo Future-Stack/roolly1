@@ -14,7 +14,6 @@ interface RiskProfileManagementFormProps {
     leisureUse: boolean;
     petBusinessUse: boolean;
     plasticRecyclingUse: boolean;
-    floorPlans: boolean;
     otherRestrictions: string;
     onRestrictionChange: (name: string, value: boolean) => void;
     onOtherRestrictionsChange: (value: string) => void;
@@ -27,7 +26,6 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
     leisureUse,
     petBusinessUse,
     plasticRecyclingUse,
-    floorPlans,
     otherRestrictions,
     onRestrictionChange,
     onOtherRestrictionsChange
@@ -51,14 +49,12 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
 
     // ✅ UPDATED: Added Floor Plans option
     const restrictions = [
-        { id: 'vehicleRepairUse', checked: vehicleRepairUse, label: 'Vehicle Repair Use', description: 'Prohibit subletting for short-term holiday rentals' },
-        { id: 'vehicleSaleUse', checked: vehicleSaleUse, label: 'Vehicle Sale Use', description: 'Restrict use for business or commercial purposes' },
-        { id: 'subletting', checked: subletting, label: 'Subletting', description: 'Prohibit tenant from subletting to third parties' },
-        { id: 'petBusinessUse', checked: petBusinessUse, label: 'Pet Business Use', description: 'Restrict keeping of pets on the property' },
+        { id: 'vehicleRepairUse', checked: vehicleRepairUse, label: 'Vehicle Repair Use', description: '' },
+        { id: 'vehicleSaleUse', checked: vehicleSaleUse, label: 'Vehicle Sale Use', description: '' },
+        { id: 'subletting', checked: subletting, label: 'Subletting', description: '' },
+        { id: 'petBusinessUse', checked: petBusinessUse, label: 'Pet Business Use', description: '' },
         { id: 'leisureUse', checked: leisureUse, label: 'Leisure Use', description: '' },
-        { id: 'plasticRecyclingUse', checked: plasticRecyclingUse, label: 'Plastic Recycling Use', description: 'Prohibit use or cultivation of cannabis' },
-        // ✅ NEW: Floor Plans option
-        { id: 'floorPlans', checked: floorPlans, label: 'Floor Plans', description: 'Enable upload and display of property floor plans' }
+        { id: 'plasticRecyclingUse', checked: plasticRecyclingUse, label: 'Plastic Recycling Use', description: '' }
     ];
 
     const handleRestrictionToggle = (id: string, currentValue: boolean) => {
@@ -69,7 +65,6 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
             'petBusinessUse': 'pet_business_use',
             'leisureUse': 'leisure_use',
             'plasticRecyclingUse': 'plastic_recycling_use',
-            'floorPlans': 'floor_plans' // ✅ NEW
         };
 
         const fieldName = fieldMap[id];
@@ -95,7 +90,7 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
                     {/* Step Indicator */}
                     <div className="flex items-center justify-center mb-8">
                         <div className="flex items-center gap-0">
-                            <Link to={`/vendor-dashboard/edit-property/${id}`}>
+                            <Link to={`/broker-dashboard/edit-property/${id}`}>
                                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-[14px] font-medium">
                                     1
                                 </div>
@@ -237,14 +232,9 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
                                             className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
                                         <div>
-                                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                                            <h3 className="text-base font-semibold text-gray-900">
                                                 {restriction.label}
                                             </h3>
-                                            {restriction.description && (
-                                                <p className="text-sm text-gray-600">
-                                                    {restriction.description}
-                                                </p>
-                                            )}
                                         </div>
                                     </div>
                                 </div>

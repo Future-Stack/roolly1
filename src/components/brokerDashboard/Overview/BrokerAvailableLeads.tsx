@@ -15,12 +15,13 @@ interface Lead {
   phone_number: string;
   lead_status: string;
   lead_traffic: string;
-  budget_range: string | null;
+  sqft_range: string | null;
   created_at: string;
   schedule_id?: string | null;
   property_name?: string;
   property_type?: string;
   location?: string;
+  financial_details_provided?: boolean;
   is_grabbed?: boolean;
 }
 
@@ -36,7 +37,7 @@ interface FormattedLead {
   businessType: string;
   budget: string;
   source: string;
-  financials: string;
+  financial_details_provided: boolean;
   phone: string;
   email: string;
   alertMessage: string;
@@ -50,15 +51,16 @@ const BrokerAvailableLeads = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
   const [grabbingLeadId, setGrabbingLeadId] = useState<string | null>(null);
-  
+
   const { data: brokerLeadsData, isLoading, isError, refetch } = useGetAvailableLeadsQuery(undefined);
-  
+  console.log('API Data:', brokerLeadsData);
+
   const [makeGrabLead] = useMakeGrabLeadMutation();
-  
-  const { 
-    data: scheduleData, 
+
+  const {
+    data: scheduleData,
     isLoading: scheduleLoading,
-    isError: scheduleError 
+    isError: scheduleError
   } = useGetSingleScheduleQuery(selectedScheduleId || undefined, {
     skip: !selectedScheduleId,
   });
@@ -118,7 +120,7 @@ const BrokerAvailableLeads = () => {
 
   const formatBusinessType = (propertyType?: string) => {
     if (!propertyType) return 'Not specified';
-    
+
     switch (propertyType.toLowerCase()) {
       case 'office': return 'Office Space';
       case 'industrial': return 'Industrial';
@@ -134,16 +136,16 @@ const BrokerAvailableLeads = () => {
     return data.map((lead, index) => {
       // Use the actual lead ID from backend or generate one
       const id = lead.id?.toString() || `${Date.now()}-${index}`;
-      
+
       // Generate property ID based on index or use property_name
       const propertyId = `PR${(index + 1).toString().padStart(3, '0')}`;
-      
+
       // Get property name or use default
       const propertyName = lead.property_name || `Property ${index + 1}`;
-      
+
       // Format budget
-      const budget = lead.budget_range ? `£${lead.budget_range}` : 'Not specified';
-      
+      const budget = lead.sqft_range ? `${lead.sqft_range}` : 'Not specified';
+
       return {
         id,
         name: lead.client_name || 'Unknown Client',
@@ -156,7 +158,7 @@ const BrokerAvailableLeads = () => {
         businessType: formatBusinessType(lead.property_type),
         budget,
         source: lead.source.charAt(0).toUpperCase() + lead.source.slice(1),
-        financials: 'Not provided', 
+        financial_details_provided: !!lead.financial_details_provided,
         phone: lead.phone_number || 'Not provided',
         email: lead.email_address || 'Not provided',
         alertMessage: getAlertMessage(lead.source, lead.lead_status, lead.is_grabbed || false),
@@ -205,7 +207,7 @@ const BrokerAvailableLeads = () => {
       setGrabbingLeadId(leadId);
 
       const result = await makeGrabLead(lead.originalId).unwrap();
-      
+
       if (result) {
         toast.success('Lead grabbed successfully!');
         refetch();
@@ -292,33 +294,31 @@ const BrokerAvailableLeads = () => {
         isLoading={scheduleLoading}
         isError={scheduleError}
       />
-      
+
       <div className="space-y-4 relative">
         {leads.map((lead) => {
           const isThisLeadGrabbing = grabbingLeadId === lead.id;
-          
+
           return (
             <div key={lead.id} className="bg-white rounded-xl border border-gray-200 p-5 relative">
               {/* Lead Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <h3 className="text-[16px] font-semibold text-gray-900">{lead.name}</h3>
-                  <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
-                    lead.status === 'Green' ? 'bg-green-500 text-white' :
+                  <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.status === 'Green' ? 'bg-green-500 text-white' :
                     lead.status === 'Blue' ? 'bg-blue-600 text-white' :
-                    lead.status === 'Red' ? 'bg-red-500 text-white' :
-                    'bg-amber-500 text-white'
-                  }`}>
+                      lead.status === 'Red' ? 'bg-red-500 text-white' :
+                        'bg-amber-500 text-white'
+                    }`}>
                     {lead.status}
                   </span>
-                  <span className={`px-3 py-1 rounded text-[12px] font-semibold ${
-                    lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
+                  <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
                     lead.secondaryStatus.toLowerCase().includes('enquired') ? 'bg-blue-600 text-white' :
-                    lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
-                    lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
-                    lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
-                    'bg-gray-600 text-white'
-                  }`}>
+                      lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
+                        lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
+                          lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
+                            'bg-gray-600 text-white'
+                    }`}>
                     {lead.secondaryStatus}
                   </span>
                 </div>
@@ -385,16 +385,13 @@ const BrokerAvailableLeads = () => {
               </div>
 
               {/* Alert Message */}
-              <div className={`border rounded-md p-3 mb-5 ${
-                lead.isGrabbed ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
-              }`}>
+              <div className={`border rounded-md p-3 mb-5 ${lead.isGrabbed ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
+                }`}>
                 <div className="flex gap-2">
-                  <Info className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
-                    lead.isGrabbed ? 'text-green-600' : 'text-blue-600'
-                  }`} strokeWidth={2} />
-                  <p className={`text-[13px] font-medium ${
-                    lead.isGrabbed ? 'text-green-800' : 'text-blue-800'
-                  }`}>
+                  <Info className={`w-4 h-4 flex-shrink-0 mt-0.5 ${lead.isGrabbed ? 'text-green-600' : 'text-blue-600'
+                    }`} strokeWidth={2} />
+                  <p className={`text-[13px] font-medium ${lead.isGrabbed ? 'text-green-800' : 'text-blue-800'
+                    }`}>
                     {lead.alertMessage}
                   </p>
                 </div>
@@ -407,7 +404,7 @@ const BrokerAvailableLeads = () => {
                   <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Budget</p>
+                  <p className="text-sm text-gray-500 mb-1">Sqft Range</p>
                   <p className="text-[14px] text-gray-900 font-normal">{lead.budget}</p>
                 </div>
                 <div>
@@ -418,12 +415,11 @@ const BrokerAvailableLeads = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Financials Details</p>
-                  <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${
-                    lead.financials === 'Provided' 
-                      ? 'border-orange-500 text-orange-600' 
-                      : 'border-gray-400 text-gray-600'
-                  }`}>
-                    {lead.financials}
+                  <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${lead.financial_details_provided
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-gray-400 text-gray-600'
+                    }`}>
+                    {lead.financial_details_provided ? 'Provided' : 'Not provided'}
                   </span>
                 </div>
               </div>
@@ -443,7 +439,7 @@ const BrokerAvailableLeads = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Action Buttons */}
                 <div className="flex gap-3">
                   {/* Schedule Viewing Button */}
@@ -459,18 +455,17 @@ const BrokerAvailableLeads = () => {
                     <Calendar className="w-4 h-4" strokeWidth={2} />
                     {lead.scheduleId ? 'View Schedule' : 'No Schedule'}
                   </button> */}
-                  
+
                   {/* Grab Lead Button */}
                   <button
                     onClick={() => handleGrabLead(lead.id)}
                     disabled={lead.isGrabbed || isThisLeadGrabbing}
-                    className={`px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors ${
-                      lead.isGrabbed
-                        ? 'bg-green-600 text-white cursor-default'
-                        : isThisLeadGrabbing
+                    className={`px-5 py-2.5 rounded-md flex items-center gap-2 text-[14px] font-medium transition-colors ${lead.isGrabbed
+                      ? 'bg-green-600 text-white cursor-default'
+                      : isThisLeadGrabbing
                         ? 'bg-blue-400 text-white cursor-wait'
                         : 'bg-orange-500 hover:bg-orange-600 text-white'
-                    }`}
+                      }`}
                   >
                     <UserCheck className="w-4 h-4" strokeWidth={2} />
                     {lead.isGrabbed ? 'Grabbed' : isThisLeadGrabbing ? 'Grabbing...' : 'Grab Lead'}

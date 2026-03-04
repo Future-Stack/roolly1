@@ -1,10 +1,10 @@
 import { baseApi } from "@/redux/api/baseApi";
 
-const updateVendorPropertyApi = baseApi.injectEndpoints({
+const updateBrokerPropertyApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        updateVendorProperty: builder.mutation({
+        updateBrokerProperty: builder.mutation({
             query: (data) => ({
-                url: `/vendors/properties/${data.id}/`,
+                url: `/brokers/properties/${data.id}/`,
                 method: 'PATCH',
                 body: data.data,
             }),
@@ -13,4 +13,4 @@ const updateVendorPropertyApi = baseApi.injectEndpoints({
     }),
 })
 
-export const { useUpdateVendorPropertyMutation } = updateVendorPropertyApi;
+export const { useUpdateBrokerPropertyMutation } = updateBrokerPropertyApi;

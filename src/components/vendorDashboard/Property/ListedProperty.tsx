@@ -1,11 +1,12 @@
 import Pagination from '@/components/ui/Pagination';
-import { useGetListedPropertyApiQuery } from '@/redux/features/broker/property/getListedPropertyApi';
 import { useCreateMessageMutation } from '@/redux/features/message/createMessageApi';
+import { useGetAllVendorPropertyQuery } from '@/redux/features/vendor/property/getListedPropertyApi';
+// import { useGetListedPropertyApiQuery } from '@/redux/features/vendor/property/getListedPropertyApi';
 import { Calendar, Clock, Info, MapPin, MessageSquare, MoreVertical } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-interface PropertyOwner {
+interface PropertyBroker {
     id: string;
     full_name: string;
     phone_number: string;
@@ -14,7 +15,7 @@ interface PropertyOwner {
 
 interface PropertyItem {
     id: number;
-    property_owner: PropertyOwner;
+    property_broker: PropertyBroker;
     property_name: string;
     location: string;
     estimated_price: string;
@@ -84,9 +85,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     const handleCreateMessage = async () => {
         try {
             const res = await createMessage({
-                user_id: property?.property_owner?.id
+                user_id: property?.property_broker?.id
             }).unwrap();
-            navigate(`/broker-dashboard/messages`, {
+            navigate(`/vendor-dashboard/messages`, {
                 state: { res }
             });
 
@@ -108,7 +109,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     }, []);
 
     const {
-        property_owner,
+        property_broker,
         property_name,
         location,
         estimated_price,
@@ -124,7 +125,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             {/* Header */}
             <div className="px-5 pt-5 pb-3">
                 <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-[17px] font-medium text-gray-900">{property_owner.full_name}</h3>
+                    <h3 className="text-[17px] font-medium text-gray-900">{property_broker.full_name}</h3>
                     <div className="relative -mt-1" ref={dropdownRef}>
                         <button
                             className="text-gray-400 hover:text-gray-600"
@@ -227,7 +228,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <div>
                         <div className="text-[13px] text-gray-500 mb-1.5">Source</div>
                         <button className="px-4 py-1.5 text-[13px] text-blue-600 font-medium border border-gray-300 rounded-sm hover:bg-gray-50 transition-colors">
-                            From Vendor
+                            From Broker
                         </button>
                     </div>
 
@@ -236,7 +237,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                             onClick={handleCreateMessage}
                             className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[14px] font-medium rounded-sm transition-colors">
                             <MessageSquare size={18} strokeWidth={2} />
-                            Message Vendor
+                            Message Broker
                         </button>
                         <Link to={`${id}/view`} >
                         <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
@@ -274,7 +275,8 @@ const ListedProperty: React.FC = () => {
         search: debouncedSearchTerm || undefined,
     };
 
-    const { data: listedProperty, isLoading, isError } = useGetListedPropertyApiQuery(queryParams);
+    const { data: listedProperty, isLoading, isError } = useGetAllVendorPropertyQuery(queryParams);
+    console.log(listedProperty)
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);

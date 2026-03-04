@@ -1,293 +1,62 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef } from 'react';
-import { Eye, EyeOff, Check, User, Camera, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Info, FileText } from 'lucide-react';
 import regiImg from '../../assets/registerImg.svg';
 import logoImg from '../../assets/logo.svg';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRegisterMutation } from '@/redux/features/auth/registerApi';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-import { useVerifyEmailMutation } from '@/redux/features/auth/verifyEmailApi';
+import { toast } from 'react-toastify';
 
-interface UploadPhotoProps {
-  onSelect: (imageFile?: File) => void;
+// Assets
+import ImageIcon from '@/assets/imageIcon.svg';
+import PdfIcon from '@/assets/pdfIcon.svg';
+
+interface DocumentUploadCardProps {
+  label: string;
+  onSelect: (file: File) => void;
+  selectedFile: File | null;
+  type: 'image' | 'pdf';
 }
 
-interface VerificationProps {
-  onSelect: () => void;
-  email: string;
-}
+const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({ label, onSelect, selectedFile, type }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-const UploadPhoto: React.FC<UploadPhotoProps> = ({ onSelect }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setImageFile(file);
+      onSelect(file);
     }
   };
 
-  const handleSkip = () => {
-    onSelect();
-  };
-
-  const handleSendVerification = () => {
-    onSelect(imageFile || undefined);
-  };
-
   return (
-    <div className="w-full sm:mt-6 md:mt-16">
-      {/* Skip Button */}
-      <div className="flex justify-end mb-8">
-        <button
-          onClick={handleSkip}
-          className="text-gray-900 text-base font-medium underline hover:text-gray-700 transition-colors"
-        >
-          Skip
-        </button>
+    <div
+      onClick={() => fileInputRef.current?.click()}
+      className="bg-white border border-gray-100 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all shadow-sm h-[180px]"
+    >
+      <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center mb-3">
+        <img src={type === 'image' ? ImageIcon : PdfIcon} alt={label} className="w-8 h-8 opacity-40" />
       </div>
-
-      {/* Upload Photo Card */}
-      <div className="mb-8">
-        <div className="bg-white rounded-lg border border-[#B6D1F3] p-8 sm:p-12">
-          {/* Avatar Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center">
-                {selectedImage ? (
-                  <img
-                    src={selectedImage}
-                    alt="Profile"
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <User size={32} className="text-white" />
-                )}
-              </div>
-              <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-                <Camera size={14} className="text-white" />
-              </div>
-            </div>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-center text-gray-900 text-xl font-bold mb-6">
-            Upload Your Photo or logo
-          </h2>
-
-          {/* Upload Button */}
-          <div className="flex justify-center">
-            <label htmlFor="photo-upload">
-              <div className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-base px-8 py-3 rounded-md cursor-pointer transition-colors inline-block">
-                Upload Photo
-              </div>
-            </label>
-            <input
-              id="photo-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Send Verification Button */}
-      <div className="mt-8">
-        <button
-          onClick={handleSendVerification}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-base px-6 py-3 rounded-lg transition-colors mb-6"
-        >
-          Send Verification code
-        </button>
-
-        {/* Login Link */}
-        <p className="text-center text-gray-900 text-sm">
-          I don't have an account ?{' '}
-          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-            Log in
-          </Link>
-        </p>
-      </div>
+      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider text-center px-2 line-clamp-2 max-w-[100px]">
+        {selectedFile ? selectedFile.name : label}
+      </span>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept={type === 'image' ? "image/*" : ".pdf,image/*"}
+      />
     </div>
   );
 };
 
-// Verification Component
-const Verification: React.FC<VerificationProps> = ({ onSelect, email }) => {
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationError, setVerificationError] = useState('');
-  const [verificationSuccess, setVerificationSuccess] = useState('');
-  const [verifyEmail] = useVerifyEmailMutation();
+const Register: React.FC = () => {
+  const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
-  const handleChange = (index: number, value: string) => {
-    if (value.length > 1) {
-      value = value.slice(0, 1);
-    }
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleBack = () => {
-    onSelect();
-  };
-
-  const handleResendCode = async () => {
-    try {
-      setVerificationSuccess('Verification code resent successfully!');
-      setTimeout(() => setVerificationSuccess(''), 3000);
-    } catch (error) {
-      console.log('error:', error);
-      setVerificationError('Failed to resend code. Please try again.');
-    }
-  };
-
-  const handleVerifyAccount = async () => {
-    const otp = code.join('');
-
-    if (otp.length !== 6) {
-      setVerificationError('Please enter the 6-digit verification code');
-      return;
-    }
-
-    setIsVerifying(true);
-    setVerificationError('');
-    setVerificationSuccess('');
-
-    try {
-      const verificationData = {
-        email: email,
-        otp: otp,
-        purpose: 'email_verification'
-      };
-
-      console.log('Sending verification data:', verificationData);
-      const res = await verifyEmail(verificationData).unwrap();
-
-      if (res?.message) {
-        setVerificationSuccess('Account verified successfully! Redirecting to login...');
-        navigate('/login')
-      }
-
-    } catch (err: any) {
-      console.error('Verification error:', err);
-      setVerificationError(err?.data?.message || 'Verification failed. Please try again.');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  return (
-    <div className="bg-gray-50 flex flex-col min-h-screen">
-      {/* Main Content */}
-      <div className="flex-1 flex items-start justify-center pt-10 sm:pt-20 px-4">
-        <div className="w-full max-w-md sm:max-w-lg">
-          {/* Verification Card */}
-          <div className="bg-white rounded-lg border border-[#E7F0FB] p-6 sm:p-8 md:p-12 mb-8">
-            {/* Title */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-4 sm:mb-6">
-              Verification
-            </h1>
-
-            {/* Description */}
-            <p className="text-center text-gray-600 text-sm mb-6 sm:mb-8 leading-relaxed px-2">
-              We have sent a verification code to{' '}
-              <span className="font-semibold text-gray-900">{email}</span>. Please enter the code below.
-            </p>
-
-            {/* Error Message */}
-            {verificationError && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm text-center">
-                {verificationError}
-              </div>
-            )}
-
-            {/* Success Message */}
-            {verificationSuccess && (
-              <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm text-center">
-                {verificationSuccess}
-              </div>
-            )}
-
-            {/* Code Input Boxes */}
-            <div className="flex justify-center gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-hidden">
-              {code.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el: HTMLInputElement | null) => {
-                    inputRefs.current[index] = el;
-                  }}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-semibold border-2 border-gray-300 rounded-md focus:border-blue-600 focus:outline-none transition-colors flex-shrink-0"
-                />
-              ))}
-            </div>
-
-            {/* Back Button */}
-            <button
-              onClick={handleBack}
-              className="flex items-center hover:text-gray-400 justify-center gap-2 text-gray-900 text-sm sm:text-base font-medium mx-auto transition-colors"
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-          </div>
-
-          {/* Resend Code Link */}
-          <div className="text-center mb-6">
-            <button
-              onClick={handleResendCode}
-              className="text-blue-600 hover:text-blue-700 text-sm sm:text-base font-medium transition-colors"
-            >
-              Resend Code
-            </button>
-          </div>
-
-          {/* Verify Account Button */}
-          <button
-            onClick={handleVerifyAccount}
-            disabled={isVerifying || code.join('').length !== 6}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isVerifying ? 'Verifying...' : 'Verify Account'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Register Component
-const Register: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'registration' | 'upload' | 'verification'>('registration');
+  // Step 1 Data
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState<string | undefined>('');
@@ -295,40 +64,94 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+
+  // Step 2 Data
+  const [passport, setPassport] = useState<File | null>(null);
+  const [driverLicence, setDriverLicence] = useState<File | null>(null);
+  const [utilityBill, setUtilityBill] = useState<File | null>(null);
+  const [bankStatement, setBankStatement] = useState<File | null>(null);
+
+  // Errors State
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   const [register, { isLoading }] = useRegisterMutation();
 
-  const handleRegistrationSubmit = async () => {
-    // Validation
-    if (!fullName || !email || !phone || !password || !confirmPassword) {
-      setError('Please fill in all fields');
-      return;
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const validateStep1 = () => {
+    const newErrors: Record<string, string[]> = {};
+    if (!fullName) newErrors.full_name = ['Full name is required'];
+    if (!email) {
+      newErrors.email = ['Email is required'];
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = ['Enter a valid email address'];
+    }
+    if (!phone) {
+      newErrors.phone_number = ['Phone number is required'];
+    } else if (!/^\+?[0-9]+$/.test(phone)) {
+      newErrors.phone_number = ['The phone number entered is not valid.'];
+    }
+    if (!password) {
+      newErrors.password = ['Password is required'];
+    } else if (password.length < 8) {
+      newErrors.password = ['Password must be at least 8 characters'];
+    }
+    if (!confirmPassword) {
+      newErrors.confirm_password = ['Confirm password is required'];
+    } else if (password !== confirmPassword) {
+      newErrors.confirm_password = ['Passwords do not match'];
+    }
+    if (!profileImage) {
+      newErrors.image = ['Profile image or logo is required'];
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep1()) {
+      setStep(2);
+    } else {
+      toast.error('Please correct the errors before proceeding');
+    }
+  };
+
+  const renderError = (field: string) => {
+    if (errors[field] && errors[field].length > 0) {
+      return (
+        <p className="text-red-500 text-xs mt-1 font-bold">
+          {errors[field][0]}
+        </p>
+      );
+    }
+    return null;
+  };
+
+  const handleSubmitRegistration = async () => {
+    setErrors({});
+    if (!passport && !driverLicence) {
+      toast.error('Please upload at least one identity document');
       return;
     }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (!utilityBill && !bankStatement) {
+      toast.error('Please upload at least one address document');
       return;
     }
-
-    // Validate phone number format
-    if (!phone || !phone.match(/^\+[1-9]\d{1,14}$/)) {
-      setError('Please enter a valid phone number with country code');
-      return;
-    }
-
-    setError('');
-    setSuccess('');
 
     try {
-      // Create FormData
       const formData = new FormData();
       formData.append('full_name', fullName);
       formData.append('email', email);
@@ -336,426 +159,339 @@ const Register: React.FC = () => {
       formData.append('password', password);
       formData.append('confirm_password', confirmPassword);
 
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
+      if (profileImage) formData.append('image', profileImage);
+      if (passport) formData.append('passport_image', passport);
+      if (driverLicence) formData.append('driving_license', driverLicence);
+      if (utilityBill) formData.append('utility_bill', utilityBill);
+      if (bankStatement) formData.append('bank_statement', bankStatement);
 
-      // Call API
-      const result = await register(formData).unwrap();
-
-      setSuccess('Registration successful! Please check your email for verification.');
-      console.log('Registration result:', result);
-
-      // Move to upload photo step if image not uploaded yet
-      if (!imageFile) {
-        setActiveTab('upload');
-      } else {
-        setActiveTab('verification');
-      }
-
+      await register(formData).unwrap();
+      setStep(3);
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err?.data?.message || 'Registration failed. Please try again.');
+      if (err?.status === 400 && err?.data) {
+        setErrors(err.data);
+        const firstErrorField = Object.keys(err.data)[0];
+        const step1Fields = ['full_name', 'email', 'phone_number', 'password', 'confirm_password', 'image'];
+        if (step1Fields.includes(firstErrorField)) {
+          setStep(1);
+          toast.error('Validation error in Registration step');
+        } else {
+          toast.error('Validation error in Document Upload step');
+        }
+      } else {
+        toast.error(err?.data?.message || 'Registration failed');
+      }
     }
-  };
-
-  const handleUploadPhoto = (uploadedImageFile?: File) => {
-    if (uploadedImageFile) {
-      setImageFile(uploadedImageFile);
-    }
-    setActiveTab('verification');
-  };
-
-  const handleBackFromVerification = () => {
-    setActiveTab('upload');
   };
 
   // Custom style for phone input
-  const phoneInputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    backgroundColor: '#EBF3FF',
-    border: '1px solid transparent',
-    borderRadius: '8px',
-    fontSize: '16px',
-    color: '#1F2937',
-    transition: 'all 0.2s ease',
-  };
-
-  const phoneInputFocusStyle = {
-    backgroundColor: 'white',
-    borderColor: '#3B82F6',
-    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
-    outline: 'none',
-  };
-
-  // Render active tab content
-  const renderActiveTab = () => {
-    switch (activeTab) {
-      case 'registration':
-        return (
-          <>
-            {/* Form Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-[#000000] leading-10 mb-2">
-                Register and Get Started
-              </h1>
-              <p className="text-[#000000] text-base leading-6">
-                One Step Away From Getting Started
-              </p>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm">
-                {success}
-              </div>
-            )}
-
-            {/* Registration Form */}
-            <div className="space-y-4">
-              {/* Full Name */}
-              <div>
-                <label htmlFor="fullName" className="block text-md text-[#000000] mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900"
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-md text-[#000000] mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900"
-                  placeholder="Enter your email"
-                />
-              </div>
-
-              {/* Phone Number with Country Code */}
-              <div>
-                <label htmlFor="phone" className="block text-md text-[#000000] mb-2">
-                  Phone Number
-                </label>
-                <div className="relative">
-                  <PhoneInput
-                    international
-                    defaultCountry="BD"
-                    onChange={(value) => setPhone(value || '')}
-                    className="custom-phone-input"
-                    style={{
-                      '--PhoneInput-color--focus': '#3B82F6',
-                      '--PhoneInputCountrySelectArrow-color': '#6B7280',
-                      '--PhoneInputCountrySelectArrow-color--focus': '#3B82F6',
-                      '--PhoneInputCountryFlag-borderColor': 'transparent',
-                    } as React.CSSProperties}
-                    inputStyle={phoneInputStyle}
-                    inputClassName="custom-phone-input-field"
-                    onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                      Object.assign(e.target.style, phoneInputFocusStyle);
-                    }}
-                    onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                      e.target.style.backgroundColor = '#EBF3FF';
-                      e.target.style.borderColor = 'transparent';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                    placeholder="Enter phone number"
-                  />
-                  <style>{`
-                    .custom-phone-input .PhoneInputInput {
-                      background-color: #EBF3FF;
-                      border: none;
-                      outline: none;
-                      padding-left: 8px;
-                      font-size: 16px;
-                      color: #1F2937;
-                      width: 100%;
-                    }
-                    
-                    .custom-phone-input .PhoneInputInput:focus {
-                      background-color: white;
-                      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-                    }
-                    
-                    .custom-phone-input .PhoneInputCountry {
-                      padding: 0 8px;
-                      border-right: 1px solid #D1D5DB;
-                    }
-                    
-                    .custom-phone-input .PhoneInputCountrySelect {
-                      background-color: transparent;
-                      border: none;
-                    }
-                    
-                    .custom-phone-input .PhoneInputCountrySelect:focus {
-                      outline: none;
-                    }
-                    
-                    .PhoneInputCountryIcon {
-                      border-radius: 2px;
-                    }
-                    
-                    .PhoneInputCountrySelectArrow {
-                      margin-left: 4px;
-                    }
-                  `}</style>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter phone number with country code (e.g., +8801302176538)
-                </p>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="block text-md text-[#000000] mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900 pr-12"
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-md text-[#000000] mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-blue-50 border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900 pr-12"
-                    placeholder="Confirm your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Next Button */}
-              <button
-                onClick={handleRegistrationSubmit}
-                disabled={isLoading}
-                className="w-full bg-[#126AD8] cursor-pointer text-white font-medium py-3 px-4 rounded-[8px] transition shadow-sm mt-6 disabled:opacity-50"
-              >
-                {isLoading ? 'Processing...' : 'Next'}
-              </button>
-
-              {/* Login Link */}
-              <div className="text-center text-sm text-gray-600 mt-4">
-                I don't have an account ?{' '}
-                <Link to="/login" className="text-[#126AD8] cursor-pointer font-medium transition">
-                  Log in
-                </Link>
-              </div>
-            </div>
-          </>
-        );
-      case 'upload':
-        return <UploadPhoto onSelect={handleUploadPhoto} />;
-      case 'verification':
-        return <Verification
-          onSelect={handleBackFromVerification}
-          email={email}
-        />;
-      default:
-        return null;
-    }
-  };
-
-  // Determine which steps are completed
-  const getStepStatus = (step: number) => {
-    if (step === 1) return 'completed';
-    if (step === 2) return activeTab === 'upload' || activeTab === 'verification' ? 'current' : 'pending';
-    if (step === 3) return activeTab === 'verification' ? 'current' : 'pending';
-    return 'pending';
-  };
+  const phoneInputClass = "w-full px-4 py-3 bg-[#EBF3FF] border border-transparent rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-900";
 
   return (
-    <div className="min-h-screen flex gap-30 px-8 py-6 bg-gray-50">
+    <div className="min-h-screen flex px-8 py-6 bg-white overflow-x-hidden">
       {/* Left Side - Image Section */}
       <div className="hidden lg:flex lg:w-1/2 relative rounded-2xl bg-gray-900 overflow-hidden py-5">
-        {/* Background layer */}
         <div className="absolute inset-0">
-          <img
-            src={regiImg}
-            alt="background"
-            className="w-full h-full object-cover"
-          />
+          <img src={regiImg} alt="background" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40" />
         </div>
-
-        {/* CONTENT WRAPPER - This makes padding work */}
-        <div className="relative z-10 flex flex-col justify-between w-full h-full px-6 sm:px-9 py-6 sm:py-8">
-
-          {/* Logo - Top */}
+        <div className="relative z-10 flex flex-col justify-between w-full h-full px-9 py-8">
           <Link to="/">
-          <div className="flex items-center gap-2 bg-gray-200 rounded-[12px] px-4 py-2 shadow-lg w-max">
-            <img src={logoImg} alt="logo" />
-          </div>
+            <div className="flex items-center gap-2 bg-gray-200 rounded-[12px] px-4 py-2 shadow-lg w-max">
+              <img src={logoImg} alt="logo" />
+            </div>
           </Link>
-
-          {/* Bottom Text - Bottom */}
           <div className="text-white">
-            <h2 className="text-2xl sm:text-3xl font-semibold mb-3 leading-7">Showcase your properties</h2>
-            <p className="text-white text-sm sm:text-base font-semibold leading-6">
-              Sign in or create an account to access powerful listing tools <br className="hidden sm:block" />
+            <h2 className="text-3xl font-semibold mb-3">Showcase your properties</h2>
+            <p className="text-white text-base font-semibold leading-6">
+              Sign in or create an account to access powerful listing tools <br />
               and reach thousands of active dealers and buyers.
             </p>
           </div>
-
         </div>
       </div>
 
       {/* Right Side - Registration Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center gap-30 p-6">
-        <div className="w-full">
-          {/* Progress Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-gray-500">
-                {activeTab === 'registration' && '1 of 3 steps completed'}
-                {activeTab === 'upload' && '2 of 3 steps completed'}
-                {activeTab === 'verification' && '3 of 3 steps completed'}
-              </p>
-            </div>
+      <div className="w-full lg:w-1/2 flex items-start justify-center p-6 lg:p-12 overflow-y-auto custom-scrollbar">
+        <div className="w-full max-w-lg">
+          {/* Progress Indicator */}
+          <div className="mb-10 pt-4">
+            <p className="text-sm font-bold text-[#10B981] mb-6">
+              {step} of 3 steps completed
+            </p>
+            <div className="flex items-center justify-between relative px-2">
+              {/* Connector Lines */}
+              <div className="absolute top-4 left-0 w-full h-[1px] border-t-2 border-[#B6D1F3] border-dotted -z-10" />
 
-            {/* Steps Indicator */}
-            <div className="flex items-center gap-2 mb-6">
-              {/* STEP 1 - Registration */}
-              <button
-                onClick={() => setActiveTab('registration')}
-                className="flex flex-col items-center flex-1 cursor-pointer"
-              >
-                <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold mb-1
-                  ${getStepStatus(1) === 'completed'
-                    ? 'bg-green-600 text-white border-2 border-green-600'
-                    : getStepStatus(1) === 'current'
-                      ? 'bg-white border-2 border-blue-600 text-blue-600'
-                      : 'bg-white border-2 border-gray-400 text-gray-500'}
-                `}>
-                  {getStepStatus(1) === 'completed' ? <Check size={16} /> : '1'}
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="flex flex-col items-center flex-1">
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border transition-all z-10
+                    ${step >= s ? 'bg-white border-[#10B981] text-[#10B981]' : 'bg-white border-gray-300 text-gray-400'}
+                  `}>
+                    {s}
+                  </div>
+                  <span className={`text-[10px] sm:text-xs mt-2 font-medium ${step >= s ? 'text-black' : 'text-gray-400'}`}>
+                    {s === 1 ? 'Registration' : s === 2 ? 'Upload' : 'Verification'}
+                  </span>
                 </div>
-                <span className={`
-                  text-xs font-medium
-                  ${getStepStatus(1) === 'completed' || getStepStatus(1) === 'current'
-                    ? 'text-black'
-                    : 'text-gray-500'}
-                `}>
-                  Registration
-                </span>
-              </button>
-
-              {/* DOTTED LINE 1 */}
-              <div className={`flex-1 h-0.5 border-t-2 -mt-4 ${getStepStatus(2) === 'completed' || getStepStatus(2) === 'current'
-                ? 'border-blue-600'
-                : 'border-gray-400 border-dotted'
-                }`}></div>
-
-              {/* STEP 2 - Upload Photo */}
-              <button
-                onClick={() => setActiveTab('upload')}
-                className="flex flex-col items-center flex-1 cursor-pointer"
-              >
-                <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold mb-1
-                  ${getStepStatus(2) === 'completed'
-                    ? 'bg-green-600 text-white border-2 border-green-600'
-                    : getStepStatus(2) === 'current'
-                      ? 'bg-white border-2 border-blue-600 text-blue-600'
-                      : 'bg-white border-2 border-gray-400 text-gray-500'}
-                `}>
-                  {getStepStatus(2) === 'completed' ? <Check size={16} /> : '2'}
-                </div>
-                <span className={`
-                  text-xs font-medium
-                  ${getStepStatus(2) === 'completed' || getStepStatus(2) === 'current'
-                    ? 'text-black'
-                    : 'text-gray-500'}
-                `}>
-                  Upload photo
-                </span>
-              </button>
-
-              {/* DOTTED LINE 2 */}
-              <div className={`flex-1 h-0.5 border-t-2 -mt-4 ${getStepStatus(3) === 'completed' || getStepStatus(3) === 'current'
-                ? 'border-blue-600'
-                : 'border-gray-400 border-dotted'
-                }`}></div>
-
-              {/* STEP 3 - Verification */}
-              <button
-                onClick={() => setActiveTab('verification')}
-                className="flex flex-col items-center flex-1 cursor-pointer"
-              >
-                <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold mb-1
-                  ${getStepStatus(3) === 'completed'
-                    ? 'bg-green-600 text-white border-2 border-green-600'
-                    : getStepStatus(3) === 'current'
-                      ? 'bg-white border-2 border-blue-600 text-blue-600'
-                      : 'bg-white border-2 border-gray-400 text-gray-500'}
-                `}>
-                  {getStepStatus(3) === 'completed' ? <Check size={16} /> : '3'}
-                </div>
-                <span className={`
-                  text-xs font-medium
-                  ${getStepStatus(3) === 'completed' || getStepStatus(3) === 'current'
-                    ? 'text-black'
-                    : 'text-gray-500'}
-                `}>
-                  Verification
-                </span>
-              </button>
+              ))}
             </div>
           </div>
 
-          {/* Tab Content */}
-          {renderActiveTab()}
+          {step === 1 && (
+            <div className="animate-in fade-in duration-500">
+              <div className="mb-8">
+                <h1 className="text-[20px] md:text-[32px] font-bold text-gray-900 mb-2">Register and Get Started</h1>
+                <p className="text-gray-900 font-medium">One Step Away From Getting Started</p>
+              </div>
 
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-800 font-bold mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={`${phoneInputClass} ${errors.full_name ? 'border-red-500 bg-red-50' : ''}`}
+                    placeholder="Rob"
+                  />
+                  {renderError('full_name')}
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-bold mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`${phoneInputClass} ${errors.email ? 'border-red-500 bg-red-50' : ''}`}
+                    placeholder="test1@gmail.com"
+                  />
+                  {renderError('email')}
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-bold mb-2">Phone Number</label>
+                  <PhoneInput
+                    international
+                    defaultCountry="GB"
+                    value={phone}
+                    onChange={setPhone}
+                    className={`custom-phone-input ${errors.phone_number ? 'phone-input-error' : ''}`}
+                    inputClassName={`${phoneInputClass} ${errors.phone_number ? 'border-red-500 bg-red-50' : ''}`}
+                  />
+                  {renderError('phone_number')}
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-bold mb-2">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={`${phoneInputClass} ${errors.password ? 'border-red-500 bg-red-50' : ''}`}
+                      placeholder="**************"
+                    />
+                    {renderError('password')}
+                    <button
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-800 font-bold mb-2">Confirm Password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={`${phoneInputClass} ${errors.confirm_password ? 'border-red-500 bg-red-50' : ''}`}
+                      placeholder="**************"
+                    />
+                    {renderError('confirm_password')}
+                    <button
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {confirmPassword ? (showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />) : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className={`bg-white border-[1px] ${errors.image ? 'border-red-500 bg-red-50' : 'border-[#B6D1F3]'} rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center mt-6`}>
+                  <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center overflow-hidden border border-blue-50">
+                        {profileImagePreview ? (
+                          <img src={profileImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={ImageIcon} alt="upload" className="w-10 h-10 opacity-60" />
+                        )}
+                      </div>
+                      <h3 className="font-bold text-gray-900 text-lg">Upload Your Photo or logo</h3>
+                    </div>
+                    <label className="bg-[#126AD8] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition-colors shadow-sm whitespace-nowrap">
+                      Upload Photo
+                      <input type="file" className="hidden" accept="image/*" onChange={handleProfileImageChange} />
+                    </label>
+                  </div>
+                  {renderError('image')}
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  className="w-full bg-[#126AD8] hover:bg-blue-700 text-white font-bold py-4 rounded-lg mt-8 shadow-sm transition-all text-sm uppercase tracking-wide"
+                >
+                  Next
+                </button>
+
+                <p className="text-center text-sm font-medium mt-6 text-gray-700">
+                  I Already have an account ?{' '}
+                  <Link to="/login" className="text-blue-600 font-bold hover:underline">Log in</Link>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="animate-in slide-in-from-right duration-500">
+              <div className="mb-6">
+                <h1 className="text-[32px] font-bold text-gray-900 mb-2">Identity Verification</h1>
+                <div className="bg-[#EBF3FF] p-4 rounded-xl flex gap-3 items-start border border-blue-50">
+                  <Info className="text-gray-900 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <p className="text-[#126AD8] text-xs font-bold leading-relaxed">
+                    You need to upload one document for better verification. Please provide all the required details.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <DocumentUploadCard
+                  label="PASSPORT"
+                  selectedFile={passport}
+                  onSelect={setPassport}
+                  type="image"
+                />
+                <DocumentUploadCard
+                  label="DRIVER LICENCE"
+                  selectedFile={driverLicence}
+                  onSelect={setDriverLicence}
+                  type="image"
+                />
+                {renderError('passport_image')}
+                {renderError('driving_license')}
+              </div>
+
+              <div className="mb-6">
+                <h1 className="text-[32px] font-bold text-gray-900 mb-2">Address Verification</h1>
+                <div className="bg-[#EBF3FF] p-4 rounded-xl flex gap-3 items-start border border-blue-50">
+                  <Info className="text-gray-900 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <p className="text-[#126AD8] text-xs font-bold leading-relaxed">
+                    You need to upload one document for better verification. Please provide all the required details.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DocumentUploadCard
+                  label="UTILITY BILL"
+                  selectedFile={utilityBill}
+                  onSelect={setUtilityBill}
+                  type="pdf"
+                />
+                <DocumentUploadCard
+                  label="BANK STATEMENT"
+                  selectedFile={bankStatement}
+                  onSelect={setBankStatement}
+                  type="pdf"
+                />
+                {renderError('utility_bill')}
+                {renderError('bank_statement')}
+              </div>
+
+              <button
+                onClick={handleSubmitRegistration}
+                disabled={isLoading}
+                className="w-full bg-[#126AD8] hover:bg-blue-700 text-white font-bold py-4 rounded-lg mt-10 shadow-sm transition-all disabled:opacity-50 text-sm uppercase tracking-wide"
+              >
+                {isLoading ? 'Processing...' : 'Verify Account'}
+              </button>
+
+              <button
+                onClick={() => setStep(1)}
+                className="w-full flex items-center justify-center gap-2 text-gray-500 font-bold mt-4 hover:text-gray-700 transition-colors"
+              >
+                <ArrowLeft size={18} /> Back
+              </button>
+
+              <p className="text-center text-sm font-medium mt-8 text-gray-700">
+                I Already have an account ?{' '}
+                <Link to="/login" className="text-blue-600 font-bold hover:underline">Log in</Link>
+              </p>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="animate-in zoom-in duration-500 py-10">
+              <div className="bg-[#EBF3FF] rounded-[40px] p-16 flex flex-col items-center justify-center text-center border border-blue-50">
+                <div className="w-24 h-24 rounded-full bg-blue-100/50 flex items-center justify-center mb-8 relative">
+                  <div className="absolute inset-0 rounded-full border-[8px] border-blue-200/30 animate-pulse"></div>
+                  <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <FileText className="text-[#7C3AED] w-8 h-8" />
+                  </div>
+                </div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-4 px-4 leading-tight">Processing Your Application...</h1>
+                <p className="text-gray-500 text-base font-medium max-w-[280px] mx-auto leading-relaxed">
+                  We're verifying your documents and information. This may take a few moments.
+                </p>
+              </div>
+
+              <button
+                onClick={() => navigate('/admin-dashboard')}
+                className="w-full bg-[#6B7280] text-white font-bold py-4 rounded-lg mt-12 shadow-sm transition-all text-sm uppercase tracking-wide"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <style>{`
+        .custom-phone-input .PhoneInput {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .custom-phone-input .PhoneInputInput {
+          background-color: #EBF3FF;
+          border: 1px solid transparent;
+          outline: none;
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-weight: 500;
+          color: #1F2937;
+          width: 100%;
+          transition: all 0.2s;
+        }
+        .custom-phone-input .PhoneInputInput:focus {
+          background-color: white;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .custom-phone-input .PhoneInputCountry {
+          display: flex;
+          align-items: center;
+          padding: 4px;
+        }
+      `}</style>
     </div>
   );
 };
