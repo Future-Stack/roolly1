@@ -5,18 +5,16 @@ import Login from "@/components/vendorAuth/Login";
 import Register from "@/components/vendorAuth/Register";
 import VendorLayout from "@/components/vendorDashboard/VendorLayout/VendorLayout";
 import Overview from "@/pages/vendorDashboard/Overview/Overview";
-import PropertyManagement from "@/pages/vendorDashboard/PropertyManagement/PropertyManagement";
 import CommunicationWithBroker from "@/pages/vendorDashboard/Messages/CommunicationWithBroker";
 import AnalyticsReporting from "@/pages/vendorDashboard/AnalyticsReporting/AnalyticsReporting";
 import Settings from "@/pages/vendorDashboard/Settings/Settings";
-import PropertyInformationForm from "@/components/vendorDashboard/Property/PropertyInformationForm";
+import PropertyInformationForm from "@/components/brokerDashboard/BrokerProperty/PropertyInformationForm";
 // import RiskProfileManagementForm from "@/components/vendorDashboard/Property/RiskProfileManagementForm";
 import BrokerLayout from "@/components/brokerDashboard/BrokerLayout/BrokerLayout";
 import BrokerDashboardOverview from "@/pages/brokerDashboard/Overview/Overview";
 import BrokerLeadManagement from "@/pages/brokerDashboard/BrokerLeadManagement/BrokerLeadManagement";
 import BrokerSchedule from "@/pages/brokerDashboard/BrokerSchedule/BrokerSchedule";
-import BrokerProperty from "@/pages/brokerDashboard/BrokerProperty/BrokerProperty";
-import PropertyEdit from "@/components/brokerDashboard/BrokerPropery/PropertyEdit";
+import PropertyEdit from "@/components/vendorDashboard/Property/PropertyEdit";
 import BrokerMessage from "@/pages/brokerDashboard/BrokerMessage/BrokerMessage";
 import BrokerAnalytics from "@/pages/brokerDashboard/BrokerAnalytics/BrokerAnalytics";
 import BrokerSettings from "@/pages/brokerDashboard/BrokerSettings/BrokerSettings";
@@ -36,20 +34,22 @@ import ProtectedRoute from "@/layout/ProtectedRoute";
 import ForgotPasswordReq from "@/auth/ForgotPasswordReq/ForgotPasswordReq";
 import ForgotPasswordConfirm from "@/auth/ForgotPasswordConfirm/ForgotPasswordConfirm";
 import VerifyEmail from "@/auth/VerifyEmail/VerifyEmail";
-import AddProperty from "@/pages/vendorDashboard/AddProperty/AddProperty";
-import UpdateVendorProperty from "@/pages/vendorDashboard/UpdateVendorProperty/UpdateVendorProperty";
+import UpdateVendorProperty from "@/pages/brokerDashboard/UpdateVendorProperty/UpdateVendorProperty";
 import CreateNewLead from "@/pages/brokerDashboard/CreateNewLead/CreateNewLead";
 import UpdateLead from "@/pages/brokerDashboard/UpdateLead/UpdateLead";
 import LeadManagement from "@/pages/vendorDashboard/LeadManagement/LeadManagement";
 import PropertyDetails from "@/pages/Users/PropertyDetails/PropertyDetails";
-import BrokerPropertyDetails from "@/pages/brokerDashboard/PropertyDetails/BrokerPropertyDetails";
 import PrivacyPolicy from "@/components/Home/PrivecyPolicy";
 import Terms from "@/components/Home/Terms";
-import RiskProfileInformation from "@/components/vendorDashboard/Property/RiskProfileInformation";
+import RiskProfileInformation from "@/components/brokerDashboard/BrokerProperty/RiskProfileInformation";
 
 
 
 import PublicRoute from "@/layout/PublicRoute";
+import VendorProperty from "@/pages/vendorDashboard/PropertyManagement/VendorProperty";
+import VendorPropertyDetails from "@/pages/vendorDashboard/PropertyDetails/VendorPropertyDetails";
+import PropertyManagement from "@/pages/brokerDashboard/BrokerProperty/PropertyManagement";
+import AddProperty from "@/pages/brokerDashboard/AddProperty/AddProperty";
 
 
 const routes = createBrowserRouter([
@@ -142,21 +142,18 @@ const routes = createBrowserRouter([
         element: <LeadManagement />
       },
       {
-        path: 'properties',
-        element: <PropertyManagement />
+        path: 'property',
+        element: <VendorProperty />
       },
       {
-        path: 'properties/:id',
-        element: <PropertyInformationForm />
+        path: 'property/:id',
+        element: <PropertyEdit />
       },
       {
-        path: 'properties/:id/risk',
-        element: <RiskProfileInformation />
+        path: 'property/:id/view',
+        element: <VendorPropertyDetails />
       },
-      {
-        path: 'edit-property/:id',
-        element: <UpdateVendorProperty />
-      },
+      
       {
         path: 'messages',
         element: <CommunicationWithBroker />
@@ -169,10 +166,7 @@ const routes = createBrowserRouter([
         path: 'settings',
         element: <Settings />
       },
-      {
-        path: 'add-property',
-        element: <AddProperty />
-      }
+     
       // {
       //   path:'add-property',
       //   element:<AddProperty/>
@@ -192,6 +186,10 @@ const routes = createBrowserRouter([
         element: <BrokerLeadManagement />
       },
       {
+        path: 'create-lead',
+        element: <CreateNewLead />
+      },
+      {
         path: 'update-lead/:id',
         element: <UpdateLead />
       },
@@ -200,20 +198,24 @@ const routes = createBrowserRouter([
         element: <BrokerSchedule />
       },
       {
-        path: 'property',
-        element: <BrokerProperty />
+        path: 'properties',
+        element: <PropertyManagement />
       },
       {
-        path: 'create-lead',
-        element: <CreateNewLead />
+        path: 'add-property',
+        element: <AddProperty />
       },
       {
-        path: 'property/:id',
-        element: <PropertyEdit />
+        path: 'properties/:id',
+        element: <PropertyInformationForm />
       },
       {
-        path: 'property/:id/view',
-        element: <BrokerPropertyDetails />
+        path: 'properties/:id/risk',
+        element: <RiskProfileInformation />
+      },
+      {
+        path: 'edit-property/:id',
+        element: <UpdateVendorProperty />
       },
       {
         path: 'messages',

@@ -200,6 +200,9 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 text-[13px] font-semibold text-gray-900">
+                    ID
+                  </th>
+                  <th className="text-left py-3 px-4 text-[13px] font-semibold text-gray-900">
                     Property Name
                   </th>
                   <th className="text-left py-3 px-4 text-[13px] font-semibold text-gray-900">
@@ -229,6 +232,9 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
                     className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${index === properties.length - 1 ? 'border-b-0' : ''
                       }`}
                   >
+                    <td className="py-4 px-4 text-[13px] text-gray-900">
+                      #{property.id}
+                    </td>
                     <td className="py-4 px-4 text-[13px] text-gray-900">
                       {property.name}
                     </td>

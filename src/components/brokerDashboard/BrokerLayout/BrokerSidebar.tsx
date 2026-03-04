@@ -24,7 +24,7 @@ const BrokerSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
     { icon: LayoutGrid, label: 'Overview', path: '/broker-dashboard', badge: null },
     { icon: Users, label: 'Leads', path: '/broker-dashboard/leads', badge: null },
     { icon: CalendarDays, label: 'Schedule Viewing', path: '/broker-dashboard/schedule', badge: null },
-    { icon: Building2, label: 'Property', path: '/broker-dashboard/property', badge: null },
+    { icon: Building2, label: 'Properties', path: '/broker-dashboard/properties', badge: null },
     { icon: MessageSquare, label: 'Messages', path: '/broker-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/broker-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/broker-dashboard/settings', badge: null },

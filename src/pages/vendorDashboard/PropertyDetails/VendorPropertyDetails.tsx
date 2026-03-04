@@ -1,15 +1,15 @@
 import { ChevronLeft, ChevronRight, FileText, Home } from 'lucide-react';
 import React, { useState } from 'react';
 import playButton from '../../../assets/play-button.png';
-import { useGetPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useGetPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
 
 // interface PropertyImage {
 //     name: string;
 //     url: string;
 // }
 
-interface PropertyOwner {
+interface PropertyBroker {
     id: string;
     full_name: string;
     phone_number: string;
@@ -18,7 +18,7 @@ interface PropertyOwner {
 
 interface PropertyDetailsType {
     id: number;
-    property_owner: PropertyOwner;
+    property_broker: PropertyBroker;
     property_name: string;
     existing_images: any;
     brochure_pdf_url: string | null;
@@ -70,7 +70,7 @@ interface PropertyDetailsType {
 
 const MEDIA_BASE_URL = 'https://broker360re.com';
 
-const BrokerPropertyDetails: React.FC = () => {
+const VendorPropertyDetails: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [currentImage, setCurrentImage] = useState(0);
@@ -542,19 +542,19 @@ const BrokerPropertyDetails: React.FC = () => {
                                     <div className="text-[13px]">
                                         <div className="text-gray-600">Property Owner:</div>
                                         <div className="text-gray-900 font-medium">
-                                            {propertyData.property_owner.full_name}
+                                            {propertyData.property_broker.full_name}
                                         </div>
                                     </div>
                                     <div className="text-[13px]">
                                         <div className="text-gray-600">Email:</div>
                                         <div className="text-gray-900 font-medium">
-                                            {propertyData.property_owner.email}
+                                            {propertyData.property_broker.email}
                                         </div>
                                     </div>
                                     <div className="text-[13px]">
                                         <div className="text-gray-600">Phone:</div>
                                         <div className="text-gray-900 font-medium">
-                                            {propertyData.property_owner.phone_number}
+                                            {propertyData.property_broker.phone_number}
                                         </div>
                                     </div>
                                     <div className="text-[13px]">
@@ -582,12 +582,12 @@ const BrokerPropertyDetails: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 mt-8">
-                        <Link to={`/broker-dashboard/property/${propertyData.id}`}>
+                        <Link to={`/vendor-dashboard/property/${propertyData.id}`}>
                             <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-medium rounded-sm transition-colors">
                                 Update Property
                             </button>
                         </Link>
-                        <button onClick={() => navigate('/broker-dashboard/property')} className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-[14px] font-medium rounded-sm transition-colors">
+                        <button onClick={() => navigate('/vendor-dashboard/property')} className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-[14px] font-medium rounded-sm transition-colors">
                             Cancel
                         </button>
                     </div>
@@ -597,4 +597,4 @@ const BrokerPropertyDetails: React.FC = () => {
     );
 };
 
-export default BrokerPropertyDetails;
+export default VendorPropertyDetails;

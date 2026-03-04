@@ -7,8 +7,6 @@ import {
     Save,
     CheckCircle,
     XCircle,
-    Hash,
-    CirclePoundSterling
 } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUpdateLeadMutation } from '@/redux/features/broker/leads/updateLeadApi';
@@ -24,7 +22,8 @@ interface Lead {
     source: string;
     lead_status: string;
     lead_traffic: 'green' | 'amber' | 'red' | string;
-    budget_range: string | null;
+    sqft_range: string | null;
+    location: string;
     created_at: string;
     email_address: string;
     phone_number: string;
@@ -37,12 +36,12 @@ const UpdateLead: React.FC = () => {
     const navigate = useNavigate();
 
     const leadDataFromState = location.state?.leadData as Lead | null;
+    console.log('leadDataFromState', leadDataFromState)
 
-    const [formData, setFormData] = useState<Partial<Lead & { propertyString?: string }>>(() => {
+    const [formData, setFormData] = useState<Partial<Lead>>(() => {
         if (leadDataFromState) {
             return {
                 ...leadDataFromState,
-                propertyString: leadDataFromState.property?.toString() || ''
             };
         }
         return {};
@@ -58,12 +57,11 @@ const UpdateLead: React.FC = () => {
         if (leadDataFromState) {
             setFormData({
                 ...leadDataFromState,
-                propertyString: leadDataFromState.property?.toString() || ''
             });
         }
     }, [leadDataFromState]);
 
-    const handleInputChange = (field: keyof Lead | 'propertyString', value: string | number) => {
+    const handleInputChange = (field: keyof Lead, value: string | number) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -90,33 +88,27 @@ const UpdateLead: React.FC = () => {
             setShowError(true);
             return;
         }
-        if (!formData.propertyString?.trim()) {
-            setErrorMessage('Property Id is required');
-            setShowError(true);
-            return;
-        }
-
-
 
         try {
             const apiData: Record<string, any> = {
+                // property: formData.property,
                 client_name: formData.client_name,
                 source: formData.source,
                 email_address: formData.email_address,
                 phone_number: formData.phone_number,
                 lead_status: formData.lead_status,
                 lead_traffic: formData.lead_traffic,
-                budget_range: formData.budget_range,
+                sqft_range: formData.sqft_range,
                 message: formData.message
             };
 
             // Handle property field conversion
-            const propertyStringValue = formData.propertyString;
-            if (propertyStringValue !== undefined && propertyStringValue !== null) {
-                const trimmedValue = propertyStringValue.toString().trim();
-                const numValue = Number(trimmedValue);
-                apiData.property = (trimmedValue === '' || isNaN(numValue) || numValue === 0) ? null : numValue;
-            }
+            // const propertyStringValue = formData.propertyString;
+            // if (propertyStringValue !== undefined && propertyStringValue !== null) {
+            //     const trimmedValue = propertyStringValue.toString().trim();
+            //     const numValue = Number(trimmedValue);
+            //     apiData.property = (trimmedValue === '' || isNaN(numValue) || numValue === 0) ? null : numValue;
+            // }
 
             await updateLead({
                 id,
@@ -389,7 +381,7 @@ const UpdateLead: React.FC = () => {
                                             </select>
                                         </div>
 
-                                        <div>
+                                        {/* <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Property ID
                                             </label>
@@ -399,34 +391,47 @@ const UpdateLead: React.FC = () => {
                                                     type="text"
                                                     inputMode="numeric"
                                                     pattern="[0-9]*"
-                                                    value={formData.propertyString || ''}
-                                                    onChange={(e) => handleInputChange('propertyString', e.target.value)}
+                                                    value={formData.property || ''}
+                                                    onChange={(e) => handleInputChange('property', e.target.value)}
                                                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                                     placeholder="e.g., 12345"
                                                 />
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Budget Range
+                                                Sqft Range
                                             </label>
                                             <div className="relative">
-                                                <CirclePoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                {/* <CirclePoundSterling className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" /> */}
                                                 <select
-                                                    value={formData.budget_range || ''}
-                                                    onChange={(e) => handleInputChange('budget_range', e.target.value)}
-                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                    value={formData.sqft_range || ''}
+                                                    onChange={(e) => handleInputChange('sqft_range', e.target.value)}
+                                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                                 >
-                                                    <option value="2000-50000">£2000-£50000</option>
-                                                    <option value="50000-100000">£50000-£100000</option>
-                                                    <option value="100000-200000">£100000-£200000</option>
-                                                    <option value="200000+">£200000+</option>
+                                                    <option value="0-1000">0-1000</option>
+                                                    <option value="1000-2000">1000-2000</option>
+                                                    <option value="2000-3000">2000-3000</option>
+                                                    <option value="3000-4000">3000-4000</option>
+                                                    <option value="4000-5000">4000-5000</option>
+                                                    <option value="5000+">5000+</option>
                                                 </select>
                                             </div>
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Location
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.location || ''}
+                                                    onChange={(e) => handleInputChange('location', e.target.value)}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                />
+                                            </div>
                                     </div>
                                 </div>
 

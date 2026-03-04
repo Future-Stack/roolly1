@@ -1,10 +1,10 @@
 import { baseApi } from "@/redux/api/baseApi";
 
-const getListedPropertyApi = baseApi.injectEndpoints({
+const getAllVendorPropertyApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getListedPropertyApi: builder.query({
+        getAllVendorProperty: builder.query({
             query: (params) => ({
-                url: '/brokers/my-listed-properties/',
+                url: '/vendors/listed-properties/',
                 method: 'GET',
                 params: {
                     page: params?.page || 1,
@@ -16,4 +16,4 @@ const getListedPropertyApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useGetListedPropertyApiQuery } = getListedPropertyApi;
+export const { useGetAllVendorPropertyQuery } = getAllVendorPropertyApi;

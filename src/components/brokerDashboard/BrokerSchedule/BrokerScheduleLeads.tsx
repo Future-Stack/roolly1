@@ -20,7 +20,7 @@ export interface LeadDetails {
     phone_number: string;
     lead_status: "enquired" | "viewed" | "terms_sent" | "in_legals" | "completed" | "closed" | string;
     lead_traffic: "red" | "amber" | "green" | string;
-    budget_range: string;
+    sqft_range: string;
     financials_details: boolean;
     schedule_id: number;
 }
@@ -338,8 +338,8 @@ const BrokerScheduleLeads = () => {
                                             <p className="text-sm text-gray-900 font-normal capitalize">{lead?.lead?.property?.property_type || "N/A"}</p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 mb-1">Budget</p>
-                                            <p className="text-[14px] text-gray-900 font-normal">{lead?.lead?.budget_range || "N/A"}</p>
+                                            <p className="text-sm text-gray-500 mb-1">Sqft Range</p>
+                                            <p className="text-[14px] text-gray-900 font-normal">{lead?.lead?.sqft_range || "N/A"}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Source</p>

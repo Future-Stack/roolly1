@@ -2,13 +2,16 @@ import React, { useState, useMemo, useCallback } from 'react';
 import debounce from 'lodash/debounce';
 import { Search, Phone, Mail, Trash2, UserSquare, AlertCircle, X as XIcon } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
-import AddVendorModal from '@/components/AdminDashboard/Vendor/AddVendorModal';
+// import AddVendorModal from '@/components/AdminDashboard/Vendor/AddVendorModal';
 import {
     useGetAllVendorsQuery,
     useActivateVendorMutation,
     useDeactivateVendorMutation,
-    useDeleteVendorMutation
+    useDeleteVendorMutation,
+    useGetVendorRequestsQuery,
+    useApproveVendorMutation,
 } from '@/redux/features/admin/vendor-management/vendorManagementApi';
+import VendorRequestCard from '@/components/AdminDashboard/Vendor/VendorRequestCard';
 
 interface VendorData {
     id: string;
@@ -154,7 +157,7 @@ const UserCard: React.FC<UserCardProps> = ({
 };
 
 const VendorManagement: React.FC = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -164,6 +167,67 @@ const VendorManagement: React.FC = () => {
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<{ id: string, name: string } | null>(null);
+    const [activeTab, setActiveTab] = useState<'all' | 'requests'>('all');
+    const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
+
+    const MOCK_VENDOR_REQUESTS = [
+        {
+            id: '1',
+            full_name: 'Sarah Johnson',
+            email: 'sarah.broker360@gmail.com',
+            phone_number: '+44 7700 100123',
+            documents: {
+                driving_licence: 'licence.jpeg',
+                passport: 'passport.jpeg',
+                utility_bill: 'bill.pdf',
+                bank_statement: 'statement.pdf'
+            },
+            created_at: new Date().toISOString(),
+            is_new: true
+        },
+        {
+            id: '2',
+            full_name: 'Sarah Johnson',
+            email: 'sarah.broker360@gmail.com',
+            phone_number: '+44 7700 100123',
+            documents: {
+                driving_licence: 'licence.jpeg',
+                passport: 'passport.jpeg',
+                utility_bill: 'bill.pdf',
+                bank_statement: 'statement.pdf'
+            },
+            created_at: new Date().toISOString(),
+            is_new: true
+        },
+        {
+            id: '3',
+            full_name: 'Sarah Johnson',
+            email: 'sarah.broker360@gmail.com',
+            phone_number: '+44 7700 100123',
+            documents: {
+                driving_licence: 'licence.jpeg',
+                passport: 'passport.jpeg',
+                utility_bill: 'bill.pdf',
+                bank_statement: 'statement.pdf'
+            },
+            created_at: new Date().toISOString(),
+            is_new: false
+        },
+        {
+            id: '4',
+            full_name: 'Sarah Johnson',
+            email: 'sarah.broker360@gmail.com',
+            phone_number: '+44 7700 100123',
+            documents: {
+                driving_licence: 'licence.jpeg',
+                passport: 'passport.jpeg',
+                utility_bill: 'bill.pdf',
+                bank_statement: 'statement.pdf'
+            },
+            created_at: new Date().toISOString(),
+            is_new: false
+        }
+    ];
 
 
     // Memoize query params to avoid unnecessary re-renders
@@ -173,10 +237,13 @@ const VendorManagement: React.FC = () => {
         search: debouncedSearchTerm.trim() || undefined
     }), [currentPage, debouncedSearchTerm]);
 
-    const { data: vendorsData, isLoading, error, refetch } = useGetAllVendorsQuery(queryParams);
+    const { data: vendorsData, isLoading, error, refetch } = useGetAllVendorsQuery(queryParams, { skip: activeTab !== 'all' });
+    const { data: requestsData, isLoading: isLoadingRequests, error: requestsError, refetch: refetchRequests } = useGetVendorRequestsQuery(queryParams, { skip: activeTab !== 'requests' });
     const [activateVendor] = useActivateVendorMutation();
     const [deactivateVendor] = useDeactivateVendorMutation();
     const [deleteVendor] = useDeleteVendorMutation();
+    const [approveVendor] = useApproveVendorMutation();
+    const [declineVendor] = useDeleteVendorMutation();
 
 
     // Debounce search input
@@ -248,6 +315,36 @@ const VendorManagement: React.FC = () => {
         }
     };
 
+    const handleApproveVendor = async (id: string) => {
+        console.log("approve vendor", id);
+        setProcessingRequestId(id);
+        try {
+            await approveVendor(id).unwrap();
+            showNotification('success', 'Vendor approved successfully');
+            refetchRequests();
+        } catch (err) {
+            console.error('Failed to approve vendor:', err);
+            showNotification('error', 'Failed to approve vendor');
+        } finally {
+            setProcessingRequestId(null);
+        }
+    };
+
+    const handleDeclineVendor = async (id: string) => {
+        console.log("decline vendor", id);
+        setProcessingRequestId(id);
+        try {
+            await declineVendor(id).unwrap();
+            showNotification('success', 'Vendor request declined');
+            refetchRequests();
+        } catch (err) {
+            console.error('Failed to decline vendor:', err);
+            showNotification('error', 'Failed to decline vendor');
+        } finally {
+            setProcessingRequestId(null);
+        }
+    };
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-GB', {
@@ -301,15 +398,10 @@ const VendorManagement: React.FC = () => {
         isDeleting: deletingId === vendor.id
     }));
 
-    const totalVendors = vendorsData?.count || 0;
+    const totalVendors = (activeTab === 'all' ? vendorsData?.count : MOCK_VENDOR_REQUESTS.length) || 0;
     const filteredCount = debouncedSearchTerm ? filteredVendorsList.length : totalVendors;
     const totalPages = Math.ceil(totalVendors / itemsPerPage);
 
-    const handleVendorAdded = () => {
-        refetch();
-        showNotification('success', 'Vendor added successfully');
-        setCurrentPage(1);
-    };
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -317,7 +409,7 @@ const VendorManagement: React.FC = () => {
     };
 
     const getDisplayRange = () => {
-        const start = ((currentPage - 1) * itemsPerPage) + 1;
+        const start = totalVendors === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
         const end = Math.min(currentPage * itemsPerPage, totalVendors);
         return { start, end };
     };
@@ -364,11 +456,11 @@ const VendorManagement: React.FC = () => {
                 </div>
             )}
 
-            <AddVendorModal
+            {/* <AddVendorModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={handleVendorAdded}
-            />
+            /> */}
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <div>
@@ -376,19 +468,29 @@ const VendorManagement: React.FC = () => {
                         Vendor Management
                     </h1>
                     <p className="mt-1 text-sm sm:text-base text-gray-600 font-normal max-w-xl">
-                        Manage your platform vendors and their properties
+                        {activeTab === 'all'
+                            ? 'Manage your platform vendors and their properties'
+                            : 'All vendor applications are here, you can verify and approve the vendors.'}
                     </p>
                 </div>
+            </div>
 
-                <div className="w-full sm:w-auto">
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="w-full sm:w-auto bg-[#126AD8] px-5 py-3 rounded-xl text-white flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-200 hover:bg-[#0f5bbf] hover:shadow-lg active:scale-95 shadow-md"
-                    >
-                        <UserSquare className="w-5 h-5" />
-                        <span>Add Vendor</span>
-                    </button>
-                </div>
+            {/* Tabs */}
+            <div className="flex items-center gap-8 mb-6 border-b border-gray-100">
+                <button
+                    onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
+                    className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'all' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    All Vendors
+                    {activeTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
+                </button>
+                <button
+                    onClick={() => { setActiveTab('requests'); setCurrentPage(1); }}
+                    className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'requests' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Vendor Request
+                    {activeTab === 'requests' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
+                </button>
             </div>
 
             <div className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -419,44 +521,94 @@ const VendorManagement: React.FC = () => {
                         )}
                     </div>
 
-                    {!isLoading && !error && totalVendors > 0 && (
-                        <div className="mb-4 text-sm text-gray-600">
-                            Showing {start} to {end} of {totalVendors} vendor{totalVendors !== 1 ? 's' : ''}
-                            {debouncedSearchTerm && ` (filtered: ${filteredCount} found)`}
-                        </div>
-                    )}
+                    {activeTab === 'all' ? (
+                        <>
+                            {!isLoading && !error && totalVendors > 0 && (
+                                <div className="mb-4 text-sm text-gray-600">
+                                    Showing {start} to {end} of {totalVendors} vendor{totalVendors !== 1 ? 's' : ''}
+                                    {debouncedSearchTerm && ` (filtered: ${filteredCount} found)`}
+                                </div>
+                            )}
 
-                    {isLoading && (
-                        <div className="text-center py-8">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <p className="text-gray-600 mt-2">Loading vendors...</p>
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
-                            <p className="text-red-600 text-sm">Error loading vendors. Please try again.</p>
-                        </div>
-                    )}
-
-                    {!isLoading && !error && (
-                        <div>
-                            {currentVendors.length > 0 ? (
-                                <>
-                                    {currentVendors.map((vendor) => (
-                                        <UserCard key={vendor.id} {...vendor} />
-                                    ))}
-                                </>
-                            ) : (
+                            {isLoading && (
                                 <div className="text-center py-8">
-                                    {debouncedSearchTerm ? (
-                                        <p className="text-gray-600">No vendors found matching "{debouncedSearchTerm}"</p>
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <p className="text-gray-600 mt-2">Loading vendors...</p>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
+                                    <p className="text-red-600 text-sm">Error loading vendors. Please try again.</p>
+                                </div>
+                            )}
+
+                            {!isLoading && !error && (
+                                <div>
+                                    {currentVendors.length > 0 ? (
+                                        <>
+                                            {currentVendors.map((vendor) => (
+                                                <UserCard key={vendor.id} {...vendor} />
+                                            ))}
+                                        </>
                                     ) : (
-                                        <p className="text-gray-600">No vendors found. Add your first vendor!</p>
+                                        <div className="text-center py-8">
+                                            {debouncedSearchTerm ? (
+                                                <p className="text-gray-600">No vendors found matching "{debouncedSearchTerm}"</p>
+                                            ) : (
+                                                <p className="text-gray-600">No vendors found. Add your first vendor!</p>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             )}
-                        </div>
+                        </>
+                    ) : (
+                        <>
+                            {isLoadingRequests && (
+                                <div className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <p className="text-gray-600 mt-2">Loading requests...</p>
+                                </div>
+                            )}
+
+                            {requestsError && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-center">
+                                    <p className="text-red-600 text-sm">Error loading requests. Please try again.</p>
+                                </div>
+                            )}
+
+                            {!isLoadingRequests && !requestsError && (
+                                <div>
+                                    {requestsData?.results.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {requestsData?.results.map((request: any) => (
+                                                <VendorRequestCard
+                                                    key={request.id}
+                                                    request={request}
+                                                    onApprove={handleApproveVendor}
+                                                    onDecline={handleDeclineVendor}
+                                                    isProcessing={processingRequestId === request.id}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <UserSquare className="text-gray-300 w-8 h-8" />
+                                            </div>
+                                            <p className="text-gray-600 font-medium">No pending vendor applications found.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {/* <div className="text-center py-12">
+                                <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <UserSquare className="text-gray-300 w-8 h-8" />
+                                </div>
+                                <p className="text-gray-600 font-medium">No pending vendor applications found.</p>
+                            </div> */}
+                        </>
                     )}
                 </div>
             </div>

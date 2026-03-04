@@ -1,15 +1,15 @@
 import LeadGenerationEnquiryForm from '@/components/brokerDashboard/BrokerLeads/LeadGenerationEnquiryForm';
-import ListedProperty from '@/components/brokerDashboard/BrokerPropery/ListedProperty';
-import PropertyApplication from '@/components/brokerDashboard/BrokerPropery/PropertyApplication';
-import { useGetListedPropertyApiQuery } from '@/redux/features/broker/property/getListedPropertyApi';
-import { useGetNewPropertyQuery } from '@/redux/features/broker/property/getNewPropertyApi';
+import ListedProperty from '@/components/vendorDashboard/Property/ListedProperty';
+// import PropertyApplication from '@/components/vendorDashboard/Property/PropertyApplication';
+// import { useGetListedPropertyApiQuery } from '@/redux/features/vendor/property/getListedPropertyApi';
+// import { useGetNewPropertyQuery } from '@/redux/features/vendor/property/getNewPropertyApi';
 import React, { useState } from 'react';
 
-const BrokerProperty: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'application' | 'list'>('application');
+const VendorProperty: React.FC = () => {
+    // const [activeTab, setActiveTab] = useState<'application' | 'list'>('application');
     const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
-    const {data:listedProperty} = useGetListedPropertyApiQuery(undefined);
-    const {data:newProperty} = useGetNewPropertyQuery(undefined)
+    // const {data:listedProperty} = useGetListedPropertyApiQuery(undefined);
+    // const {data:newProperty} = useGetNewPropertyQuery(undefined)
 
     const closeNewLeadModal = () => {
         setNewLeadModalOpen(false);
@@ -38,7 +38,7 @@ const BrokerProperty: React.FC = () => {
                 </div>
 
                 {/* Tabs and New Lead Button */}
-                <div className="flex items-center justify-between mb-6">
+                {/* <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-full">
                         <button
                             onClick={() => setActiveTab('application')}
@@ -59,13 +59,14 @@ const BrokerProperty: React.FC = () => {
                            {`My Listed Property (${listedProperty?.count})`}
                         </button>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Lead Cards */}
-                {activeTab === 'application' ? <PropertyApplication /> : <ListedProperty />}
+                {/* {activeTab === 'application' ? <PropertyApplication /> : <ListedProperty />} */}
+                 <ListedProperty />
             </div>
         </div>
     );
 };
 
-export default BrokerProperty;
+export default VendorProperty;

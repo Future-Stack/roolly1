@@ -271,7 +271,7 @@ const PropertyManagement: React.FC = () => {
                     >
                       Delete
                     </button>
-                    <Link to={`/vendor-dashboard/properties/${property.id}`}>
+                    <Link to={`/broker-dashboard/properties/${property.id}`}>
                       <button className="w-[44px] h-[44px] flex items-center justify-center bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <ScanEye className="w-5 h-5 text-gray-700" strokeWidth={2} />
                       </button>
