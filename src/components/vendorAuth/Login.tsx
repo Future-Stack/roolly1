@@ -151,12 +151,12 @@ const Login: React.FC = () => {
             </button>
 
             {/* Register Link */}
-            {/* <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-gray-600">
               I don't have an account ?{' '}
               <Link to="/register" className="text-blue-600 font-medium transition">
                 Register
               </Link>
-            </div> */}
+            </div>
           </form>
 
           {/* Mobile Showcase Text */}

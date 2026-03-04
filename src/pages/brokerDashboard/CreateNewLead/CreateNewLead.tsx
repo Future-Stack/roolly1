@@ -6,11 +6,12 @@ import { useCreateNewLeadMutation } from '@/redux/features/broker/leads/createNe
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { toast } from 'react-toastify';
+// import console from 'console';
 
 const CreateNewLead = () => {
     const navigate = useNavigate();
     const [createNewLead, { isLoading }] = useCreateNewLeadMutation();
-    
+
     // Separate state variables for each field
     const [property, setProperty] = useState<string>('');
     const [clientName, setClientName] = useState<string>('');
@@ -18,26 +19,37 @@ const CreateNewLead = () => {
     const [emailAddress, setEmailAddress] = useState<string>('');
     const [phoneNumber, setPhoneNumber] = useState<string>('');
     const [leadStatus, setLeadStatus] = useState<string>('enquired');
-    const [budgetRange, setBudgetRange] = useState<string>('');
+    const [sqftRange, setSqftRange] = useState<string>('0-1000');
+    const [location, setLocation] = useState<string>('');
     const [message, setMessage] = useState<string>('');
-    
+    const [financialDetailsProvided, setFinancialDetailsProvided] = useState<boolean>(false);
+
     const [phoneError, setPhoneError] = useState<string>('');
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const handlePhoneChange = (value: string | undefined) => {
         const phone = value || '';
         setPhoneNumber(phone);
-        
+
         // Clear error when user starts typing
         if (phoneError) setPhoneError('');
         if (formErrors.phone_number) {
             setFormErrors(prev => ({ ...prev, phone_number: '' }));
         }
     };
+    const sqftRangeOptions = [
+        // { value: '', label: 'Select SQFT Range' },
+        { value: '0-1000', label: '0-1000' },
+        { value: '1000-2000', label: '1000-2000' },
+        { value: '2000-3000', label: '2000-3000' },
+        { value: '3000-4000', label: '3000-4000' },
+        { value: '4000-5000', label: '4000-5000' },
+        { value: '5000+', label: '5000+' }
+    ];
 
     const validateForm = () => {
         const errors: Record<string, string> = {};
-        
+
         if (!property.trim()) errors.property = 'Property ID is required';
         if (!clientName.trim()) errors.client_name = 'Client name is required';
         if (!emailAddress.trim()) errors.email_address = 'Email address is required';
@@ -46,15 +58,16 @@ const CreateNewLead = () => {
         } else if (!isValidPhoneNumber(phoneNumber)) {
             errors.phone_number = 'Please enter a valid phone number';
         }
-        if (!budgetRange.trim()) errors.budget_range = 'Budget range is required';
-        
+        if (!sqftRange.trim()) errors.sqft_range = 'SQFT range is required';
+
+        // if (!location.trim()) errors.location = 'Location is required';
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
@@ -68,54 +81,61 @@ const CreateNewLead = () => {
                 email_address: emailAddress,
                 phone_number: phoneNumber,
                 lead_status: leadStatus,
-                budget_range: budgetRange,
+                lead_traffic: 'green',
+                sqft_range: sqftRange,
+                location: location,
+                financial_details_provided: financialDetailsProvided,
                 message: message
             };
+            console.log('leadData', leadData);
 
             await createNewLead(leadData).unwrap();
             toast.success('Lead created successfully!');
-            
+
+
             navigate('/broker-dashboard/leads');
         } catch (err: any) {
             toast.error('Failed to create lead. Please try again.');
 
             if (err.data) {
                 const backendErrors: Record<string, string> = {};
-                
+
                 // Parse backend error messages
                 if (err.data.client_name) {
-                    backendErrors.client_name = Array.isArray(err.data.client_name) 
-                        ? err.data.client_name[0] 
+                    backendErrors.client_name = Array.isArray(err.data.client_name)
+                        ? err.data.client_name[0]
                         : err.data.client_name;
                 }
                 if (err.data.email_address) {
-                    backendErrors.email_address = Array.isArray(err.data.email_address) 
-                        ? err.data.email_address[0] 
+                    backendErrors.email_address = Array.isArray(err.data.email_address)
+                        ? err.data.email_address[0]
                         : err.data.email_address;
                 }
                 if (err.data.phone_number) {
-                    backendErrors.phone_number = Array.isArray(err.data.phone_number) 
-                        ? err.data.phone_number[0] 
+                    backendErrors.phone_number = Array.isArray(err.data.phone_number)
+                        ? err.data.phone_number[0]
                         : err.data.phone_number;
                 }
                 if (err.data.property) {
-                    backendErrors.property = Array.isArray(err.data.property) 
-                        ? err.data.property[0] 
+                    backendErrors.property = Array.isArray(err.data.property)
+                        ? err.data.property[0]
                         : err.data.property;
                 }
-                if (err.data.budget_range) {
-                    backendErrors.budget_range = Array.isArray(err.data.budget_range) 
-                        ? err.data.budget_range[0] 
-                        : err.data.budget_range;
+                if (err.data.sqft_range) {
+                    backendErrors.sqft_range = Array.isArray(err.data.sqft_range)
+                        ? err.data.sqft_range[0]
+                        : err.data.sqft_range;
                 }
-                
+
                 if (Object.keys(backendErrors).length > 0) {
                     setFormErrors(backendErrors);
                 } else {
-                    alert(err.data.detail || 'Failed to create lead. Please try again.');
+                    console.error('Lead creation error:', err);
+                    alert(err.data?.detail || 'Failed to create lead. Please try again.');
                 }
             } else {
-                alert('Network error. Please check your connection and try again.');
+                console.error('Network or Runtime error:', err);
+                alert('Network or Runtime error. Please check your connection or check console for details.');
             }
         }
     };
@@ -284,26 +304,79 @@ const CreateNewLead = () => {
 
                                 {/* Budget Range */}
                                 <div className="space-y-2">
-                                    <label htmlFor="budget_range" className="block text-sm font-medium text-gray-700">
-                                        Budget Range *
+                                    <label htmlFor="sqft_range" className="block text-sm font-medium text-gray-700">
+                                        SQFT Range *
                                     </label>
-                                    <input
-                                        type="text"
-                                        id="budget_range"
-                                        name="budget_range"
-                                        value={budgetRange}
+                                    <select
+                                        id="sqft_range"
+                                        name="sqft_range"
+                                        value={sqftRange}
                                         onChange={(e) => {
-                                            setBudgetRange(e.target.value);
-                                            if (formErrors.budget_range) {
-                                                setFormErrors(prev => ({ ...prev, budget_range: '' }));
+                                            setSqftRange(e.target.value);
+                                            if (formErrors.sqft_range) {
+                                                setFormErrors(prev => ({ ...prev, sqft_range: '' }));
                                             }
                                         }}
-                                        className={`w-full px-4 py-3 border ${formErrors.budget_range ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-                                        placeholder="e.g., 1000-2000 or £50000 - £100000"
-                                    />
-                                    {formErrors.budget_range && (
-                                        <p className="text-red-500 text-sm mt-1">{formErrors.budget_range}</p>
+                                        className={`w-full px-4 py-3 border ${formErrors.sqft_range ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                                    >
+                                        {sqftRangeOptions.map(option => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {formErrors.sqft_range && (
+                                        <p className="text-red-500 text-sm mt-1">{formErrors.sqft_range}</p>
                                     )}
+                                </div>
+
+                                <div className=" space-y-2">
+                                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                                        Location
+                                    </label>
+                                    <textarea
+                                        id="location"
+                                        name="location"
+                                        value={location}
+                                        rows={1}
+                                        onChange={(e) => {
+                                            setLocation(e.target.value);
+                                            if (formErrors.location) {
+                                                setFormErrors(prev => ({ ...prev, location: '' }));
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-3 border ${formErrors.location ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                                        placeholder="Enter location"
+                                    />
+                                    {formErrors.location && (
+                                        <p className="text-red-500 text-sm mt-1">{formErrors.location}</p>
+                                    )}
+                                </div>
+                            </div>
+                            {/* financial details provided */}
+                           <div className="mt-6 space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Financial Details Provided
+                                </label>
+
+                                <div className="flex items-center gap-6">
+                                    <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={financialDetailsProvided === true}
+                                        onChange={() => setFinancialDetailsProvided(true)}
+                                    />
+                                    Provided
+                                    </label>
+
+                                    <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={financialDetailsProvided === false}
+                                        onChange={() => setFinancialDetailsProvided(false)}
+                                    />
+                                    Not Provided
+                                    </label>
                                 </div>
                             </div>
 

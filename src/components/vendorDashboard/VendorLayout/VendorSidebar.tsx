@@ -23,7 +23,7 @@ const VendorSidebar: React.FC<VendorSidebarProps> = ({ onClose }) => {
   const menuItems = [
     { icon: LayoutGrid, label: 'Overview', path: '/vendor-dashboard/overview', badge: null },
     { icon: Users, label: 'Leads', path: '/vendor-dashboard/leads', badge: null },
-    { icon: Building2, label: 'Properties', path: '/vendor-dashboard/properties', badge: null },
+    { icon: Building2, label: 'Property', path: '/vendor-dashboard/property', badge: null },
     { icon: MessageSquare, label: 'Messages', path: '/vendor-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/vendor-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/vendor-dashboard/settings', badge: null },

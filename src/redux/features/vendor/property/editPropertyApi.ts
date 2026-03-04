@@ -4,7 +4,7 @@ const editPropertyApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         editProperty: builder.mutation({
             query: (data) => ({
-                url: `/brokers/property-update/${data.id}/`,
+                url: `/vendors/property-update/${data.id}/`,
                 method: 'PATCH',
                 body: data.data,
             }),

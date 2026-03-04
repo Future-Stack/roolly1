@@ -26,7 +26,7 @@ const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
     { icon: Users, label: 'Leads', path: '/admin-dashboard/leads', badge: null },
     { icon: Building2, label: 'Property', path: '/admin-dashboard/property', badge: null },
     { icon: UserCog, label: 'Broker Management', path: '/admin-dashboard/broker', badge: null },
-    { icon: UserSquare, label: 'Vendor Management', path: '/admin-dashboard/vendor', badge: null },
+    { icon: UserSquare, label: 'Vendors', path: '/admin-dashboard/vendor', badge: null },
     { icon: MessageSquare, label: 'Messages', path: '/admin-dashboard/messages', badge: null },
     { icon: BarChart3, label: 'Reports & Analysis', path: '/admin-dashboard/reports', badge: null },
     { icon: Settings, label: 'Settings', path: '/admin-dashboard/settings', badge: null },

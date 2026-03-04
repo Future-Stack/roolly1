@@ -6,7 +6,7 @@ import {
   Maximize2, Shield, ParkingCircle, TreePine,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useGetPropertyDetailsQuery } from "@/redux/features/broker/property/getPropertyDetailsApi";
+import { useGetPropertyDetailsQuery } from "@/redux/features/vendor/property/getPropertyDetailsApi";
 
 const PropertyDetails = () => {
   const { id } = useParams();

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useGetSinglePropertyQuery } from '@/redux/features/vendor/getSinglePropertyApi';
+import { useGetSinglePropertyQuery } from '@/redux/features/broker/property/getSinglePropertyApi';
 import { ImageIcon, SquarePlay } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -612,12 +612,12 @@ const PropertyInformationForm: React.FC = () => {
 
                     {/* Bottom Actions */}
                     <div className="flex items-center gap-3 mt-8">
-                        <Link to={`/vendor-dashboard/edit-property/${id}`}>
+                        <Link to={`/broker-dashboard/edit-property/${id}`}>
                             <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-[14px] font-medium transition-colors">
                                 Edit Property
                             </button>
                         </Link>
-                        <Link to="/vendor-dashboard/properties">
+                        <Link to="/broker-dashboard/properties">
                             <button className="text-gray-700 hover:text-gray-900 px-4 py-2 text-[14px] font-medium transition-colors rounded-md border border-gray-300">
                                 Back to Properties
                             </button>

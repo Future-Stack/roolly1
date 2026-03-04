@@ -2,10 +2,10 @@
 import { Plus, Building2, Ruler, Maximize, ScanEye, X } from 'lucide-react';
 import Pagination from '@/components/vendorDashboard/Leads/Pagination';
 import { Link } from 'react-router-dom';
-import { useGetAllVendorPropertyQuery } from '@/redux/features/vendor/getAllVendorPropertyApi';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { useDeleteVendorPropertyMutation } from '@/redux/features/vendor/DeleteVendorPropertyApi';
+import { useGetAllBrokerPropertyQuery } from '@/redux/features/broker/property/getAllVendorPropertyApi';
+import { useDeleteBrokerPropertyMutation } from '@/redux/features/broker/property/deleteBrokerPropertyApi';
 
 interface Property {
   id: number;
@@ -59,19 +59,19 @@ const PropertyManagement: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   // const [createMessage] = useCreateMessageMutation();
 
-  const { data: apiResponse, isLoading, isError, refetch } = useGetAllVendorPropertyQuery({
+  const { data: apiResponse, isLoading, isError, refetch } = useGetAllBrokerPropertyQuery({
     page: currentPage,
     page_size: 5
   });
 
-  const [deleteProperty, { isLoading: isDeleting }] = useDeleteVendorPropertyMutation();
+  const [deleteProperty, { isLoading: isDeleting }] = useDeleteBrokerPropertyMutation();
 
-  const propertiesData = apiResponse as ApiResponse;
+  const propertiesData = apiResponse as ApiResponse | undefined;
   console.log(propertiesData)
 
   // Calculate stats
   const totalProperties = propertiesData?.count || 0;
-  const availableProperties = propertiesData?.results?.filter(prop => prop.status === 'Available').length || 0;
+  const availableProperties = propertiesData?.results?.filter((prop: Property) => prop.status === 'Available').length || 0;
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -160,7 +160,7 @@ const PropertyManagement: React.FC = () => {
               Create, edit, and manage all your property listings from one dashboard
             </p>
           </div>
-          <Link to="/vendor-dashboard/add-property">
+          <Link to="/broker-dashboard/add-property">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-medium text-[15px] transition-colors whitespace-nowrap self-start lg:self-auto">
               <Plus className="w-5 h-5" strokeWidth={2.5} />
               Add New Property
@@ -259,7 +259,7 @@ const PropertyManagement: React.FC = () => {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-3">
-                    <Link to={`/vendor-dashboard/edit-property/${property.id}`}>
+                    <Link to={`/broker-dashboard/edit-property/${property.id}`}>
                       <button className="flex-1 h-[44px] px-4 text-[15px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         Edit
                       </button>
@@ -271,7 +271,7 @@ const PropertyManagement: React.FC = () => {
                     >
                       Delete
                     </button>
-                    <Link to={`/vendor-dashboard/properties/${property.id}`}>
+                    <Link to={`/broker-dashboard/properties/${property.id}`}>
                       <button className="w-[44px] h-[44px] flex items-center justify-center bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         <ScanEye className="w-5 h-5 text-gray-700" strokeWidth={2} />
                       </button>

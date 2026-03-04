@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useGetSinglePropertyQuery } from '@/redux/features/vendor/getSinglePropertyApi';
 import RiskProfileManagementForm from './RiskProfileManagementForm';
+import { useGetSinglePropertyQuery } from '@/redux/features/broker/property/getSinglePropertyApi';
 
 const RiskProfileInformation: React.FC = () => {
     const { id } = useParams();
@@ -87,7 +87,6 @@ const RiskProfileInformation: React.FC = () => {
             leisureUse={restrictions.leisureUse}
             petBusinessUse={restrictions.petBusinessUse}
             plasticRecyclingUse={restrictions.plasticRecyclingUse}
-            floorPlans={restrictions.floorPlans}
             otherRestrictions={restrictions.otherRestrictions}
             onRestrictionChange={handleRestrictionChange}
             onOtherRestrictionsChange={handleOtherRestrictionsChange}

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import RiskProfileManagementForm from '@/components/vendorDashboard/Property/RiskProfileManagementForm';
-import { useGetSinglePropertyQuery } from '@/redux/features/vendor/getSinglePropertyApi';
-import { useUpdateVendorPropertyMutation } from '@/redux/features/vendor/updateVendorPropertyApi';
+import RiskProfileManagementForm from '@/components/brokerDashboard/BrokerProperty/RiskProfileManagementForm';
+import { useGetSinglePropertyQuery } from '@/redux/features/broker/property/getSinglePropertyApi';
+import { useUpdateBrokerPropertyMutation } from '@/redux/features/broker/property/updateBrokerPropertyApi';
 import { ImageIcon, Plus, SquarePlay } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -51,17 +51,18 @@ interface PropertyFormData {
     leisure_use: boolean;
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
-    floor_plans: boolean;
     other_restrictions: string;
     dimensions_roller_shutter: string;
     existing_images: string;
+    phone_number: string;
+    whatsapp_number: string;
 }
 
 
 const UpdateVendorProperty: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [updateVendorProperty, { isLoading: isSubmitting }] = useUpdateVendorPropertyMutation();
+    const [updateVendorProperty, { isLoading: isSubmitting }] = useUpdateBrokerPropertyMutation();
     const { data: propertyData, isLoading: isLoadingProperty } = useGetSinglePropertyQuery(id);
     console.log(propertyData)
 
@@ -97,11 +98,12 @@ const UpdateVendorProperty: React.FC = () => {
         leisure_use: false,
         pet_business_use: false,
         plastic_recycling_use: false,
-        floor_plans: false,
         other_restrictions: '',
         ev_chaging: false,
         solar_panels: false,
         existing_images: '',
+        phone_number: '',
+        whatsapp_number: '',
     });
 
 
@@ -154,11 +156,12 @@ const UpdateVendorProperty: React.FC = () => {
                 pet_business_use: propertyData.pet_business_use || false,
                 plastic_recycling_use: propertyData.plastic_recycling_use || false,
                 postcode: propertyData.postcode || '',
-                floor_plans: propertyData.floor_plans || false,
                 ev_chaging: propertyData.ev_chaging || false,
                 solar_panels: propertyData.solar_panels || false,
                 other_restrictions: propertyData.other_restrictions || '',
                 existing_images: propertyData.existing_images || '',
+                phone_number: propertyData.phone_number || '',
+                whatsapp_number: propertyData.whatsapp_number || '',
             });
 
             // Set existing images
@@ -190,6 +193,7 @@ const UpdateVendorProperty: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
+
 
         if (type === 'checkbox') {
             const checkbox = e.target as HTMLInputElement;
@@ -223,70 +227,90 @@ const UpdateVendorProperty: React.FC = () => {
             reader.readAsDataURL(file);
         }
     };
+    const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-    // const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0];
-    //     if (file) {
-    //         setBrochurePdfFile(file);
-    //     }
-    // };
+        if (file.type !== 'application/pdf') {
+            toast.error('Invalid file type. Please upload a PDF file.');
+            e.target.value = '';
+            return;
+        }
+        const maxSizeMB = 10;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast.error(`PDF file must be smaller than ${maxSizeMB}MB.`);
+            e.target.value = '';
+            return;
+        }
+        setBrochurePdfFile(file);
+        // toast.success(`PDF selected: ${file.name}`);
+    };
 
-    // const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0];
-    //     if (file) {
-    //         setBrochureVideoFile(file);
-    //     }
-    // };
-        const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-    
-            if (file.type !== 'application/pdf') {
-                toast.error('Invalid file type. Please upload a PDF file.');
-                e.target.value = '';
-                return;
-            }
-            const maxSizeMB = 10;
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`PDF file must be smaller than ${maxSizeMB}MB.`);
-                e.target.value = '';
-                return;
-            }
-            setBrochurePdfFile(file);
-            // toast.success(`PDF selected: ${file.name}`);
-        };
-    
-        const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-    
-            if (!file.type.startsWith('video/')) {
-                toast.error('Invalid file type. Please upload a video file.');
-                e.target.value = '';
-                return;
-            }
-            const maxSizeMB = 100;
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`Video file must be smaller than ${maxSizeMB}MB.`);
-                e.target.value = '';
-                return;
-            }
-            setBrochureVideoFile(file);
-            // toast.success(`Video selected: ${file.name}`);
-        };
+    const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('video/')) {
+            toast.error('Invalid file type. Please upload a video file.');
+            e.target.value = '';
+            return;
+        }
+        const maxSizeMB = 100;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast.error(`Video file must be smaller than ${maxSizeMB}MB.`);
+            e.target.value = '';
+            return;
+        }
+        setBrochureVideoFile(file);
+        // toast.success(`Video selected: ${file.name}`);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!formData.property_name) {
+                    toast.error('Property name is required');
+                    return;
+                } 
+                if (!formData.postcode) {
+                    toast.error('Postcode is required');
+                    return;
+                }
+        
+                if (!formData.location) {
+                    toast.error('Location is required');
+                    return;
+                }
+                if (!formData.property_type) {
+                    toast.error('Property type is required');
+                    return;
+                }
+                if (!formData.transaction) {
+                    toast.error('Transaction type is required');
+                    return;
+                }
+                if (!formData.estimated_price) {
+                    toast.error('Estimated price is required');
+                    return;
+                }
+                 if (!formData.location_description) {
+                    toast.error('Location description is required');
+                    return;
+                }
+                if (!formData.built_area) {
+                    toast.error('Built area is required');
+                    return;
+                }
+                if (!formData.whatsapp_number ) {
+                    toast.error('Whatsapp number is required');
+                    return;
+                }
+                if (!formData.phone_number) {
+                    toast.error('Phone number is required');
+                    return;
+                }
+
 
         try {
-            // Collect all image files
-            const imageFiles: File[] = [];
-            Object.values(images).forEach(img => {
-                if (img.file) {
-                    imageFiles.push(img.file);
-                }
-            });
-
             // Create FormData object
             const formDataToSend = new FormData();
 
@@ -301,9 +325,12 @@ const UpdateVendorProperty: React.FC = () => {
                 }
             });
 
-            // Add images
-            imageFiles.forEach((file) => {
-                formDataToSend.append(`images`, file);
+            // Add images with section-based filenames
+            Object.entries(images).forEach(([key, img]) => {
+                if (img.file) {
+                    const extension = img.file.name.split('.').pop() || 'jpg';
+                    formDataToSend.append('images', img.file, `${key}.${extension}`);
+                }
             });
 
             // Add brochure files if present
@@ -323,7 +350,7 @@ const UpdateVendorProperty: React.FC = () => {
 
             if (response?.property_name) {
                 toast.success('Property updated successfully!');
-                navigate(`/vendor-dashboard/properties/${id}`);
+                navigate(`/broker-dashboard/properties/${id}`);
             }
 
 
@@ -382,7 +409,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Property name */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Property name
+                                        Property name *
                                     </label>
                                     <input
                                         type="text"
@@ -398,7 +425,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Transaction */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Transaction
+                                        Transaction *
                                     </label>
                                     <select
                                         name="transaction"
@@ -432,7 +459,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Property Type */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Property Type
+                                        Property Type *
                                     </label>
                                     <select
                                         name="property_type"
@@ -451,7 +478,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Location */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-2">
-                                        Location
+                                        Location *
                                     </label>
                                     <input
                                         type="text"
@@ -499,7 +526,7 @@ const UpdateVendorProperty: React.FC = () => {
                             {/* Description */}
                             <div className="mt-5">
                                 <label className="block text-base text-gray-900 mb-2">
-                                    Location Description
+                                    Location Description *
                                 </label>
                                 <textarea
                                     name="location_description"
@@ -530,6 +557,23 @@ const UpdateVendorProperty: React.FC = () => {
                                         onChange={handleInputChange}
                                         placeholder="e.g., 1682.80"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <div className="">
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Built Area (sq m)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        readOnly
+
+                                        value={
+                                            formData.built_area
+                                                ? (parseFloat(formData.built_area) / 10.76).toFixed(2)
+                                                : ""
+                                        }
+                                        placeholder="Calculated automatically"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-gray-100 rounded-md cursor-not-allowed border border-gray-200"
                                     />
                                 </div>
 
@@ -595,7 +639,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 {/* Office Space */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
-                                        Office space included (sq m)
+                                        Office space included (sq ft)
                                     </label>
                                     <input
                                         type="text"
@@ -604,6 +648,23 @@ const UpdateVendorProperty: React.FC = () => {
                                         onChange={handleInputChange}
                                         placeholder="e.g., 481.32"
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <div className="">
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Office space included (sq m)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        readOnly
+
+                                        value={
+                                            formData.office_space
+                                                ? (parseFloat(formData.office_space) / 10.76).toFixed(2)
+                                                : ""
+                                        }
+                                        placeholder="Calculated automatically"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-gray-100 rounded-md cursor-not-allowed border border-gray-200"
                                     />
                                 </div>
 
@@ -799,6 +860,44 @@ const UpdateVendorProperty: React.FC = () => {
                             />
                         </div>
 
+                        {/* Contact Information */}
+                        <div className="mb-8">
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">
+                                Contact Information
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Phone Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="phone_number"
+                                        value={formData.phone_number}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., +44 7911 123456"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        WhatsApp Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="whatsapp_number"
+                                        value={formData.whatsapp_number}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., +44 7911 123456"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Risk Level */}
                         {/* <div className="mb-6">
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
@@ -983,7 +1082,6 @@ const UpdateVendorProperty: React.FC = () => {
                             leisureUse={formData.leisure_use}
                             petBusinessUse={formData.pet_business_use}
                             plasticRecyclingUse={formData.plastic_recycling_use}
-                            floorPlans={formData.floor_plans}
                             otherRestrictions={formData.other_restrictions}
                             onRestrictionChange={(name, value) => {
                                 setFormData(prev => ({

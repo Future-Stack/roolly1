@@ -9,7 +9,7 @@ export interface LeadUpdateResponse {
     phone_number: string;
     lead_status: string;
     lead_traffic: string;
-    budget_range: string;
+    sqft_range: string;
     message: string;
 }
 
@@ -22,7 +22,7 @@ export interface LeadUpdateRequest {
     phone_number?: string;
     lead_status?: 'enquired' | 'viewed' | 'terms_sent' | 'in_legals' | 'completed' | 'closed' | string;
     lead_traffic?: 'green' | 'amber' | 'red' | string;
-    budget_range?: string;
+    sqft_range?: string;
     message?: string;
 }
 

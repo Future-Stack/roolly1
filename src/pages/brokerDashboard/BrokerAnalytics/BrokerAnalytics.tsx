@@ -199,7 +199,7 @@ const BrokerAnalytics: React.FC = () => {
                                 iconType="square"
                             />
                             <Bar dataKey="views" fill="#3b82f6" name="Views" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="enquiries" fill="#10b981" name="enquiries" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="enquiries" fill="#10b981" name="Enquiries" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

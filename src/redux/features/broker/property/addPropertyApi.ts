@@ -1,4 +1,4 @@
-import { baseApi } from "../../api/baseApi";
+import { baseApi } from "../../../api/baseApi";
 
 export type TProperty = {
     property_name: string;
@@ -39,6 +39,7 @@ export type TProperty = {
     images: File[];
     brochure_pdf?: File;
     brochure_video?: File;
+    vendor_id?: string | number;
 };
 
 export type TPropertyResponse = {
@@ -86,7 +87,7 @@ const addPropertyApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         addProperty: builder.mutation<TPropertyResponse, FormData>({
             query: (formData) => ({
-                url: '/vendors/properties/',
+                url: '/brokers/properties/',
                 method: 'POST',
                 body: formData,
             }),

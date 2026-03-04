@@ -1,7 +1,7 @@
 import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, MessageCircle, Phone } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
-import { useGetUserPropertyDetailsQuery } from '@/redux/features/broker/property/getPropertyDetailsApi';
+import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';

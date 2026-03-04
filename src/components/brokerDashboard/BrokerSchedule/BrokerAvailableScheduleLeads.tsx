@@ -1,8 +1,6 @@
-import { Calendar, Clock, Info, Mail, MapPin, MoreVertical, Phone } from 'lucide-react';
+import { Calendar, Clock, Info, Mail, MapPin, Phone } from 'lucide-react';
 import { useState } from 'react';
 import ScheduleViewModal from '../Overview/ScheduleViewModal';
-import { useMakeCompleteScheduleMutation } from '@/redux/features/broker/schedule/makeCompleteScheduleApi';
-import { useMakeCancelScheduleMutation } from '@/redux/features/broker/schedule/makeCancelScheduleApi';
 import { useGetPastScheduleListQuery } from '@/redux/features/broker/schedule/getPastScheduleList';
 
 export interface Property {
@@ -20,7 +18,7 @@ export interface LeadDetails {
     phone_number: string;
     lead_status: "enquired" | "viewed" | "terms_sent" | "in_legals" | "completed" | "closed" | string;
     lead_traffic: "red" | "amber" | "green" | string;
-    budget_range: string;
+    sqft_range: string;
     financials_details: boolean;
     schedule_id: number;
 }
@@ -35,28 +33,27 @@ export interface LeadResponse {
 }
 
 const BrokerAvailableScheduleLeads = () => {
-    const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedSchedule, setSelectedSchedule] = useState<{ 
-        property_name: string; 
-        viewing_date: string; 
+    const [selectedSchedule, setSelectedSchedule] = useState<{
+        property_name: string;
+        viewing_date: string;
         viewing_time: string;
         broker: string; // You need to add broker information to your data
     } | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    const { data: scheduleData, isLoading, error, refetch } = useGetPastScheduleListQuery(undefined);
-    const [makeCompleteSchedule, { isLoading: isCompleting }] = useMakeCompleteScheduleMutation();
-    const [makeCancelSchedule, { isLoading: isCancelling }] = useMakeCancelScheduleMutation();
+    const { data: scheduleData, isLoading, error } = useGetPastScheduleListQuery(undefined);
+    // const [makeCompleteSchedule, { isLoading: isCompleting }] = useMakeCompleteScheduleMutation();
+    // const [makeCancelSchedule, { isLoading: isCancelling }] = useMakeCancelScheduleMutation();
 
-    const handleMoreClick = (leadId: string) => {
-        setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
-    };
+    // const handleMoreClick = (leadId: string) => {
+    //     setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
+    // };
 
-    const closeActionMenu = () => {
-        setOpenActionMenuId(null);
-    };
+    // const closeActionMenu = () => {
+    //     setOpenActionMenuId(null);
+    // };
 
     const closeModal = () => {
         setModalOpen(false);
@@ -153,25 +150,25 @@ const BrokerAvailableScheduleLeads = () => {
         return financials ? 'Provided' : 'Not Provided';
     };
 
-    const handleCompleteSchedule = async (scheduleId: number) => {
-        try {
-            await makeCompleteSchedule(scheduleId).unwrap();
-            refetch(); 
-            closeActionMenu();
-        } catch (error) {
-            console.error('Failed to complete schedule:', error);
-        }
-    };
+    // const handleCompleteSchedule = async (scheduleId: number) => {
+    //     try {
+    //         await makeCompleteSchedule(scheduleId).unwrap();
+    //         refetch(); 
+    //         closeActionMenu();
+    //     } catch (error) {
+    //         console.error('Failed to complete schedule:', error);
+    //     }
+    // };
 
-    const handleCancelSchedule = async (scheduleId: number) => {
-        try {
-            await makeCancelSchedule(scheduleId).unwrap();
-            refetch();
-            closeActionMenu();
-        } catch (error) {
-            console.error('Failed to cancel schedule:', error);
-        }
-    };
+    // const handleCancelSchedule = async (scheduleId: number) => {
+    //     try {
+    //         await makeCancelSchedule(scheduleId).unwrap();
+    //         refetch();
+    //         closeActionMenu();
+    //     } catch (error) {
+    //         console.error('Failed to cancel schedule:', error);
+    //     }
+    // };
 
     const leadsData: LeadResponse[] = scheduleData || [];
     const totalItems = leadsData.length;
@@ -231,7 +228,7 @@ const BrokerAvailableScheduleLeads = () => {
                                     {/* Lead Header */}
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <h3 
+                                            <h3
                                                 className="text-[16px] font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
                                                 onClick={() => openScheduleModal(lead)}
                                             >
@@ -247,7 +244,7 @@ const BrokerAvailableScheduleLeads = () => {
                                                 {lead?.status}
                                             </span>
                                         </div>
-                                        <div className="relative">
+                                        {/* <div className="relative">
                                             <button
                                                 onClick={() => handleMoreClick(lead.id || `lead-${startIndex + index}`)}
                                                 className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -256,18 +253,18 @@ const BrokerAvailableScheduleLeads = () => {
                                                 <MoreVertical className="w-5 h-5 text-gray-600" strokeWidth={2} />
                                             </button>
 
-                                            {/* Action Menu Popup */}
+                                            
                                             {openActionMenuId === (lead.id || `lead-${startIndex + index}`) && (
                                                 <>
-                                                    {/* Backdrop */}
+                                                    
                                                     <div
                                                         className="fixed inset-0 z-40"
                                                         onClick={closeActionMenu}
                                                     />
 
-                                                    {/* Menu */}
+                                                    
                                                     <div className="absolute right-0 top-full mt-2 z-50 w-[150px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                                                        {/* Menu Items */}
+                                                        
                                                         <div className="p-2">
                                                             <button
                                                                 onClick={() => openScheduleModal(lead)}
@@ -299,7 +296,7 @@ const BrokerAvailableScheduleLeads = () => {
                                                     </div>
                                                 </>
                                             )}
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     {/* Property Info */}
@@ -335,8 +332,8 @@ const BrokerAvailableScheduleLeads = () => {
                                             <p className="text-sm text-gray-900 font-normal capitalize">{lead.lead.property?.property_type}</p>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 mb-1">Budget</p>
-                                            <p className="text-[14px] text-gray-900 font-normal">{lead.lead.budget_range}</p>
+                                            <p className="text-sm text-gray-500 mb-1">Sqft Range</p>
+                                            <p className="text-[14px] text-gray-900 font-normal">{lead.lead.sqft_range}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 mb-1">Source</p>

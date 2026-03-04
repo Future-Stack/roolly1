@@ -25,8 +25,8 @@ interface Lead {
   phone_number: string;
   lead_status: string;
   lead_traffic: string;
-  budget_range: string | null;
-  financials_details: boolean;
+  sqft_range: string | null;
+  financials: string;
   schedule_id: number | null;
 }
 
@@ -151,10 +151,10 @@ const BrokerLeads = () => {
 
     if (budgetRange.includes('-')) {
       const [min, max] = budgetRange.split('-');
-      return `£${min}-£${max}`;
+      return `${min}-${max}`;
     }
 
-    return `£${budgetRange}`;
+    return `${budgetRange}`;
   };
 
 
@@ -178,11 +178,11 @@ const BrokerLeads = () => {
         timeAgo: getTimeAgo(hasProperty ? lead.property?.created_at : null),
         date: formatDate(hasProperty ? lead.property?.created_at : null),
         businessType: formatBusinessType(hasProperty ? lead.property?.property_type : null),
-        budget: formatBudget(lead.budget_range),
+        budget: formatBudget(lead.sqft_range),
         source: lead.source
           ? lead.source.charAt(0).toUpperCase() + lead.source.slice(1)
           : 'Unknown',
-        financials: lead.financials_details ? 'Provided' : 'Not provided',
+        financials: lead.financials || 'Not provided',
         phone: lead.phone_number || 'Not provided',
         email: lead.email_address || 'Not provided',
         alertMessage: getAlertMessage(lead.source, lead.lead_status),
@@ -380,8 +380,8 @@ const BrokerLeads = () => {
                               disabled={isUpdatingStatus || isActive}
                               onClick={() => handleStatusUpdate(lead.id, s.value)}
                               className={`w-full text-left px-4 py-1 hover:bg-gray-50 text-sm rounded transition-colors ${isActive
-                                  ? 'text-blue-600 font-semibold bg-blue-50'
-                                  : 'text-gray-700'
+                                ? 'text-blue-600 font-semibold bg-blue-50'
+                                : 'text-gray-700'
                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
                               {s.label}{isActive && ' ✓'}
@@ -426,7 +426,7 @@ const BrokerLeads = () => {
                 <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Budget</p>
+                <p className="text-sm text-gray-500 mb-1">Sqft Range</p>
                 <p className="text-[14px] text-gray-900 font-normal">{lead.budget}</p>
               </div>
               <div>
@@ -447,7 +447,7 @@ const BrokerLeads = () => {
             </div>
 
             {/* Client Information */}
-            <div className="flex items-end justify-between pt-4 border-gray-200 bg-[#F9FAFB] p-3 rounded-lg">
+            <div className="flex flex-col gap-2 items-start md:flex-row md:items-end justify-between pt-4 border-gray-200 bg-[#F9FAFB] p-3 rounded-lg">
               <div>
                 <h4 className="text-base font-semibold text-gray-900 mb-3">Client Information</h4>
                 <div className="space-y-2">
