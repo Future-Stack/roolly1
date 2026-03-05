@@ -921,7 +921,7 @@ const UpdateVendorProperty: React.FC = () => {
                         {/* Image Upload Section */}
                         <div className="mb-6 border border-gray-200 rounded-lg p-4">
                             <h2 className="text-2xl font-semibold text-gray-900 mb-1">
-                                Please upload images (size less than 100KB)
+                                Please upload images (size less than 10MB)
                             </h2>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
