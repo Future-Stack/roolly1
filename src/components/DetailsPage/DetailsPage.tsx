@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, MessageCircle, Phone } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, Mail, MessageCircle, Phone } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
@@ -61,6 +61,7 @@ interface PropertyDetails {
   other_restrictions: string | null;
   whatsapp_number: string;
   phone_number: string;
+  email: string;
   occupied: boolean;
 }
 
@@ -395,7 +396,7 @@ const HomePropertyDetails: React.FC = () => {
             {/* Contact Buttons */}
             <div className="space-y-4">
               {/* WhatsApp and Phone Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-4">
                 <a href={`https://wa.me/${property?.whatsapp_number}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 hover:bg-green-600 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <MessageCircle size={20} />
                   WhatsApp
@@ -403,6 +404,10 @@ const HomePropertyDetails: React.FC = () => {
                 <a href={`tel:${property?.phone_number}`} className="bg-gray-900 hover:bg-gray-800 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <Phone size={20} />
                   {property?.phone_number}
+                </a>
+                <a href="mailto:rob@broker360re.com" className="bg-[#ffedd4] hover:bg-[#ffedd4] text-[#101828] font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
+                  <Mail size={20} />
+                  {property?.email}
                 </a>
               </div>
 

@@ -56,6 +56,7 @@ interface PropertyFormData {
     existing_images: string;
     phone_number: string;
     whatsapp_number: string;
+    email:string;
 }
 
 
@@ -104,6 +105,7 @@ const UpdateVendorProperty: React.FC = () => {
         existing_images: '',
         phone_number: '',
         whatsapp_number: '',
+        email:''
     });
 
 
@@ -162,6 +164,7 @@ const UpdateVendorProperty: React.FC = () => {
                 existing_images: propertyData.existing_images || '',
                 phone_number: propertyData.phone_number || '',
                 whatsapp_number: propertyData.whatsapp_number || '',
+                email:propertyData.email || '',
             });
 
             // Set existing images
@@ -865,7 +868,22 @@ const UpdateVendorProperty: React.FC = () => {
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
                                 Contact Information
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Email *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., info@gmail.com"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Phone Number *
@@ -880,6 +898,8 @@ const UpdateVendorProperty: React.FC = () => {
                                         required
                                     />
                                 </div>
+                                
+
 
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">

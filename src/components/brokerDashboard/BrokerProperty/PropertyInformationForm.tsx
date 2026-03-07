@@ -59,7 +59,10 @@ interface PropertyData {
     }>;
     phase: number;
     shutters_height_width: string;
-    risk_level: string;
+    // risk_level: string;
+    email: string;
+    phone_number: string;
+    whatsapp_number: string;
 }
 
 const PropertyInformationForm: React.FC = () => {
@@ -481,6 +484,39 @@ const PropertyInformationForm: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Additional Information */}
+                    <div className="mb-6">
+                        <h2 className="text-base font-semibold text-gray-900 mb-4">
+                            Contact Information
+                        </h2>
+                        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                         <div >
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Email
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {propertyData.email}
+                                </div>
+                            </div>
+                             <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Phone Number
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {propertyData.phone_number}
+                                </div>
+                            </div>
+                             <div>
+                                <label className="block text-base text-gray-900 mb-1.5">
+                                    Whatsapp Number
+                                </label>
+                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
+                                    {propertyData.whatsapp_number}
+                                </div>
+                            </div>
+                       </div>
                     </div>
 
                     {/* Key Specification */}

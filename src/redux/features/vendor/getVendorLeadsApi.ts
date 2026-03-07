@@ -9,6 +9,7 @@ export interface VendorLead {
     location: string;
     lead_traffic: 'green' | 'amber' | 'red';
     lead_status: string;
+    comment:string;
     created_at: string;
     broker_phone_number: string;
     broker_email_address: string;
