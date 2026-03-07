@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
   return (
-    <div className='w-full mx-auto mt-8 sm:mt-12 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28 '>
+    // <div className='w-full mx-auto mt-8 sm:mt-12 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28 '>
+    <div className='w-full mx-auto my-8 sm:my-12 lg:my-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-24 2xl:px-28 '>
       <div className="relative overflow-hidden">
         <div className=''>
           {/* Background Image with Overlay */}

@@ -84,12 +84,12 @@ const LeadManagement: React.FC = () => {
         );
     };
 
-    const handleCommentSave = () => {
-        if (selectedLeadForComment !== null) {
-            setCommentModalOpen(false);
-            setSelectedLeadForComment(null);
-        }
-    };
+    // const handleCommentSave = () => {
+    //     if (selectedLeadForComment !== null) {
+    //         setCommentModalOpen(false);
+    //         setSelectedLeadForComment(null);
+    //     }
+    // };
 
     if (isLoading) {
         return <div className="p-8 text-center text-gray-500">Loading leads...</div>;
@@ -219,9 +219,9 @@ const LeadManagement: React.FC = () => {
                                         title="Add/View Comment"
                                     >
                                         <MessageSquare className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                                        {comments[index] && (
-                                            <span className="ml-1 text-xs text-blue-600">•</span>
-                                        )}
+                                        {(comments[index] || lead.comment) && (
+                                            <span className="ml-1 text-xs text-blue-600 -mt-1">•</span>
+                                            )}
                                     </button>
                                 </td>
                                 <td className="px-6 py-5 relative">
@@ -256,30 +256,24 @@ const LeadManagement: React.FC = () => {
                         className="bg-white rounded-lg p-6 w-full max-w-md"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Comment</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Comment</h3>
                         <textarea
-                            value={comments[selectedLeadForComment] || ''}
-                            onChange={(e) =>
-                                setComments({ ...comments, [selectedLeadForComment]: e.target.value })
-                            }
+                            value={
+                                comments[selectedLeadForComment] ??
+                                filteredLeads[selectedLeadForComment]?.comment ??
+                                ''
+                                }
+                            onChange={(e) => {
+                                const newComments = { ...comments };
+                                newComments[selectedLeadForComment] = e.target.value;
+                                setComments(newComments);
+                            }}
+                            
                             rows={4}
                             placeholder="Enter your comment..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                         />
-                        <div className="flex justify-end gap-3 mt-4">
-                            <button
-                                onClick={() => setCommentModalOpen(false)}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleCommentSave}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                Save
-                            </button>
-                        </div>
+                        
                     </div>
                 </div>
             )}

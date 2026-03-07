@@ -223,7 +223,7 @@ const PropertyManagement: React.FC = () => {
                   {/* Price and Status */}
                   <div className="flex items-center justify-between mb-3 mt-4">
                     <span className="text-[24px] font-bold text-[#126AD8]">
-                      ${property.estimated_price}
+                      £{property.estimated_price}
                       {property.transaction === 'lease' ? '/month' : ''}
                     </span>
                     <span className="flex items-center gap-1.5 text-[13px] font-medium text-[#0C7233] bg-[#C8FFDD] p-1.5 rounded-2xl">

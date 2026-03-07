@@ -111,11 +111,11 @@ const CreateNewLead = () => {
                         ? err.data.email_address[0]
                         : err.data.email_address;
                 }
-                if (err.data.phone_number) {
-                    backendErrors.phone_number = Array.isArray(err.data.phone_number)
-                        ? err.data.phone_number[0]
-                        : err.data.phone_number;
-                }
+                // if (err.data.phone_number) {
+                //     backendErrors.phone_number = Array.isArray(err.data.phone_number)
+                //         ? err.data.phone_number[0]
+                //         : err.data.phone_number;
+                // }
                 if (err.data.property) {
                     backendErrors.property = Array.isArray(err.data.property)
                         ? err.data.property[0]
@@ -276,9 +276,9 @@ const CreateNewLead = () => {
                                             placeholder="Enter phone number"
                                         />
                                     </div>
-                                    {formErrors.phone_number && (
+                                    {/* {formErrors.phone_number && (
                                         <p className="text-red-500 text-sm mt-1">{formErrors.phone_number}</p>
-                                    )}
+                                    )} */}
                                 </div>
 
                                 {/* Lead Status */}
