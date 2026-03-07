@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageCircle, Phone, MessageSquare, MapPin, Plus, Minus } from 'lucide-react';
+import { MessageCircle, Phone, MessageSquare, MapPin, Plus, Minus, Mail } from 'lucide-react';
 import map from '../../assets/contactMap.svg'
 
 interface QuickFact {
@@ -102,6 +102,10 @@ const PropertyMapContact: React.FC = () => {
                   <button className="w-full bg-gray-900  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
                     <Phone size={20} />
                     000 2569 06541
+                  </button>
+                  <button className="w-full bg-gray-900  text-white font-medium py-3 px-4 rounded-[8px] transition flex items-center justify-center gap-2">
+                    <Mail size={20} />
+                    info@roolly1.com
                   </button>
                 </div>
                 <button

@@ -56,7 +56,7 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
   };
 
   const handleSubmit = async () => {
-    if (!formData.propertyId || !formData.clientName || !formData.emailAddress || !formData.phoneNumber) {
+    if (!formData.propertyId || !formData.clientName || !formData.emailAddress) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -92,6 +92,7 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
         toast.error(errorMessages.join(' | '));
       } else {
         toast.error(error?.data?.detail || 'Failed to create lead. Please try again.');
+        console.log(error);
       }
     }
   };
@@ -141,7 +142,7 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
                   </label>
                   <input
                     type="text"
-                    placeholder="e,g pharmacy"
+                    placeholder="e,g 123"
                     value={formData.propertyId}
                     onChange={(e) => handleInputChange('propertyId', e.target.value)}
                     className="w-full h-[44px] px-4 text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

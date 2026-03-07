@@ -68,7 +68,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       <div className="p-1.5">
         {/* Price */}
         <div className="flex items-baseline gap-1 mb-3">
-          <span className="text-blue-600 text-xl font-bold">${price.toLocaleString()}</span>
+          <span className="text-blue-600 text-xl font-bold">£{price.toLocaleString()}</span>
           <span className="text-gray-500 text-sm">/{period}</span>
         </div>
 

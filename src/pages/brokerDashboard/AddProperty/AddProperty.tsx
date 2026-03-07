@@ -56,6 +56,7 @@ interface PropertyFormData {
     existing_images: string;
     phone_number: string;
     whatsapp_number: string;
+    email: string;
     vendor_id: string | number;
 }
 
@@ -102,6 +103,7 @@ const AddProperty: React.FC = () => {
         ev_chaging: false,
         solar_panels: false,
         existing_images: '',
+        email: '',
         phone_number: '',
         whatsapp_number: '',
     });
@@ -931,7 +933,21 @@ const AddProperty: React.FC = () => {
                                 Contact Information
                             </h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-1.5">
+                                        Email *
+                                    </label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., info@gmail.com"
+                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div> 
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Phone Number *
