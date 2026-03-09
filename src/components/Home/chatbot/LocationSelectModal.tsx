@@ -10,7 +10,7 @@ const LocationSelectionModal: React.FC<{
 }> = ({ onSelectCity }) => {
     const locations = [
         {
-            name: 'Dhaka',
+            name: 'Manchester',
             image: locImg1
         },
         {
