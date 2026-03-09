@@ -1,6 +1,6 @@
 // import { useFeaturedPropertyQuery } from '@/redux/features/users/featuredPropertyApi';
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
-import {  Building } from 'lucide-react';
+import { Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Random image URLs for properties
@@ -93,7 +93,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             <span>{privatePool} private pool</span>
           </div>
         </div> */}
-        
+
 
         {/* View Details Button */}
         <Link to={`/details/${id}`}>
@@ -162,13 +162,24 @@ const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
     if (!Array.isArray(propertiesList)) return [];
 
     // ✅ Filter by location properly
-    const normalizeLocation = (loc: string) => loc.split(',')[0].trim();
-
 
     const filteredList = search
       ? propertiesList
         .filter((property: any) => {
-          return normalizeLocation(property.location).toLowerCase() === search.toLowerCase()
+          const loc = property.location?.toLowerCase() || "";
+          if (search === 'Others') {
+            const knownLocations = [
+              'London', 'Manchester', 'Liverpool', 'Birmingham', 'Leeds', 'Sheffield',
+              'Glasgow', 'Edinburgh', 'Cardiff', 'Belfast', 'Lancashire', 'North Wales',
+              'South Wales', 'West Midlands', 'East Midlands', 'North East England',
+              'North West England', 'South East England', 'South West England',
+              'Yorkshire and the Humber', 'Scotland', 'Wales', 'Northern Ireland',
+              'UK', 'Bangladesh', 'Dhaka', 'Mirpur', 'Dhanmondi', 'Uttara',
+              'Gulshan', 'Banani', 'Mohammadpur'
+            ];
+            return !knownLocations.some(k => loc.includes(k.toLowerCase()));
+          }
+          return loc.includes(search.toLowerCase());
         })
       : propertiesList.slice(0, 4); // Limit to 4 for general view
 

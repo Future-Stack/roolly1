@@ -1,20 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import PropertyListing from './PropertyListing';
 import "leaflet/dist/leaflet.css";
 import "./leafletConfig";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from 'leaflet';
 import type { LatLngExpression } from "leaflet";
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
 
-
 const coordinateLookup: Record<string, [number, number]> = {
-    'Dhaka': [23.8103, 90.4125],
-  'Mirpur': [23.8041, 90.3673],
-  'Dhanmondi': [23.7461, 90.3742],
-  'Uttara': [23.8759, 90.3795],
-  'Gulshan': [23.7925, 90.4078],
-  'Banani': [23.7937, 90.4066],
-  'Mohammadpur': [23.7662, 90.3589],
   'London': [51.5074, -0.1278],
   'Manchester': [53.4808, -2.2426],
   'Liverpool': [53.4084, -2.9916],
@@ -38,67 +31,72 @@ const coordinateLookup: Record<string, [number, number]> = {
   'Scotland': [56.4907, -4.2026],
   'Wales': [52.1307, -3.7837],
   'Northern Ireland': [54.7877, -6.4923],
+  'UK': [55.3781, -3.4360],
+  'Bangladesh': [23.6850, 90.3563],
+  'Dhaka': [23.8103, 90.4125],
+  'Mirpur': [23.8041, 90.3673],
+  'Dhanmondi': [23.7461, 90.3742],
+  'Uttara': [23.8759, 90.3795],
+  'Gulshan': [23.7925, 90.4078],
+  'Banani': [23.7937, 90.4066],
+  'Mohammadpur': [23.7662, 90.3589],
+};
+
+// Component to handle map bounds automatically
+const BoundsHandler: React.FC<{ positions: LatLngExpression[] }> = ({ positions }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (positions.length > 0) {
+      const bounds = L.latLngBounds(positions);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+    }
+  }, [positions, map]);
+
+  return null;
 };
 
 const MapPropertySection: React.FC = () => {
   const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
   const { data: propertiesData } = useGetAllUsersPropertyQuery({ page_size: 100 });
 
-
-  const normalizeLocation = (loc: string) => loc.split(',')[0].trim();
-
-
-  const dynamicLocations = React.useMemo(() => {
+  const propertiesWithPositions = useMemo(() => {
     const results = Array.isArray(propertiesData)
       ? propertiesData
       : (propertiesData as any)?.results;
     if (!Array.isArray(results)) return [];
 
-    const areaMap = new Map<string, { name: string; count: number }>();
-
-    results.forEach((p: any) => {
-      const locName = p.location;
-      if (!locName) return;
-
-      const normalized = normalizeLocation(locName);
-
+    return results.map((p: any) => {
+      const locName = p.location || "";
+      // Find matching coordinate key
       const areaKey = Object.keys(coordinateLookup).find(k =>
-        normalized.toLowerCase() === k.toLowerCase()
-      ) || "Others";
+        locName.toLowerCase().includes(k.toLowerCase())
+      );
 
-      // if (!areaKey) return;
-
-      const existing = areaMap.get(areaKey);
-      if (existing) {
-        existing.count++;
-      } else {
-        areaMap.set(areaKey, { name: areaKey, count: 1 });
-      }
+      return {
+        ...p,
+        position: areaKey ? coordinateLookup[areaKey] : [23.8103, 90.4125] as [number, number],
+        matchedArea: areaKey || "Unknown"
+      };
     });
-
-    return Array.from(areaMap.values())
-      .map(item => ({
-        ...item,
-        position: coordinateLookup[item.name] || [23.8103, 90.4125]
-      }));
   }, [propertiesData]);
 
+  const allPositions = useMemo(() =>
+    propertiesWithPositions.map(p => p.position),
+    [propertiesWithPositions]
+  );
 
-  const center: LatLngExpression = React.useMemo(() => {
+  const center: LatLngExpression = useMemo(() => {
     if (selectedLocation) {
-      const loc = dynamicLocations.find(l => l.name === selectedLocation);
-      if (loc) return loc.position;
+      const prop = propertiesWithPositions.find(p => p.matchedArea === selectedLocation);
+      if (prop) return prop.position;
     }
-    return dynamicLocations.length > 0 ? dynamicLocations[0].position : [23.8103, 90.4125];
-  }, [selectedLocation, dynamicLocations]);
-
+    return propertiesWithPositions.length > 0 ? propertiesWithPositions[0].position : [23.8103, 90.4125];
+  }, [selectedLocation, propertiesWithPositions]);
 
   return (
-    <div className="w-full mx-auto mt-8 sm:mt-8 lg:mt-12 
-                px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-24">
-
-      <div className="flex flex-col lg:flex-row gap-3 
-                  bg-gray-100 border border-[#609BE5] rounded-xl overflow-hidden">
+    <div className="w-full mx-auto mt-8 sm:mt-8 lg:mt-12 px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-24">
+      <div className="flex flex-col lg:flex-row gap-3 bg-gray-100 border border-[#609BE5] rounded-xl overflow-hidden">
 
         {/* Left Side - MAP */}
         <div className="w-full lg:w-1/2 min-h-[280px] lg:min-h-full z-10">
@@ -113,21 +111,24 @@ const MapPropertySection: React.FC = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              {dynamicLocations.map((loc) => (
+
+              <BoundsHandler positions={allPositions} />
+
+              {propertiesWithPositions.map((prop, idx) => (
                 <Marker
-                  key={loc.name}
-                  position={loc.position}
+                  key={`${prop.id || idx}`}
+                  position={prop.position}
                   eventHandlers={{
                     click: () => {
-                      setSelectedLocation(loc.name);
+                      setSelectedLocation(prop.matchedArea);
                     },
                   }}
                 >
                   <Popup>
                     <div className="text-center">
-                      <h3 className="font-bold">{loc.name}</h3>
-                      <p className="text-sm text-blue-600 font-medium">{loc.count} Properties</p>
-                      <p className="text-[10px] text-gray-500 mt-1">Click to filter properties</p>
+                      <h3 className="font-bold">{prop.title || "Property"}</h3>
+                      <p className="text-sm text-blue-600 font-medium">{prop.location}</p>
+                      <p className="text-[10px] text-gray-500 mt-1">Click to filter nearby</p>
                     </div>
                   </Popup>
                 </Marker>
