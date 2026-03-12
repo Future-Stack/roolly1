@@ -25,11 +25,11 @@ const ChatView: React.FC<ChatViewProps> = ({
 }) => (
     <div className="p-4 sm:p-5 flex flex-col gap-5 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300 h-full overflow-hidden">
         {/* Chat Header/Info */}
-        <div className="flex justify-start">
+        {/* <div className="flex justify-start">
             <div className="bg-[#0446DE] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl rounded-tl-none shadow-md shadow-blue-100 max-w-[85%] sm:max-w-[80%] flex items-center gap-2">
                 <span className="text-xs sm:text-sm font-medium">Hi, I'm Ronald Richards from broker360. How can I help you today?</span>
             </div>
-        </div>
+        </div> */}
 
         {/* Messages Container */}
         <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-1 scrollbar-hide">
