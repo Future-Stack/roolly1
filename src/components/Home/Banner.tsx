@@ -24,7 +24,7 @@ const Banner: React.FC = () => {
     { label: 'Office', value: 'office' },
     { label: 'Retail', value: 'retail' },
     // { label: 'House', value: 'house' },
-    { label: 'Other', value: 'other' }
+    // { label: 'Other', value: 'other' }
   ];
 
   const transactionOptions = [

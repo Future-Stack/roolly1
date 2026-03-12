@@ -311,7 +311,7 @@ const AddProperty: React.FC = () => {
 
     // Options for dropdowns
     const transactionOptions = ['sale', 'lease'];
-    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail'];
+    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
     // const riskLevelOptions = ['low', 'medium', 'high'];
     const phaseOptions = ['Single phase', 'Three Phase',];

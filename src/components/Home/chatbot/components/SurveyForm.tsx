@@ -23,11 +23,11 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
     name, setName, email, setEmail, phone, setPhone, countryCode, setCountryCode, onSubmit, errors, isSubmitting
 }) => (
     <div className="p-4 sm:p-5 flex flex-col gap-5 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-        <div className="flex justify-start">
+        {/* <div className="flex justify-start">
             <div className="bg-[#0446DE] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl rounded-tl-none shadow-md shadow-blue-100 max-w-[85%] sm:max-w-[80%] flex items-center gap-2">
                 <span className="text-xs sm:text-sm font-medium">I'm looking for customer support.</span>
             </div>
-        </div>
+        </div> */}
 
         <div className="flex flex-col items-start gap-3">
             <div className="flex-shrink-0">
