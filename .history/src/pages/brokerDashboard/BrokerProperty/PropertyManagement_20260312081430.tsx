@@ -50,9 +50,6 @@ interface ApiResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  total_property_views: number;
-  occupied_properties: number;
-  total_properties: number;
 }
 
 const PropertyManagement: React.FC = () => {
@@ -62,7 +59,7 @@ const PropertyManagement: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   // const [createMessage] = useCreateMessageMutation();
 
-  const { data: apiResponse, isLoading, refetch } = useGetAllBrokerPropertyQuery({
+  const { data: apiResponse, isLoading, isError, refetch } = useGetAllBrokerPropertyQuery({
     page: currentPage,
     page_size: 5
   });
@@ -73,10 +70,8 @@ const PropertyManagement: React.FC = () => {
   console.log(propertiesData)
 
   // Calculate stats
-  const totalProperties = propertiesData?.total_properties || 0;
-  const totalPropertyViews = propertiesData?.total_property_views || 0;
-  const availableProperties = propertiesData?.occupied_properties || 0;
-  // const availableProperties = propertiesData?.results?.filter((prop: Property) => prop.status === 'Available').length || 0;
+  const totalProperties = propertiesData?.count || 0;
+  const availableProperties = propertiesData?.results?.filter((prop: Property) => prop.status === 'Available').length || 0;
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -130,6 +125,13 @@ const PropertyManagement: React.FC = () => {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="w-full bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-red-500 text-lg">Error loading properties. Please try again.</div>
+      </div>
+    );
+  }
 
   // const handleCreateMessage = async () => {
   //   try {
@@ -198,7 +200,7 @@ const PropertyManagement: React.FC = () => {
                 <Building2 className="w-5 h-5 text-blue-600" strokeWidth={2} />
               </div>
             </div>
-            <p className="text-[36px] font-bold text-gray-900">{totalPropertyViews}</p>
+            <p className="text-[36px] font-bold text-gray-900">1000</p>
           </div>
         </div>
 

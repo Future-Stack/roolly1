@@ -51,11 +51,27 @@ const baseQueryWithAuth = async (args: any, api: any, extraOptions: any) => {
             result = await baseQuery(args, api, extraOptions);
           } else {
             api.dispatch(logout());
-            window.location.href = "/login";
+            const publicRoutes = ['/', '/login', '/register', '/all-properties', '/forgot-password-req', '/forgot-password-confirm', '/verify-email', '/privecy-policy', '/terms'];
+            const currentPath = window.location.pathname;
+            const isPublicRoute = publicRoutes.includes(currentPath) || 
+                                currentPath.startsWith('/details/') || 
+                                currentPath.startsWith('/property-details/');
+            
+            if (!isPublicRoute) {
+              window.location.href = "/login";
+            }
           }
         } else {
           api.dispatch(logout());
-          window.location.href = "/login";
+          const publicRoutes = ['/', '/login', '/register', '/all-properties', '/forgot-password-req', '/forgot-password-confirm', '/verify-email', '/privecy-policy', '/terms'];
+          const currentPath = window.location.pathname;
+          const isPublicRoute = publicRoutes.includes(currentPath) || 
+                              currentPath.startsWith('/details/') || 
+                              currentPath.startsWith('/property-details/');
+          
+          if (!isPublicRoute) {
+            window.location.href = "/login";
+          }
         }
       } finally {
         release();
