@@ -13,7 +13,6 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
         onClose();
     };
 
-    // Common Wrapper to maintain consistency and responsiveness
     const ChatWindow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
         <div className="fixed inset-0 sm:inset-auto sm:right-6 sm:bottom-6 z-[60] flex items-end justify-center sm:block">
             <div className="w-full sm:w-[400px] bg-[#FDFEFF] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[100dvh] sm:h-[600px] border-t sm:border border-gray-100 transition-all duration-300 ease-in-out">
@@ -50,4 +49,4 @@ const ChatbotMain: React.FC<{ onClose: any }> = ({ onClose }) => {
     );
 };
 
-export default ChatbotMain;
+export default ChatbotMain;
