@@ -38,7 +38,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
             <div className="bg-white px-4 sm:px-[17px] py-4 sm:py-[19px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#EBEFFE] rounded-[16px] w-full flex-1">
                 <p className="text-[#2F3237] text-xs sm:text-sm leading-snug mb-3 sm:mb-[13px] font-normal">
                     Whilst we wait for a broker, please ask a few questions to speed up the process for the broker.
-                </p>
+                    </p>
                 <div className="space-y-3 sm:space-y-4">
                     <div>
                         <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-1.5 ml-0.5">
