@@ -51,7 +51,7 @@ interface ApiResponse {
   next: string | null;
   previous: string | null;
   total_property_views: number;
-  occupied_properties: number;
+  listed_properties: number;
   total_properties: number;
 }
 
@@ -75,7 +75,7 @@ const PropertyManagement: React.FC = () => {
   // Calculate stats
   const totalProperties = propertiesData?.total_properties || 0;
   const totalPropertyViews = propertiesData?.total_property_views || 0;
-  const availableProperties = propertiesData?.occupied_properties || 0;
+  const listedProperties = propertiesData?.listed_properties || 0;
   // const availableProperties = propertiesData?.results?.filter((prop: Property) => prop.status === 'Available').length || 0;
 
   // Handle page change
@@ -182,12 +182,12 @@ const PropertyManagement: React.FC = () => {
           {/* Available Properties Card */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-6">
-              <span className="text-[15px] text-gray-600 font-normal">Available Properties</span>
+              <span className="text-[15px] text-gray-600 font-normal">Listed Properties</span>
               <div className="w-10 h-10 flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-blue-600" strokeWidth={2} />
               </div>
             </div>
-            <p className="text-[36px] font-bold text-gray-900">{availableProperties}</p>
+            <p className="text-[36px] font-bold text-gray-900">{listedProperties}</p>
           </div>
 
           {/* Total Views Card */}
