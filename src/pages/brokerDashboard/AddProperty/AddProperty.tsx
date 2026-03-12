@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ImageIcon, Plus, SquarePlay } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RiskProfileManagementForm from '@/components/brokerDashboard/BrokerProperty/RiskProfileManagementForm';
 // import Swal from 'sweetalert2';
@@ -147,6 +147,19 @@ const AddProperty: React.FC = () => {
     const handleImageUpload = (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(`Invalid file type: ${file.name}. Allowed types: .jpg, .jpeg, .png, .gif`);
+                event.target.value = '';
+                return;
+            }
+
+            const maxSizeMB = 10;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Image file must be smaller than ${maxSizeMB}MB.`);
+                event.target.value = '';
+                return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImages(prev => ({
@@ -222,7 +235,9 @@ const AddProperty: React.FC = () => {
             // if (!formData.office_space.trim()) missing.push('Office Space');
 
             // External Specification
-            // if (!formData.yard_area.trim()) missing.push('Area of Yard');
+            if (!formData.email.trim()) missing.push('Email');
+            if (!formData.phone_number.trim()) missing.push('Phone Number');
+            if (!formData.whatsapp_number.trim()) missing.push('Whatsapp Number');
 
             if (missing.length > 0) {
                 toast.error(`Please fill in required fields: ${missing.join(', ')}`);
@@ -296,7 +311,7 @@ const AddProperty: React.FC = () => {
 
     // Options for dropdowns
     const transactionOptions = ['sale', 'lease'];
-    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
+    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
     // const riskLevelOptions = ['low', 'medium', 'high'];
     const phaseOptions = ['Single phase', 'Three Phase',];
@@ -1144,7 +1159,7 @@ const AddProperty: React.FC = () => {
                                     [name]: value
                                 }));
                             }}
-                            onOtherRestrictionsChange={(value) => {
+                            onOtherRestrictionsChange={(value: string) => {
                                 setFormData(prev => ({
                                     ...prev,
                                     other_restrictions: value

@@ -10,7 +10,7 @@ interface ChatbotState {
 
 const initialState: ChatbotState = {
     isOpen: false,
-    view: 'main',
+    view: 'survey',
     selectedCity: null,
 };
 

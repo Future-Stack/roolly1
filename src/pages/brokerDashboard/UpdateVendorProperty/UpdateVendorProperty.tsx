@@ -220,6 +220,19 @@ const UpdateVendorProperty: React.FC = () => {
     const handleImageUpload = (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(`Invalid file type: ${file.name}. Allowed types: .jpg, .jpeg, .png, .gif`);
+                event.target.value = '';
+                return;
+            }
+
+            const maxSizeMB = 10;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Image file must be smaller than ${maxSizeMB}MB.`);
+                event.target.value = '';
+                return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImages(prev => ({
@@ -303,6 +316,10 @@ const UpdateVendorProperty: React.FC = () => {
                     toast.error('Built area is required');
                     return;
                 }
+                if (!formData.email) {
+                    toast.error('Email is required');
+                    return;
+                }
                 if (!formData.whatsapp_number ) {
                     toast.error('Whatsapp number is required');
                     return;
@@ -379,7 +396,7 @@ const UpdateVendorProperty: React.FC = () => {
 
     // Options for dropdowns
     const transactionOptions = ['sale', 'lease'];
-    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
+    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
     // const riskLevelOptions = ['low', 'medium', 'high'];
     const phaseOptions = ['Single phase', 'Three Phase'];
