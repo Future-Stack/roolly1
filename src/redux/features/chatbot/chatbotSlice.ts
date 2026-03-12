@@ -9,7 +9,7 @@ interface ChatbotState {
 }
 
 const initialState: ChatbotState = {
-    isOpen: false,
+    isOpen: true,
     view: 'survey',
     selectedCity: null,
 };
