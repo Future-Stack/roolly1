@@ -37,7 +37,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
             </div>
             <div className="bg-white px-4 sm:px-[17px] py-4 sm:py-[19px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#EBEFFE] rounded-[16px] w-full flex-1">
                 <p className="text-[#2F3237] text-xs sm:text-sm leading-snug mb-3 sm:mb-[13px] font-normal">
-                    Leave a message Provide your details to get notified
+                    To help us direct your query to the right person, could you please provide a few details?
                 </p>
 
                 <div className="space-y-3 sm:space-y-4">

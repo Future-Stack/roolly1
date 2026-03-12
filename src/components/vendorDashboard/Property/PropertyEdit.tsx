@@ -215,6 +215,19 @@ const PropertyEdit: React.FC = () => {
     const handleImageUpload = (id: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(`Invalid file type: ${file.name}. Allowed types: .jpg, .jpeg, .png, .gif`);
+                event.target.value = '';
+                return;
+            }
+
+            const maxSizeMB = 10;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Image file must be smaller than ${maxSizeMB}MB.`);
+                event.target.value = '';
+                return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImages(prev => ({
@@ -318,17 +331,9 @@ const PropertyEdit: React.FC = () => {
         //     toast.error('Phone number is required');
         //     return;
         // }
-        // if (!formData.phone_number.startsWith('+')) {
-        //     toast.error('Phone number must include country code (e.g., +44...)');
-        //     return;
-        // }
 
         // if (!formData.whatsapp_number) {
         //     toast.error('WhatsApp number is required');
-        //     return;
-        // }
-        // if (!formData.whatsapp_number.startsWith('+')) {
-        //     toast.error('WhatsApp number must include country code (e.g., +44...)');
         //     return;
         // }
 
@@ -432,7 +437,7 @@ const PropertyEdit: React.FC = () => {
 
     // Options for dropdowns
     const transactionOptions = ['sale', 'lease'];
-    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'house', 'other'];
+    const propertyTypeOptions = ['industrial', 'land', 'office', 'retail', 'other'];
     const yardSurfaceOptions = ['Concrete', 'Tarmac', 'Gravel', 'Grass', 'Other'];
     const phaseOptions = ['1', '2', '3'];
     const lightingTypeOptions = ['1', '2', '3'];
