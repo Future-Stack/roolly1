@@ -23,8 +23,8 @@ interface ChatViewProps {
 const ChatView: React.FC<ChatViewProps> = ({
     chatMessages, message, setMessage, handleSendMessage, onViewDetails, isTyping
 }) => {
-    // console.log(chatMessages)
-    // console.log(message)
+    console.log(chatMessages)
+    console.log(message)
     // console.log(setMessage)
     // console.log(handleSendMessage)
     // console.log(onViewDetails)
