@@ -43,6 +43,7 @@ interface Property {
   whatsapp_number?: string;
   phone_number?: string;
   status?: string;
+  is_listed: boolean;
 }
 
 interface ApiResponse {
@@ -51,6 +52,7 @@ interface ApiResponse {
   next: string | null;
   previous: string | null;
   total_property_views: number;
+  is_listed: boolean;
   listed_properties: number;
   total_properties: number;
 }
@@ -224,9 +226,9 @@ const PropertyManagement: React.FC = () => {
                       £{property.estimated_price}
                       {property.transaction === 'lease' ? '/month' : ''}
                     </span>
-                    <span className="flex items-center gap-1.5 text-[13px] font-medium text-[#0C7233] bg-[#C8FFDD] p-1.5 rounded-2xl">
-                      <span className="w-2 h-2 rounded-full bg-green-600"></span>
-                      {property.status || 'Available'}
+                    <span className={`flex items-center gap-1.5 text-[13px] font-medium ${property.is_listed === false ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
+                      <span className={`w-2 h-2 rounded-full ${property.is_listed === false ? 'bg-green-600' : 'bg-gray-400'}`}></span>
+                      {property.is_listed === false ? 'Available' : property.transaction === 'lease' ? 'Rented' : 'Occupied'}
                     </span>
                   </div>
 
