@@ -22,10 +22,24 @@ interface ChatViewProps {
 
 const ChatView: React.FC<ChatViewProps> = ({
     chatMessages, message, setMessage, handleSendMessage, onViewDetails, isTyping
-}) => (
-    <div className="p-4 sm:p-5 flex flex-col gap-5 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300 h-full overflow-hidden">
-        {/* Chat Header/Info */}
-        {/* <div className="flex justify-start">
+}) => {
+    // console.log(chatMessages)
+    // console.log(message)
+    // console.log(setMessage)
+    // console.log(handleSendMessage)
+    // console.log(onViewDetails)
+    // console.log(isTyping)
+    // const messagesEndRef = useRef<HTMLDivElement>(null);
+    // const scrollToBottom = () => {
+    //     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // };
+    // useEffect(() => {
+    //     scrollToBottom();
+    // }, [chatMessages, isTyping]);
+    return (
+        <div className="p-4 sm:p-5 flex flex-col gap-5 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300 h-full overflow-hidden">
+            {/* Chat Header/Info */}
+            {/* <div className="flex justify-start">
             <div className="bg-[#0446DE] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl rounded-tl-none shadow-md shadow-blue-100 max-w-[85%] sm:max-w-[80%] flex items-center gap-2">
                 <span className="text-xs sm:text-sm font-medium">Hi, I'm Ronald Richards from broker360. How can I help you today?</span>
             </div>
@@ -49,7 +63,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                         </div>
                         <div className={`p-3 sm:p-4 shadow-sm border rounded-2xl sm:rounded-3xl max-w-[85%] ${msg.sender === 'user' ? 'bg-blue-50 border-blue-100 rounded-tr-none text-blue-900' : 'bg-white border-[#EBEFFE] rounded-tl-none text-[#0D4B99]'}`}>
                             <p className="text-xs sm:text-sm leading-relaxed font-medium whitespace-pre-wrap">
-                                {msg.text || (msg.properties && msg.properties.length > 0 ? "Here are the properties I found:" : "")}
+                                {msg.text || (msg.properties && msg.properties.length > 0 ? "Here are the properties I found:" : "No properties found!")}
                             </p>
                         </div>
                     </div>
@@ -114,6 +128,6 @@ const ChatView: React.FC<ChatViewProps> = ({
             </div>
         </div>
     </div>
-);
+)};
 
 export default ChatView;
