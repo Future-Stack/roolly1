@@ -228,7 +228,7 @@ const PropertyManagement: React.FC = () => {
                     </span>
                     <span className={`flex items-center gap-1.5 text-[13px] font-medium ${property.is_listed === false ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
                       <span className={`w-2 h-2 rounded-full ${property.is_listed === false ? 'bg-green-600' : 'bg-gray-400'}`}></span>
-                      {property.is_listed === false ? 'Available' : property.transaction === 'lease' ? 'Rented' : 'Occupied'}
+                      {property.is_listed === false ? property.transaction === 'lease' ? 'Rented' : 'Occupied': 'Available'  }
                     </span>
                   </div>
 
