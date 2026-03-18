@@ -225,7 +225,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <div className="md:col-span-3">
                         <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
                         <div className="text-[15px] text-gray-900 font-normal">
-                            {formatPrice(property?.pcm || property?.pa)}
+                            {formatPrice(property?.pcm || property?.pa)}/{property?.pcm ? 'PCM':'PA'}
                         </div>
                     </div>
                 </div>

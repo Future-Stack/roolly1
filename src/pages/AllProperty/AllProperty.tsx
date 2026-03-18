@@ -28,6 +28,8 @@ interface ApiProperty {
     description: string;
     price?: number | null;
     price_type?: 'pcm' | 'pa' | null;
+    pcm?: string | number | null;
+    pa?: string | number | null;
 }
 
 interface ApiResponse {
@@ -39,8 +41,9 @@ interface ApiResponse {
 
 interface QueryParams {
     search?: string;
-    property_type?: string;
+    property_type?: string | string[];
     transaction?: 'sale' | 'lease';
+    price_type?: string | string[];
     page?: number;
     page_size?: number;
     ordering?: string;
@@ -145,6 +148,7 @@ const AllProperty: React.FC = () => {
     const urlTransaction = queryParams.get('transaction') as 'sale' | 'lease' || 'sale';
     const urlBuiltAreaGte = queryParams.get('built_area__gte');
     const urlBuiltAreaLte = queryParams.get('built_area__lte');
+    const urlPriceType = queryParams.getAll('price_type'); // Get all values for repeated param
 
     const [activeTab, setActiveTab] = useState<'sale' | 'lease'>(urlTransaction);
     const [currentPage, setCurrentPage] = useState(1);
@@ -156,8 +160,8 @@ const AllProperty: React.FC = () => {
 
     // Price type filter: null = show all, 'pcm' or 'pa' = filter
     const [priceTypeFilter, setPriceTypeFilter] = useState<{ pcm: boolean; pa: boolean }>({
-        pcm: false,
-        pa: false,
+        pcm: urlPriceType.includes('pcm'),
+        pa: urlPriceType.includes('pa'),
     });
 
     // Filter states - Initialize from URL
@@ -190,7 +194,7 @@ const AllProperty: React.FC = () => {
             .map(([key]) => key);
 
         if (selectedTypes.length > 0) {
-            params.property_type = selectedTypes.join(',');
+            params.property_type = selectedTypes;
         }
 
         if (urlBuiltAreaGte) {
@@ -199,6 +203,15 @@ const AllProperty: React.FC = () => {
 
         if (urlBuiltAreaLte) {
             params.built_area__lte = parseInt(urlBuiltAreaLte);
+        }
+
+        // Add price_type filter
+        const selectedPriceTypes = Object.entries(priceTypeFilter)
+            .filter(([_, value]) => value)
+            .map(([key]) => key);
+
+        if (selectedPriceTypes.length > 0) {
+            params.price_type = selectedPriceTypes;
         }
 
         // Add sorting
@@ -221,11 +234,12 @@ const AllProperty: React.FC = () => {
 
         console.log('API Request Params:', params);
         return params;
-    }, [activeTab, currentPage, pageSize, searchTerm, propertyTypes, sortBy, urlBuiltAreaGte, urlBuiltAreaLte]);
+    }, [activeTab, currentPage, pageSize, searchTerm, propertyTypes, priceTypeFilter, sortBy, urlBuiltAreaGte, urlBuiltAreaLte]);
 
     const { data: apiData, isLoading, error } = useGetAllUsersPropertyQuery(buildQueryParams());
 
     const [properties, setProperties] = useState<PropertyCardProps[]>([]);
+    
 
     // Process API response
     useEffect(() => {
@@ -254,6 +268,9 @@ const AllProperty: React.FC = () => {
             setTotalPages(Math.ceil(data.count / pageSize));
 
             const transformedProperties: PropertyCardProps[] = data.results.map((property: ApiProperty) => {
+                const finalPrice = property.price ?? (property.pcm ? parseFloat(property.pcm as string) : (property.pa ? parseFloat(property.pa as string) : null));
+                const finalPriceType = property.price_type ?? (property.pcm ? 'pcm' : (property.pa ? 'pa' : null));
+                
                 return {
                     id: property.id,
                     image: property.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&h=300&fit=crop',
@@ -264,8 +281,8 @@ const AllProperty: React.FC = () => {
                     description: property.description?.substring(0, 80) + (property.description?.length > 80 ? '...' : '') || 'No description available',
                     propertyType: property.property_type,
                     transaction: property.transaction,
-                    price: property.price ?? null,
-                    priceType: property.price_type ?? null,
+                    price: finalPrice,
+                    priceType: finalPriceType as 'pcm' | 'pa' | null,
                 };
             });
 
@@ -544,13 +561,6 @@ const AllProperty: React.FC = () => {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {properties
-                                            .filter((p) => {
-                                                const anySelected = priceTypeFilter.pcm || priceTypeFilter.pa;
-                                                if (!anySelected) return true;
-                                                if (priceTypeFilter.pcm && p.priceType === 'pcm') return true;
-                                                if (priceTypeFilter.pa && p.priceType === 'pa') return true;
-                                                return false;
-                                            })
                                             .map((property) => (
                                             <PropertyCard
                                                 key={property.id}
@@ -583,23 +593,6 @@ const AllProperty: React.FC = () => {
                                             </div>
                                         ) : (
                                             <>
-                                                {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                                    {properties.map((property) => (
-                                                        <PropertyCard
-                                                            key={property.id}
-                                                            id={property.id}
-                                                            image={property.image}
-                                                            badge={property.badge}
-                                                            badgeType={property.badgeType}
-                                                            title={property.title}
-                                                            subtitle={property.subtitle}
-                                                            description={property.description}
-                                                            propertyType={property.propertyType}
-                                                            transaction={property.transaction}
-                                                        />
-                                                    ))}
-                                                </div> */}
-
                                                 {/* Pagination - Perfectly Centered */}
                                                 {totalPages > 1 && (
                                                     <div className="mt-8 pt-6 border-t border-gray-200">

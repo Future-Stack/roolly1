@@ -234,7 +234,7 @@ const PropertyManagement: React.FC = () => {
                   <div className="flex items-center justify-between mb-3 mt-4">
                     <span className="text-[24px] font-bold text-[#126AD8]">
                       { 
-                        property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/month` : `£${property.pa}/year`}
+                        property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/PCM` : `£${property.pa}/PA`}
                     </span>
                     <span className={`flex items-center gap-1.5 text-[13px] font-medium ${!property.occupied ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
                       <span className={`w-2 h-2 rounded-full ${!property.occupied ? 'bg-green-600' : 'bg-gray-400'}`}></span>

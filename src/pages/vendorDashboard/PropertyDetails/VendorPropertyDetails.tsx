@@ -221,7 +221,7 @@ const VendorPropertyDetails: React.FC = () => {
                             {propertyData.property_name}
                         </h2>
                         <p className="text-md text-[#126AD8] font-medium mb-2">
-                            {propertyData.transaction === 'sale' ? 'Price: ' : 'Lease: '} {formatPrice(propertyData?.pcm || propertyData?.pa )}
+                            {propertyData.transaction === 'sale' ? 'Price: ' : 'Lease: '} {formatPrice(propertyData?.pcm || propertyData?.pa )}/{property?.pcm ? 'PCM':'PA'}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-[#082D5B]">
                             <Home size={16} />
