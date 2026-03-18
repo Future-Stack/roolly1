@@ -163,7 +163,7 @@ const HomePropertyDetails: React.FC = () => {
             </h2>
 
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              Price: £{parseInt(property?.pcm || property?.pa)}
+              Price: £{parseInt(property?.pcm || property?.pa)}/{property?.pcm ? 'PCM':'PA'}
             </p>
             {/* <p className="text-md text-[#126AD8] font-medium mb-2">
               Built Area: {parseInt(property?.built_area)} Sqft

@@ -6,8 +6,9 @@ const getAllUsersPropertyApi = baseApi.injectEndpoints({
         getAllUsersProperty: builder.query({
             query: (params?: {
                 search?: string;
-                property_type?: string;
+                property_type?: string | string[];
                 transaction?:any;
+                price_type?: string | string[];
                 page?: number;
                 page_size?: number;
                 ordering?: string;
