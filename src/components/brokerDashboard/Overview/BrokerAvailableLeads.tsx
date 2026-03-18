@@ -425,7 +425,7 @@ const BrokerAvailableLeads = () => {
               </div>
 
               {/* Client Information */}
-              <div className="flex items-end justify-between pt-4 border-gray-200 bg-[#F9FAFB] p-3 rounded-lg">
+              <div className="flex flex-wrap  items-end justify-between pt-4 border-gray-200 bg-[#F9FAFB] p-3 rounded-lg">
                 <div>
                   <h4 className="text-base font-semibold text-gray-900 mb-3">Client Information</h4>
                   <div className="space-y-2">
@@ -441,7 +441,7 @@ const BrokerAvailableLeads = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 mt-3 md:mt-0">
                   {/* Schedule Viewing Button */}
                   {/* <button
                     onClick={() => handleScheduleViewing(lead)}

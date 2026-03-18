@@ -6,7 +6,9 @@ import { useGetSingleScheduleQuery } from '@/redux/features/broker/schedule/getS
 import AddScheduleModal from './AddScheduleModal';
 import { useGetBrokerLeadsListQuery } from '@/redux/features/broker/leads/getBrokerLeadsListApi';
 import { useUpdateLeadMutation } from '@/redux/features/broker/leads/updateLeadApi';
+import { useDeleteLeadMutation } from '@/redux/features/broker/leads/deleteLeadApi';
 import { toast } from 'react-toastify';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 
 interface Property {
@@ -26,7 +28,7 @@ interface Lead {
   lead_status: string;
   lead_traffic: string;
   sqft_range: string | null;
-  financials: string;
+  financial_details_provided: boolean;
   schedule_id: number | null;
 }
 
@@ -42,7 +44,7 @@ interface FormattedLead {
   businessType: string;
   budget: string;
   source: string;
-  financials: string;
+  financial_details_provided: string;
   phone: string;
   email: string;
   alertMessage: string;
@@ -55,9 +57,12 @@ const BrokerLeads = () => {
   const [addScheduleModalOpen, setAddScheduleModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<{ id: number; name: string } | null>(null);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
-  const { data: brokerLeadsData, isLoading, isError, refetch } = useGetBrokerLeadsQuery(undefined);
+  const { data: brokerLeadsData, isLoading, refetch } = useGetBrokerLeadsQuery(undefined);
   const { data: brokerLeadsListData } = useGetBrokerLeadsListQuery(undefined);
   const [updateLead, { isLoading: isUpdatingStatus }] = useUpdateLeadMutation();
+  const [deleteLead, { isLoading: isDeleting }] = useDeleteLeadMutation();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<number | null>(null);
   // const leadsData = brokerLeadsData?.results || [];
   console.log('API Data:', brokerLeadsData);
   console.log('API Data List:', brokerLeadsListData);
@@ -182,7 +187,7 @@ const BrokerLeads = () => {
         source: lead.source
           ? lead.source.charAt(0).toUpperCase() + lead.source.slice(1)
           : 'Unknown',
-        financials: lead.financials || 'Not provided',
+        financial_details_provided: lead.financial_details_provided === false ? 'Not Provided' : 'Provided',
         phone: lead.phone_number || 'Not provided',
         email: lead.email_address || 'Not provided',
         alertMessage: getAlertMessage(lead.source, lead.lead_status),
@@ -241,6 +246,27 @@ const BrokerLeads = () => {
     }
   };
 
+  const handleDeleteLeadRequest = (leadId: number) => {
+    setLeadToDelete(leadId);
+    setDeleteModalOpen(true);
+    closeActionMenu();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (leadToDelete === null) return;
+    
+    try {
+      await deleteLead(leadToDelete).unwrap();
+      toast.success('Lead deleted successfully');
+      refetch();
+      setDeleteModalOpen(false);
+      setLeadToDelete(null);
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { detail?: string } };
+      toast.error(apiErr?.data?.detail || 'Failed to delete lead');
+    }
+  };
+
   console.log("selectedLead", selectedLead);
   // Loading state
   if (isLoading) {
@@ -272,20 +298,20 @@ const BrokerLeads = () => {
   }
 
   // Error state
-  if (isError) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-        <h3 className="text-lg font-semibold text-red-700 mb-2">Error Loading Leads</h3>
-        <p className="text-red-600 mb-4">Unable to load leads. Please try again later.</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+  //       <h3 className="text-lg font-semibold text-red-700 mb-2">Error Loading Leads</h3>
+  //       <p className="text-red-600 mb-4">Unable to load leads. Please try again later.</p>
+  //       <button
+  //         onClick={() => window.location.reload()}
+  //         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+  //       >
+  //         Retry
+  //       </button>
+  //     </div>
+  //   );
+  // }
 
   // Empty state
   if (leads.length === 0) {
@@ -318,29 +344,43 @@ const BrokerLeads = () => {
         leadName={selectedLead?.name || ''}
       />
 
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setLeadToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isDeleting}
+        title="Delete Lead"
+        message="Are you sure you want to delete this lead? This action cannot be undone."
+      />
+
       <div className="space-y-4 relative">
         {leads.map((lead) => (
           <div key={lead.id} className="bg-white rounded-xl border border-gray-200 p-5 relative">
             {/* Lead Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h3 className="text-[16px] font-semibold text-gray-900">{lead.name}</h3>
-                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.status === 'Green' ? 'bg-green-500 text-white' :
-                  lead.status === 'Blue' ? 'bg-blue-600 text-white' :
-                    lead.status === 'Red' ? 'bg-red-500 text-white' :
-                      'bg-amber-500 text-white'
-                  }`}>
-                  {lead.status}
-                </span>
-                <span className={`px-3 py-1 rounded text-[12px] font-semibold ${lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
-                  lead.secondaryStatus.toLowerCase().includes('enquired') ? 'bg-blue-600 text-white' :
-                    lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
-                      lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
-                        lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
-                          'bg-gray-600 text-white'
-                  }`}>
-                  {lead.secondaryStatus}
-                </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-[16px] font-semibold text-gray-900 break-words">{lead.name}</h3>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`px-3 py-1 rounded text-[12px] font-semibold whitespace-nowrap ${lead.status === 'Green' ? 'bg-green-500 text-white' :
+                    lead.status === 'Blue' ? 'bg-blue-600 text-white' :
+                      lead.status === 'Red' ? 'bg-red-500 text-white' :
+                        'bg-amber-500 text-white'
+                    }`}>
+                    {lead.status}
+                  </span>
+                  <span className={`px-3 py-1 rounded text-[12px] font-semibold whitespace-nowrap ${lead.secondaryStatus.toLowerCase().includes('viewed') ? 'bg-orange-500 text-white' :
+                    lead.secondaryStatus.toLowerCase().includes('enquired') ? 'bg-blue-600 text-white' :
+                      lead.secondaryStatus.toLowerCase().includes('terms') ? 'bg-purple-600 text-white' :
+                        lead.secondaryStatus.toLowerCase().includes('legal') ? 'bg-indigo-600 text-white' :
+                          lead.secondaryStatus.toLowerCase().includes('completed') ? 'bg-green-600 text-white' :
+                            'bg-gray-600 text-white'
+                    }`}>
+                    {lead.secondaryStatus}
+                  </span>
+                </div>
               </div>
               <div className="relative">
                 <button
@@ -389,6 +429,18 @@ const BrokerLeads = () => {
                           );
                         })}
                       </div>
+
+                      {/* Delete Action */}
+                      <div className="border-t border-gray-100 px-2 py-2">
+                        <button
+                          disabled={isDeleting}
+                          onClick={() => handleDeleteLeadRequest(lead.id)}
+                          className="w-full text-left px-4 py-2 hover:bg-red-50 text-sm text-red-600 rounded transition-colors flex items-center gap-2"
+                        >
+                          <Info className="w-4 h-4" />
+                          Delete Lead
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
@@ -396,18 +448,18 @@ const BrokerLeads = () => {
             </div>
 
             {/* Property Info */}
-            <div className="flex items-center gap-4 text-[13px] text-gray-600 mb-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-gray-600 mb-4">
               <div className="flex items-center gap-1.5 text-[#717182]">
-                <MapPin className="w-4 h-4" strokeWidth={2} />
-                <span>{lead.propertyId}: {lead.propertyName}</span>
+                <MapPin className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+                <span className="line-clamp-1">{lead.propertyId}: {lead.propertyName}</span>
               </div>
               <div className="flex items-center gap-1.5 text-[#717182]">
-                <Clock className="w-4 h-4" strokeWidth={2} />
-                <span>{lead.timeAgo}</span>
+                <Clock className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+                <span className="whitespace-nowrap">{lead.timeAgo}</span>
               </div>
               <div className="flex items-center gap-1.5 text-[#717182]">
-                <Calendar className="w-4 h-4" strokeWidth={2} />
-                <span>{lead.date}</span>
+                <Calendar className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+                <span className="whitespace-nowrap">{lead.date}</span>
               </div>
             </div>
 
@@ -437,11 +489,11 @@ const BrokerLeads = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">Financials Details</p>
-                <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${lead.financials === 'Provided'
+                <span className={`inline-block px-3 py-1 bg-white border rounded text-sm font-medium ${lead.financial_details_provided === 'true'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-gray-400 text-gray-600'
                   }`}>
-                  {lead.financials}
+                  {lead.financial_details_provided}
                 </span>
               </div>
             </div>

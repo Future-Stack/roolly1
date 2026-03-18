@@ -3,6 +3,7 @@ import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
 import { useCurrentToken } from '@/redux/features/auth/authSlice';
 import { useGetAllMessagesQuery } from '@/redux/features/message/getAllMessagesApi';
 import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingleUserMessageApi';
+import { useGetVendorProfileQuery } from '@/redux/features/vendor/getVendorProfileApi';
 import { useAppSelector } from '@/redux/hook';
 import type { ApiMessage, ChatUser, Conversation, Message, PaginatedApiResponse, WebSocketMessage } from '@/types/message.types';
 import { getCurrentUserId } from '@/utils/userUtils';
@@ -11,6 +12,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const CommunicationWithBroker: React.FC = () => {
+  const { data: profile } = useGetVendorProfileQuery(undefined)
+  console.log(profile)
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -255,7 +258,13 @@ const CommunicationWithBroker: React.FC = () => {
       });
 
       // Avatars
-      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      const initials = profile?.full_name
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+      const yourAvatar = profile?.image || initials;
       const otherAvatar = msg.sender?.avatar || selectedChat.avatar;
 
       return {
@@ -701,22 +710,6 @@ const CommunicationWithBroker: React.FC = () => {
     return users;
   };
 
-  // Get connection status
-  // const getConnectionStatusInfo = () => {
-  //   switch (connectionStatus) {
-  //     case 'connected':
-  //       return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
-  //     case 'connecting':
-  //       return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
-  //     case 'error':
-  //       return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
-  //     default:
-  //       return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
-  //   }
-  // };
-
-  // const statusInfo = getConnectionStatusInfo();
-
   // Scroll to bottom
   useEffect(() => {
     if (messages.length > 0 && !isLoadingMessages && !isLoadingSingleMessages) {
@@ -745,26 +738,6 @@ const CommunicationWithBroker: React.FC = () => {
 
   return (
     <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
-
-      {/* Connection Status */}
-      {/* <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
-        {statusInfo.icon}
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">{statusInfo.text}</span>
-          {connectionError && (
-            <span className="text-xs mt-1 max-w-xs">{connectionError}</span>
-          )}
-          {connectionStatus !== 'connected' && selectedChat?.id && (
-            <button
-              onClick={manualReconnect}
-              className="text-xs underline mt-1 text-left"
-            >
-              Reconnect Now
-            </button>
-          )}
-        </div>
-      </div> */}
-
 
       {/* Header */}
       <div className="pb-4 md:pb-6">
@@ -1041,11 +1014,17 @@ const CommunicationWithBroker: React.FC = () => {
                       </div>
 
                       {/* Your avatar - ALWAYS ON RIGHT */}
+                      {message.avatar?.startsWith("http") ? (
                       <img
                         src={message.avatar}
-                        alt="You"
+                        alt="avatar"
                         className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
                       />
+                    ) : (
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold border-2 border-white shadow">
+                        {message.avatar}
+                      </div>
+                    )}
                     </div>
                   )}
                 </div>
@@ -1082,9 +1061,7 @@ const CommunicationWithBroker: React.FC = () => {
                     disabled={connectionStatus !== 'connected' || !!connectionError}
                   />
                 </div>
-                {/* <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <Smile className="w-4 h-4 md:w-5 md:h-5 text-gray-500" strokeWidth={2} />
-                </button> */}
+
               </div>
               <button
                 onClick={sendMessage}
@@ -1097,11 +1074,7 @@ const CommunicationWithBroker: React.FC = () => {
                 <SendHorizontal className="w-4 h-4 md:w-5 md:h-5 text-white" strokeWidth={2} />
               </button>
             </div>
-            {/* {connectionStatus !== 'connected' && (
-              <p className="text-xs text-center text-gray-500 mt-2">
-                {connectionError || 'Trying to establish connection...'}
-              </p>
-            )} */}
+           
           </div>
         </div>
       </div>

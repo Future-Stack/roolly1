@@ -21,7 +21,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onNavigate, onAsk
         <div className="p-3 flex flex-col gap-1">
             <div className="flex justify-between items-center">
                 <span className="text-blue-600 font-bold text-sm">
-                    {property.estimated_price ? `POA` : "POA"}
+                    {property.is_poa || property.estimated_price === 'POA' || !property.estimated_price 
+                        ? 'POA' 
+                        : `£${parseFloat(property.estimated_price).toLocaleString()}${property.price_type === 'pcm' ? ' PCM' : property.price_type === 'pa' ? ' PA' : (property.transaction === 'lease' ? '/month' : '')}`
+                    }
                 </span>
                 <div className=" bg-[#C8FFDD] backdrop-blur-sm px-1.5 py-0.5 rounded-full flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-[#10B981]"></div>

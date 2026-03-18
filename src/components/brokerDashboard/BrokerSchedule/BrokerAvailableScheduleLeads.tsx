@@ -43,7 +43,7 @@ const BrokerAvailableScheduleLeads = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    const { data: scheduleData, isLoading, error } = useGetPastScheduleListQuery(undefined);
+    const { data: scheduleData, isLoading } = useGetPastScheduleListQuery(undefined);
     // const [makeCompleteSchedule, { isLoading: isCompleting }] = useMakeCompleteScheduleMutation();
     // const [makeCancelSchedule, { isLoading: isCancelling }] = useMakeCancelScheduleMutation();
 
@@ -193,13 +193,13 @@ const BrokerAvailableScheduleLeads = () => {
         );
     }
 
-    if (error) {
-        return (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-700">Error loading schedule data</p>
-            </div>
-        );
-    }
+    // if (error) {
+    //     return (
+    //         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+    //             <p className="text-red-700">Error loading schedule data</p>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div>
@@ -227,7 +227,7 @@ const BrokerAvailableScheduleLeads = () => {
                                 <div key={lead.id || `lead-${startIndex + index}`} className="bg-white rounded-xl border border-gray-200 p-5 relative">
                                     {/* Lead Header */}
                                     <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center gap-3">
                                             <h3
                                                 className="text-[16px] font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
                                                 onClick={() => openScheduleModal(lead)}

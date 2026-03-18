@@ -48,7 +48,7 @@ const BrokerDashboardOverview: React.FC = () => {
 
       <div className="max-w-[1400px] mx-auto">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex flex-col md:flex-row items-start justify-between mb-6">
           <div>
             <h1 className="text-[24px] font-bold text-gray-900 mb-1">
               Dashboard Overview
@@ -59,7 +59,7 @@ const BrokerDashboardOverview: React.FC = () => {
           </div>
           <button
             onClick={openPropertyCribModal}
-            className="bg-[#EA580C] hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors"
+            className="bg-[#EA580C] hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium transition-colors mt-4 md:mt-0"
           >
             <FileText className="w-4 h-4" strokeWidth={2} />
             Property Crib Sheet
@@ -116,7 +116,7 @@ const BrokerDashboardOverview: React.FC = () => {
         </div>
 
         {/* Tabs and New Lead Button */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row items-center md:justify-between mb-6">
           <div className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-full">
             <button
               onClick={() => setActiveTab('my')}
@@ -139,7 +139,7 @@ const BrokerDashboardOverview: React.FC = () => {
           </div>
           <button
             onClick={openNewLeadModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 text-base font-medium transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 text-base font-medium transition-colors mt-4 md:mt-0"
           >
             <Plus className="w-5 h-5" strokeWidth={2.5} />
             New lead

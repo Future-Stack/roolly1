@@ -16,7 +16,7 @@ export const leadCommentApi = baseApi.injectEndpoints({
                 method: 'PUT',
                 body: { comment },
             }),
-            invalidatesTags: (_result, _error, { id }) => [{ type: 'Leads', id }],
+            invalidatesTags: (_result, _error, { id }) => [{ type: 'Leads', id }, 'Leads'],
         }),
     }),
 });

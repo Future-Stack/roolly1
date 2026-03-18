@@ -37,13 +37,13 @@ const BrokerNotificationSettings: React.FC = () => {
             enabled: true,
             apiField: 'sms_notification'
         },
-        {
-            id: 'new_property',
-            title: 'New Property Alerts',
-            description: 'Receive an email when new properties are available.',
-            enabled: true,
-            apiField: 'new_property_alert'
-        }
+        // {
+        //     id: 'new_property',
+        //     title: 'New Property Alerts',
+        //     description: 'Receive an email when new properties are available.',
+        //     enabled: true,
+        //     apiField: 'new_property_alert'
+        // }
     ]);
 
     // Sync with backend data when it loads

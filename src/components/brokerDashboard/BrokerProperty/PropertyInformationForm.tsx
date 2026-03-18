@@ -19,7 +19,8 @@ interface PropertyData {
     transaction: string;
     property_type: string;
     location: string;
-    estimated_price: string;
+    pcm: string;
+    pa: string;
     lease_duration: number;
     location_description: string;
     built_area: string;
@@ -245,7 +246,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Price or POA
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
-                                    £{propertyData.estimated_price} {propertyData.transaction === 'lease' ? '/month' : ''}
+                                    £{propertyData.pa || propertyData.pcm} {propertyData.transaction === 'lease' ? '/month' : ''}
                                 </div>
                             </div>
 
@@ -491,7 +492,7 @@ const PropertyInformationForm: React.FC = () => {
                         <h2 className="text-base font-semibold text-gray-900 mb-4">
                             Contact Information
                         </h2>
-                        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
                          <div >
                                 <label className="block text-base text-gray-900 mb-1.5">
                                     Email
@@ -543,7 +544,7 @@ const PropertyInformationForm: React.FC = () => {
                                     </h3>
 
                                     <div className='flex justify-center'>
-                                        <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                                        <div className="w-full h-[160px] sm:h-[120px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
                                             {img.preview ? (
                                                 <img src={img.preview} alt={img.title} className="w-full h-full object-cover" />
                                             ) : (

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
-import { useCurrentToken } from '@/redux/features/auth/authSlice';
+import { selectCurrentUser, useCurrentToken } from '@/redux/features/auth/authSlice';
+import { useGetBrokerProfileQuery } from '@/redux/features/broker/settings/getBrokerProfileApi';
 import { useGetAllMessagesQuery } from '@/redux/features/message/getAllMessagesApi';
 import { useGetSingleUserMessageQuery } from '@/redux/features/message/getSingleUserMessageApi';
 import { useAppSelector } from '@/redux/hook';
@@ -11,6 +12,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const BrokerMessage: React.FC = () => {
+  const user = useAppSelector(selectCurrentUser);
+  const { data: profile } = useGetBrokerProfileQuery(undefined);
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,12 +26,13 @@ const BrokerMessage: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
   const [userStatus, setUserStatus] = useState<{ [key: string]: string }>({});
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [newConversations, setNewConversations] = useState<Conversation[]>([]);
+  const [newConversations] = useState<Conversation[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const [currentUserId, setCurrentUserId] = useState<string>('');
-  console.log(setNewConversations)
+  // console.log(setNewConversations);
+
 
   const location = useLocation();
   const { res: initialConversation } = location.state || {};
@@ -82,7 +86,7 @@ const BrokerMessage: React.FC = () => {
   useEffect(() => {
     const userId = getCurrentUserId(token);
     if (userId) {
-      console.log('✅ Extracted User ID from token:', userId);
+      // console.log('✅ Extracted User ID from token:', userId);
       setCurrentUserId(userId);
     } else {
       console.log('❌ No user ID found in token');
@@ -139,7 +143,7 @@ const BrokerMessage: React.FC = () => {
   // Connect to WebSocket when chat is selected
   useEffect(() => {
     if (selectedChat?.id && token && currentUserId) {
-      console.log('🔗 Connecting WebSocket with User ID:', currentUserId);
+      // console.log('🔗 Connecting WebSocket with User ID:', currentUserId);
       cleanupWebSockets();
       connectToConversation(selectedChat.id);
     }
@@ -162,6 +166,16 @@ const BrokerMessage: React.FC = () => {
       clearInterval(activityCheck);
     };
   }, [lastActivityTime, isConnected]);
+
+  // Get initials helper
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   // Convert conversation to chat user
   const convertConversationToChatUser = (conversation: Conversation): ChatUser => {
@@ -225,9 +239,9 @@ const BrokerMessage: React.FC = () => {
       return;
     }
 
-    console.log('📊 API Response:', apiResponse);
-    console.log('👤 Current User ID:', currentUserId);
-    console.log('👥 Chat User ID:', selectedChat.userId);
+    // console.log('📊 API Response:', apiResponse);
+    // console.log('👤 Current User ID:', currentUserId);
+    // console.log('👥 Chat User ID:', selectedChat.userId);
 
     let messagesArray: ApiMessage[] = [];
 
@@ -257,7 +271,19 @@ const BrokerMessage: React.FC = () => {
       });
 
       // Avatars
-      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      const initials = profile?.full_name
+      ? profile.full_name
+          .split(" ")
+          .map((word : string) => word[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "";
+
+      const yourAvatar = profile?.image || initials;
+      // const yourAvatar = profile?.image || profile?.full_name.charAt(0).toUpperCase();
+      // console.log('Your Avatar:', profile?.full_name.charAt(0).toUpperCase());
+      // const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
       const otherAvatar = msg.sender?.avatar || selectedChat.avatar;
 
       return {
@@ -474,14 +500,6 @@ const BrokerMessage: React.FC = () => {
     }, delay);
   };
 
-  // Manual reconnect
-  // const manualReconnect = () => {
-  //   if (selectedChat?.id) {
-  //     cleanupWebSockets();
-  //     setReconnectAttempts(0);
-  //     connectToConversation(selectedChat.id);
-  //   }
-  // };
 
   // Handle incoming chat message
   const handleChatMessage = (data: WebSocketMessage) => {
@@ -495,16 +513,24 @@ const BrokerMessage: React.FC = () => {
     // CRITICAL: Ensure robust equality check (string vs number)
     const isUserMessage = String(senderId) === String(currentUserId);
 
-    console.log('📨 Processing incoming message:', {
-      senderId: senderId,
-      currentUserId: currentUserId,
-      isUserMessage: isUserMessage,
-      alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
-      senderUsername: data.sender?.username
-    });
+    // console.log('📨 Processing incoming message:', {
+    //   senderId: senderId,
+    //   currentUserId: currentUserId,
+    //   isUserMessage: isUserMessage,
+    //   alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
+    //   senderUsername: data.sender?.username
+    // });
 
     // Avatars
-    const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+    const initials = profile?.full_name
+      ? profile.full_name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+      : "";
+    const yourAvatar = profile?.image || initials;
     const otherAvatar = data.sender?.avatar || selectedChat?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop';
 
     const newMessage: Message = {
@@ -585,7 +611,15 @@ const BrokerMessage: React.FC = () => {
 
       // Add temporary message on RIGHT side (your side)
       const tempId = `temp-${Date.now()}`;
-      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      const initials = profile?.full_name
+        ? profile.full_name
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+        : "";
+      const yourAvatar = profile?.image || initials;
 
       const optimisticMessage: Message = {
         id: tempId,
@@ -600,7 +634,7 @@ const BrokerMessage: React.FC = () => {
         status: 'sending',
       };
 
-      console.log('📤 Adding temporary message on RIGHT side:', optimisticMessage);
+      // console.log('📤 Adding temporary message on RIGHT side:', optimisticMessage);
 
       setMessages(prev => [...prev, optimisticMessage]);
       setMessageInput('');
@@ -621,7 +655,7 @@ const BrokerMessage: React.FC = () => {
       }, 100);
 
     } catch (error) {
-      console.error('❌ Error sending message:', error);
+      // console.error('❌ Error sending message:', error);
       setConnectionError('Failed to send message');
     }
   };
@@ -889,11 +923,17 @@ const BrokerMessage: React.FC = () => {
                     }`}
                 >
                   <div className="relative flex-shrink-0">
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
-                    />
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm md:text-base border border-blue-200 shadow-sm">
+                        {getInitials(user.name)}
+                      </div>
+                    )}
                     {/* {user.isOnline && (
                       <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
                     )} */}
@@ -946,11 +986,17 @@ const BrokerMessage: React.FC = () => {
               </button>
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="relative">
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover border border-gray-100"
-                  />
+                  {currentUser.avatar ? (
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.name}
+                      className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover border border-gray-100"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs md:text-sm border border-blue-200">
+                      {getInitials(currentUser.name)}
+                    </div>
+                  )}
                   {currentUser.isOnline && connectionStatus === 'connected' && (
                     <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
                   )}
@@ -1005,11 +1051,17 @@ const BrokerMessage: React.FC = () => {
                   {message.sender === 'other' && (
                     <div className="flex items-start gap-2 md:gap-3 max-w-[85%] md:max-w-[600px]">
                       {/* Other person's avatar - ALWAYS ON LEFT */}
-                      <img
-                        src={message.avatar}
-                        alt="Other User"
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
-                      />
+                      {message.avatar ? (
+                        <img
+                          src={message.avatar}
+                          alt="Other User"
+                          className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs md:text-sm border-2 border-white shadow">
+                          {getInitials(message.senderName || selectedChat?.name || 'Other')}
+                        </div>
+                      )}
 
                       {/* Message bubble - LEFT */}
                       <div className="flex flex-col">
@@ -1044,11 +1096,17 @@ const BrokerMessage: React.FC = () => {
                       </div>
 
                       {/* Your avatar - ALWAYS ON RIGHT */}
-                      <img
-                        src={message.avatar}
-                        alt="You"
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
-                      />
+                      {message.avatar ? (
+                        <img
+                          src={message.avatar}
+                          alt="You"
+                          className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs md:text-sm border-2 border-white shadow">
+                          {getInitials((user as any)?.full_name || (user as any)?.username || (profile as any)?.full_name || 'You')}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
