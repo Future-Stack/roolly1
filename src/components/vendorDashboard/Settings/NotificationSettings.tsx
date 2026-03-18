@@ -31,13 +31,13 @@ const NotificationSettings: React.FC = () => {
             enabled: true,
             apiField: 'sms_notification'
         },
-        {
-            id: 'broker',
-            title: 'Broker alerts',
-            description: 'Receive an email when a broker is trying to get in contact.',
-            enabled: true,
-            apiField: 'broker_alert'
-        }
+        // {
+        //     id: 'broker',
+        //     title: 'Broker alerts',
+        //     description: 'Receive an email when a broker is trying to get in contact.',
+        //     enabled: true,
+        //     apiField: 'broker_alert'
+        // }
     ]);
     useEffect(() => {
         if (settings) {
