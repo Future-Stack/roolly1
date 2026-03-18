@@ -21,8 +21,9 @@ interface PropertyFormData {
     postcode: string;
     transaction: string;
     property_type: string;
+    pcm: string;
+    pa: string;
     location: string;
-    estimated_price: string;
     lease_duration: number;
     location_description: string;
     built_area: string;
@@ -73,7 +74,8 @@ const AddProperty: React.FC = () => {
         postcode: '',
         property_type: 'industrial',
         location: '',
-        estimated_price: '',
+        pcm: '',
+        pa: '',
         lease_duration: 0,
         location_description: '',
         built_area: '',
@@ -107,6 +109,8 @@ const AddProperty: React.FC = () => {
         phone_number: '',
         whatsapp_number: '',
     });
+
+    const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
     const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
@@ -171,6 +175,14 @@ const AddProperty: React.FC = () => {
         }
     };
 
+    const handleImageRemove = (id: string) => {
+        setImages(prev => ({
+            ...prev,
+            [id]: { ...prev[id], file: undefined, preview: undefined }
+        }));
+    };
+
+
     const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -209,6 +221,8 @@ const AddProperty: React.FC = () => {
         // toast.success(`Video selected: ${file.name}`);
     };
 
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -221,7 +235,7 @@ const AddProperty: React.FC = () => {
             if (!formData.vendor_id) missing.push('Vendor');
             if (!formData.location.trim()) missing.push('Location');
             if (!formData.postcode.trim()) missing.push('Post Code');
-            if (!formData.estimated_price.trim()) missing.push('Price');
+            if (!formData.pcm.trim() && !formData.pa.trim()) missing.push('Price');
             // if (!formData.lease_duration && formData.lease_duration !== 0) missing.push('Minimum Lease Duration');
             if (!formData.location_description.trim()) missing.push('Location Description');
 
@@ -257,6 +271,23 @@ const AddProperty: React.FC = () => {
             // Add all form fields — skip empty strings to avoid API rejecting empty numeric fields
             Object.entries(formData).forEach(([key, value]) => {
                 if (key === 'images' || key === 'brochure_pdf_url' || key === 'brochure_video_url' || key === 'existing_images') return;
+
+                // Skip non-backend fields
+                if (key === 'is_poa' || key === 'price_type') return;
+
+                // Only send the active price field
+                if (key === 'pcm') {
+                    if (value && (value as string).trim() !== '') {
+                        formDataToSend.append('pcm', value as string);
+                    }
+                    return;
+                }
+                if (key === 'pa') {
+                    if (value && (value as string).trim() !== '') {
+                        formDataToSend.append('pa', value as string);
+                    }
+                    return;
+                }
 
                 if (typeof value === 'boolean') {
                     formDataToSend.append(key, value ? 'true' : 'false');
@@ -317,7 +348,7 @@ const AddProperty: React.FC = () => {
     const phaseOptions = ['Single phase', 'Three Phase',];
     const lightingTypeOptions = ['Halogen', 'LED',];
 
-    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'Unknown'];
     const evChanging = ['yes', 'no',];
     const solarPanel = ['yes', 'no',];
     return (
@@ -432,21 +463,75 @@ const AddProperty: React.FC = () => {
                                 </div>
 
                                 {/* Rent or purchase estimated price */}
-                                <div>
-                                    <label className="block text-base text-gray-900 mb-2">
-                                        Price (£) or POA *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="estimated_price"
-                                        value={formData.estimated_price}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 10000"
-                                        step="0.01"
-                                        min="0"
-                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        required
-                                    />
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-base text-gray-900">
+                                            Price (£) or POA *
+                                        </label>
+                                        {/* <label className="flex items-center gap-2 cursor-pointer">
+                                             <input
+                                                 type="checkbox"
+                                                 name="is_poa"
+                                                 checked={formData.is_poa}
+                                                 onChange={handleInputChange}
+                                                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                             />
+                                             <span className="text-sm font-medium text-gray-700">POA</span>
+                                         </label> */}
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name={priceType === 'pcm' ? 'pcm' : 'pa'}
+                                            value={formData.pcm || formData.pa}
+                                            onChange={handleInputChange}
+                                            placeholder={"e.g., 10000"}
+                                            className={`w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PCM / PA Selection */}
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="price_type"
+                                                value="pcm"
+                                                checked={priceType === 'pcm'}
+                                                onChange={() => {
+                                                    setPriceType('pcm');
+                                                    setFormData(prev => ({ ...prev, pa: '', pcm: prev.pcm || prev.pa }));
+                                                }}
+                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">PCM (Per Month)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="price_type"
+                                                value="pa"
+                                                checked={priceType === 'pa'}
+                                                onChange={() => {
+                                                    setPriceType('pa');
+                                                    setFormData(prev => ({ ...prev, pcm: '', pa: prev.pa || prev.pcm }));
+                                                }}
+                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">PA (Per Annum)</span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPriceType('');
+                                                setFormData(prev => ({ ...prev, pcm: '', pa: '' }));
+                                            }}
+                                            className="text-xs text-blue-600 hover:underline"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* lease Duration */}
@@ -682,21 +767,6 @@ const AddProperty: React.FC = () => {
                                     </select>
                                 </div>
 
-                                {/* Eaves Height */}
-                                {/* <div>
-                                    <label className="block text-base text-gray-900 mb-1.5">
-                                        Eaves height (ft)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="eaves_height"
-                                        value={formData.eaves_height}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 13.55"
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                </div> */}
-
                                 {/* EPC Rating */}
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
@@ -758,44 +828,6 @@ const AddProperty: React.FC = () => {
                                         ))}
                                     </select>
                                 </div>
-
-
-
-                                {/* Power Capacity */}
-                                {/* <div>
-                                    <label className="block text-base text-gray-900 mb-1.5">
-                                        Power capacity
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="power_capacity"
-                                        value={formData.power_capacity}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 207.83"
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-blue-50 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                </div> */}
-
-                                {/* Phase */}
-                                {/* <div>
-                                    <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
-                                        Electricity supply
-                                    </label>
-                                    <select 
-                                        name="phase"
-                                        value={formData.phase}
-                                        onChange={handleInputChange}
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        {phaseOptions.map(option => (
-                                            <option key={option} value={option}>
-                                                {option} 
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div> */}
-
-
 
                                 <div>
                                     <label className="block text-[13px] font-normal text-gray-900 mb-1.5">
@@ -923,25 +955,6 @@ const AddProperty: React.FC = () => {
                             />
                         </div>
 
-                        {/* Risk Level */}
-                        {/* <div className="mb-6">
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">
-                                Risk Level
-                            </h2>
-                            <select 
-                                name="risk_level"
-                                value={formData.risk_level}
-                                onChange={handleInputChange}
-                                className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                {riskLevelOptions.map(option => (
-                                    <option key={option} value={option}>
-                                        {option.charAt(0).toUpperCase() + option.slice(1)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div> */}
-
                         {/* Contact Information */}
                         <div className="mb-8">
                             <h2 className="text-base font-semibold text-gray-900 mb-4">
@@ -962,7 +975,7 @@ const AddProperty: React.FC = () => {
                                         className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         required
                                     />
-                                </div> 
+                                </div>
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Phone Number *
@@ -1002,10 +1015,21 @@ const AddProperty: React.FC = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                                 {Object.values(images).map((img) => (
-                                    <div key={img.id} className="bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
+                                    <div key={img.id} className="relative bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
                                         <h3 className="text-base font-medium text-[#303539] mb-3">
                                             {img.title}
                                         </h3>
+
+                                        {img.preview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleImageRemove(img.id)}
+                                                className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-all z-10"
+                                                title="Remove image"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
 
                                         <div className='flex justify-center'>
                                             <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
@@ -1017,10 +1041,10 @@ const AddProperty: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <div className='flex justify-center'>
+                                        <div className='flex flex-col items-center gap-2'>
                                             <label className="cursor-pointer">
                                                 <div className="flex items-center justify-center gap-1.5 px-4 py-2 border border-dashed border-[#EA4335] rounded-md hover:bg-blue-50 transition-colors text-[13px] font-medium bg-[#E7F0FB]">
-                                                    <span>Upload</span>
+                                                    <span>{img.preview ? 'Change' : 'Upload'}</span>
                                                     <Plus className="w-4 h-4" strokeWidth={2.5} />
                                                 </div>
                                                 <input
@@ -1030,6 +1054,11 @@ const AddProperty: React.FC = () => {
                                                     className="hidden"
                                                 />
                                             </label>
+                                            {img.file && (
+                                                <p className="text-xs text-blue-600 font-medium truncate w-full text-center px-1" title={img.file.name}>
+                                                    {img.file.name}
+                                                </p>
+                                            )}
                                         </div>
 
                                         <p className="text-[13px] text-[#6B21A8] mt-2 leading-tight bg-[#FAF5FF] p-1 text-center rounded-md">

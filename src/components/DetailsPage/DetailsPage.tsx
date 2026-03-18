@@ -28,6 +28,8 @@ interface PropertyDetails {
   property_name: string;
   postcode: string;
   transaction: string;
+  pcm: string;
+  pa:string;
   property_type: string;
   location: string;
   location_description: string;
@@ -63,22 +65,10 @@ interface PropertyDetails {
   phone_number: string;
   email: string;
   occupied: boolean;
+  brochure_pdf: string;
+  brochure_video: string;
 }
 
-const coordinateLookup: Record<string, [number, number]> = {
-  'Dhaka': [23.8103, 90.4125],
-  'Mirpur': [23.8041, 90.3673],
-  'Dhanmondi': [23.7461, 90.3742],
-  'Uttara': [23.8759, 90.3795],
-  'Gulshan': [23.7925, 90.4078],
-  'Banani': [23.7937, 90.4066],
-  'Mohammadpur': [23.7662, 90.3589],
-  'Manchester': [53.4808, -2.2426],
-  'Liverpool': [53.4084, -2.9916],
-  'Lancashire': [53.7632, -2.7044],
-  'Preston': [53.7632, -2.7044],
-  'North Wales': [53.1362, -4.0954],
-};
 
 const HomePropertyDetails: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
@@ -111,13 +101,28 @@ const HomePropertyDetails: React.FC = () => {
     setCurrentImage((prev) => (prev - 1 + totalImages) % totalImages);
   };
 
-  const getCoords = () => {
-    if (!property?.location) return [53.4808, -2.2426]; // Default to Manchester
-    const normalized = property.location.split(',')[0].trim();
-    return coordinateLookup[normalized] || coordinateLookup[Object.keys(coordinateLookup).find(k => normalized.toLowerCase().includes(k.toLowerCase())) || 'Manchester'] || [53.4808, -2.2426];
+
+  const handleDownloadBrochure = () => {
+    if (property?.brochure_pdf) {
+      const link = document.createElement('a');
+      link.href = getImageUrl(property.brochure_pdf);
+      link.download = `brochure_${property.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
-  const [latitude, longitude] = getCoords();
+  const handleDownloadFlyThrough = () => {
+    if (property?.brochure_video) {
+      const link = document.createElement('a');
+      link.href = getImageUrl(property.brochure_video);
+      link.download = `fly_through_${property.id}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -156,12 +161,16 @@ const HomePropertyDetails: React.FC = () => {
             <h2 className="text-[18px] font-semibold text-[#082D5B] mb-2">
               {property?.property_name}
             </h2>
+
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              Built Area: {property?.built_area} Sqft
+              Price: £{parseInt(property?.pcm || property?.pa)}
             </p>
+            {/* <p className="text-md text-[#126AD8] font-medium mb-2">
+              Built Area: {parseInt(property?.built_area)} Sqft
+            </p> */}
             <div className="flex items-center gap-2 text-sm text-[#082D5B]">
               <Home size={16} />
-              <span>{property?.location}</span>
+              <span>{parseInt(property?.built_area)} Sqft - {property?.location}</span>({property?.postcode})
             </div>
           </div>
 
@@ -237,11 +246,26 @@ const HomePropertyDetails: React.FC = () => {
                 <h3 className="text-xl font-semibold text-[#082D5B] mb-3">
                   Key Specifications
                 </h3>
-                <p className="text-base text-gray-600 leading-relaxed mb-5">
-                  {property?.key_specification || "No key specifications available."}
-                  <br />
-                  {property?.any_further_details}
-                </p>
+                {property?.key_specification ? (
+                  <ul className="list-disc list-inside space-y-1 text-base text-gray-600 leading-relaxed mb-5">
+                    {property.key_specification
+                      .split('\n')
+                      .map(line => line.trim())
+                      .filter(line => line.length > 0)
+                      .map((line, idx) => (
+                        <li key={idx}>{line}</li>
+                      ))}
+                  </ul>
+                ) : (
+                  <p className="text-base text-gray-600 leading-relaxed mb-5">
+                    No key specifications available.
+                  </p>
+                )}
+                {property?.any_further_details && (
+                  <p className="text-base text-gray-600 leading-relaxed mb-5">
+                    {property.any_further_details}
+                  </p>
+                )}
                 <div className='border-b'></div>
               </div>
 
@@ -251,11 +275,12 @@ const HomePropertyDetails: React.FC = () => {
                   Facts & features
                 </h3>
                 <div className="flex gap-4">
-                  <button className="flex items-center gap-2 px-6 py-1 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+
+                  <button onClick={() => handleDownloadBrochure()} className="flex items-center gap-2 px-6 py-1 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
                     <FileText size={18} />
                     <span className="text-[14px] font-medium">Brochure</span>
                   </button>
-                  <button className="flex items-center gap-2 px-6 py-3 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                  <button onClick={() => handleDownloadFlyThrough()} className="flex items-center gap-2 px-6 py-3 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
                     <img src={playButton} alt="play-button" className='w-8 h-8' />
                     <span className="text-[14px] font-medium">Fly Through</span>
                   </button>
@@ -272,54 +297,63 @@ const HomePropertyDetails: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   <div className="flex text-sm">
                     <li className="text-gray-600">Area-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.built_area} sq ft</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{parseInt(property?.built_area)} sq ft</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Type of roller shutter-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.roller_shutter_type}</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.roller_shutter_type ? property?.roller_shutter_type : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Length & Width-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.length_width}</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.length_width ? property?.length_width : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Height & width of shutters-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.dimensions_roller_shutter}</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.dimensions_roller_shutter ? property?.dimensions_roller_shutter  : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Office space included-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.office_space} sq ft</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.office_space ? property?.office_space + ' sq ft' : 'N/A'} </span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Type of lighting-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.lighting_type}</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.lighting_type === 'LED' ? 'LED' : 'Halogen'}</span>
                   </div>
                   <div className="flex text-[13px]">
-                    <li className="text-gray-600">Eaves height-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.eaves_height}</span>
+                    <li className="text-gray-600">Eaves height (m)-</li>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.eaves_height ? property?.eaves_height : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">EPC Rating-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.epc_rating}</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.epc_rating ? property?.epc_rating : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Power capacity-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.power_capacity} KVA</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.power_capacity ? property?.power_capacity + ' KVA' : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">User restrictions-</li>
                     <span className="text-gray-900 ml-1 font-medium">{property?.other_restrictions || "None"}</span>
                   </div>
                   <div className="flex text-[13px]">
-                    <li className="text-gray-600">Single or Three phase-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.electricity_supply}</span>
+                    <li className="text-gray-600">Electricity supply-</li>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.electricity_supply ? property?.electricity_supply : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Any further details-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.any_further_details}</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.any_further_details ? property?.any_further_details : 'N/A'}</span>
                   </div>
                 </div>
               </div>
+               {/* Location Description */}
+              <div className='bg-[#E7F0FB] p-3 rounded-sm'>
+                <h4 className="text-xl font-semibold text-gray-900">Location Description</h4>
+              </div>
+              <div className='mt-0 py-5 px-2'>
+                <p className="text-gray-700 ml-1 font-normal">{property?.location_description}</p>
+              </div>
+
+
 
               {/* Externals */}
               <div className='bg-[#E7F0FB] p-3 rounded-sm'>
@@ -331,17 +365,24 @@ const HomePropertyDetails: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Yard space included-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_space}</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_space === "false"? 'No' : 'Yes'}</span>
                   </div>
-                  <div className="flex text-[13px]">
-                    <li className="text-gray-600">Yard surface-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_surface}</span>
-                  </div>
-                  <div className="flex text-[13px]">
-                    <li className="text-gray-600">Area of yard-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_area}</span>
-                  </div>
-                  <div className="flex text-[13px]">
+                  {
+                    property?.yard_space === "true" && (
+                      <>
+                      <div className="flex text-[13px]">
+                        <li className="text-gray-600">Yard surface-</li>
+                        <span className="text-gray-900 ml-1 font-medium">{property?.yard_surface}</span>
+                      </div>
+                      <div className="flex text-[13px]">
+                        <li className="text-gray-600">Area of yard-</li>
+                        <span className="text-gray-900 ml-1 font-medium">{property?.yard_area}</span>
+                      </div>
+                      </>
+
+                    )
+                  }
+                  <div className="flex text-[13px]"> 
                     <li className="text-gray-600">Parking included-</li>
                     <span className="text-gray-900 ml-1 font-medium">{property?.parking_include}</span>
                   </div>
@@ -363,7 +404,7 @@ const HomePropertyDetails: React.FC = () => {
 
           {/* Embedded Google Map */}
           <iframe
-            src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3067.4859252474224!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM!5e0!3m2!1sen!2sbd!4v1234567890123!5m2!1sen!2sbd`}
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(property?.postcode || property?.location || 'Manchester')}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -396,7 +437,7 @@ const HomePropertyDetails: React.FC = () => {
             {/* Contact Buttons */}
             <div className="space-y-4">
               {/* WhatsApp and Phone Row */}
-              <div className="grid grid-cols-3 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <a href={`https://wa.me/${property?.whatsapp_number}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 hover:bg-green-600 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <MessageCircle size={20} />
                   WhatsApp
@@ -405,9 +446,9 @@ const HomePropertyDetails: React.FC = () => {
                   <Phone size={20} />
                   {property?.phone_number}
                 </a>
-                <a href="mailto:rob@broker360re.com" className="bg-[#ffedd4] hover:bg-[#ffedd4] text-[#101828] font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <a href={`mailto:${property?.email || 'rob@broker360re.com'}`} className="bg-[#ffedd4] hover:bg-[#ffedd4] text-[#101828] font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <Mail size={20} />
-                  {property?.email}
+                  {property?.email || 'rob@broker360re.com' }
                 </a>
               </div>
 
@@ -453,7 +494,8 @@ const HomePropertyDetails: React.FC = () => {
           Related Properties
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {property?.related_properties?.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {property?.related_properties?.slice(0, 4).map((relProperty) => (
             <div
               key={relProperty.id}
@@ -501,6 +543,9 @@ const HomePropertyDetails: React.FC = () => {
             </div>
           ))}
         </div>
+        ) : (
+          <p className="text-gray-600 text-center">No related properties found.</p>
+        )}
       </div>
     </div>
   );

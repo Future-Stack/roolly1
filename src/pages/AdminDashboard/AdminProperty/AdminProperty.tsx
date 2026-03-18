@@ -28,6 +28,8 @@ interface PropertyData {
     created_at: string;
     property_type: string;
     estimated_price: string;
+    price_type?: string;
+    is_poa?: boolean;
     built_area: string;
     transaction: string;
     is_listed: boolean;
@@ -153,17 +155,23 @@ const AdminProperty: React.FC = () => {
     }, []);
 
     // Helper function to format price
-    const formatPrice = useCallback((price: string): string => {
+    const formatPrice = useCallback((price: string, priceType?: string): string => {
+        if (price === 'POA' || !price) return 'POA';
         const priceNum = parseFloat(price);
-        if (isNaN(priceNum)) return '£0';
+        if (isNaN(priceNum)) return price;
 
+        let formatted = '';
         if (priceNum >= 1000000) {
-            return `£${(priceNum / 1000000).toFixed(2)}M`;
+            formatted = `£${(priceNum / 1000000).toFixed(2)}M`;
         } else if (priceNum >= 1000) {
-            return `£${(priceNum / 1000).toFixed(2)}K`;
+            formatted = `£${(priceNum / 1000).toFixed(2)}K`;
         } else {
-            return `£${priceNum.toFixed(2)}`;
+            formatted = `£${priceNum.toFixed(2)}`;
         }
+
+        if (priceType === 'pcm') return `${formatted} PCM`;
+        if (priceType === 'pa') return `${formatted} PA`;
+        return formatted;
     }, []);
 
     // Helper function to format area
@@ -180,7 +188,15 @@ const AdminProperty: React.FC = () => {
             return 'Property is not listed. Needs review before publishing.';
         }
 
+        if (property.estimated_price === 'POA' || property.is_poa) {
+            return 'POA Property. Price details available on application.';
+        }
+
         const price = parseFloat(property.estimated_price);
+        if (isNaN(price)) {
+            return 'Property information from vendor. Ready to process quickly.';
+        }
+
         if (price > 5000000) {
             return 'Premium property. High-value transaction expected.';
         } else if (price < 100000) {
@@ -215,7 +231,7 @@ const AdminProperty: React.FC = () => {
             date: formatDate(property.created_at),
             alertMessage: getAlertMessage(property),
             propertyType: formatPropertyType(property.property_type),
-            estimatedPrice: formatPrice(property.estimated_price),
+            estimatedPrice: formatPrice(property.estimated_price, property.price_type),
             sqft: formatArea(property.built_area),
             transaction: formatTransaction(property.transaction),
             broker: property.broker?.full_name || 'Unassigned',

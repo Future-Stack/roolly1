@@ -16,25 +16,26 @@ const AddCommentModal = ({
     leadId,
     leadName
 }: AddCommentModalProps) => {
-    const { data, isLoading: isFetching, refetch } = useGetLeadCommentQuery(leadId || 0, {
+    const { data, isFetching, refetch } = useGetLeadCommentQuery(leadId || 0, {
         skip: !isOpen || !leadId
     });
     console.log("data", data);
     const [updateComment, { isLoading: isUpdating }] = useUpdateLeadCommentMutation();
     const [commentText, setCommentText] = useState('');
 
+    // Sync state with data when it arrives or lead changes
     useEffect(() => {
         if (data) {
             setCommentText(data.comment || '');
         }
-    }, [data]);
+    }, [data, leadId]);
 
+    // Refetch when modal opens
     useEffect(() => {
-        if (isOpen) {
-            setCommentText(''); // Clear initially
+        if (isOpen && leadId) {
             refetch();
         }
-    }, [isOpen, refetch]);
+    }, [isOpen, leadId, refetch]);
 
     if (!isOpen) return null;
 

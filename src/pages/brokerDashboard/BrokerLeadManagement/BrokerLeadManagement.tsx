@@ -5,6 +5,9 @@ import { ArrowDown, FileText, Mail, MessageSquare, MoreVertical, Phone, Plus, Se
 import AddCommentModal from '@/components/brokerDashboard/Overview/AddCommentModal';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDeleteLeadMutation } from '@/redux/features/broker/leads/deleteLeadApi';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import { toast } from 'react-toastify';
 
 interface Lead {
   id: number;
@@ -42,6 +45,9 @@ const BrokerLeadManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const navigate = useNavigate();
+  const [deleteLead, { isLoading: isDeleting }] = useDeleteLeadMutation();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<number | null>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -137,6 +143,24 @@ const BrokerLeadManagement: React.FC = () => {
 
   const closeActionMenu = () => {
     setOpenActionMenuId(null);
+  };
+
+  const handleDeleteRequest = (leadId: number) => {
+    setLeadToDelete(leadId);
+    setDeleteModalOpen(true);
+    closeActionMenu();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (leadToDelete === null) return;
+    try {
+      await deleteLead(leadToDelete).unwrap();
+      toast.success('Lead deleted successfully');
+      setDeleteModalOpen(false);
+      setLeadToDelete(null);
+    } catch (err: any) {
+      toast.error(err?.data?.detail || 'Failed to delete lead');
+    }
   };
 
   const closeStatusDropdown = () => {
@@ -296,7 +320,7 @@ const BrokerLeadManagement: React.FC = () => {
               )}
             </div>
             {/* ✅ NEW: Traffic Filter Checkboxes */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4 mb-6">
               <span className="text-sm font-medium text-gray-700">Filter by Traffic:</span>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -467,6 +491,12 @@ const BrokerLeadManagement: React.FC = () => {
                                   >
                                     Edit
                                   </button>
+                                  <button
+                                    onClick={() => handleDeleteRequest(lead.id)}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 text-sm"
+                                  >
+                                    Delete
+                                  </button>
                                 </div>
                               </div>
                             </>
@@ -491,6 +521,17 @@ const BrokerLeadManagement: React.FC = () => {
           onClose={() => setCommentModalOpen(false)}
           leadId={selectedLeadForComment?.id || null}
           leadName={selectedLeadForComment?.name || ''}
+        />
+        <DeleteConfirmationModal
+          isOpen={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setLeadToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          isLoading={isDeleting}
+          title="Delete Lead"
+          message="Are you sure you want to delete this lead? This action cannot be undone."
         />
         {
           notesModalOpen && (

@@ -247,40 +247,6 @@ const PropertyDetails = () => {
               </div>
             </div>
 
-            {/* Permitted Uses */}
-            {/* <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Permitted Uses</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {[
-                  { label: 'Vehicle Repair', value: property.vehicle_repair_use, icon: Car },
-                  { label: 'Vehicle Sales', value: property.vehicle_sale_use, icon: Car },
-                  { label: 'Subletting', value: property.subletting, icon: Building },
-                  { label: 'Leisure', value: property.leisure_use, icon: TreePine },
-                  { label: 'Pet Business', value: property.pet_business_use, icon: TreePine },
-                  { label: 'Plastic Recycling', value: property.plastic_recycling_use, icon: TreePine }
-                ].map((use, index) => (
-                  <div
-                    key={index}
-                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all ${use.value
-                        ? 'border-blue-200 bg-blue-50 hover:bg-blue-100'
-                        : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
-                      }`}
-                  >
-                    <div className="mb-2">
-                      {use.value ? (
-                        <Check className="w-6 h-6 text-blue-600" />
-                      ) : (
-                        <X className="w-6 h-6 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="text-sm font-medium text-center">
-                      {use.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
-
             {/* Related Properties */}
             {property.related_properties && property.related_properties.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg p-6">

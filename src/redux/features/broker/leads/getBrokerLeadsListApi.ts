@@ -46,7 +46,8 @@ const getBrokerLeadsListApi = baseApi.injectEndpoints({
             },
             transformErrorResponse: (error: any) => {
                 return error;
-            }
+            },
+            providesTags: ['Leads'],
         })
     }),
 });

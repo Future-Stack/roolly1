@@ -14,6 +14,8 @@ interface PropertyCardProps {
     description: string;
     propertyType: string;
     transaction: string;
+    price?: number | null;
+    priceType?: 'pcm' | 'pa' | null;
 }
 
 interface ApiProperty {
@@ -24,6 +26,8 @@ interface ApiProperty {
     transaction: 'sale' | 'lease';
     location: string;
     description: string;
+    price?: number | null;
+    price_type?: 'pcm' | 'pa' | null;
 }
 
 interface ApiResponse {
@@ -53,6 +57,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     // location_description,
     propertyType,
     transaction,
+    price,
+    priceType,
 }) => {
     // Get property type icon
     const getPropertyTypeIcon = (type: string) => {
@@ -103,10 +109,25 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                 <div className="flex items-center text-gray-500 text-sm mb-2">
                     <span className="truncate">{subtitle}</span>
                 </div>
-                {/* <p className="text-gray-500 text-sm mb-4 line-clamp-2">{description}</p> */}
+                {/* Price display */}
+                {price != null && (
+                    <div className="flex items-center gap-1.5 mb-3">
+                        <span className="text-gray-900 font-bold text-sm">
+                            £{price.toLocaleString()}
+                        </span>
+                        {priceType && (
+                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                                priceType === 'pcm'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-purple-100 text-purple-700'
+                            }`}>
+                                {priceType.toUpperCase()}
+                            </span>
+                        )}
+                    </div>
+                )}
                 <Link to={`/details/${id}`}>
                     <button className="w-full py-2.5 hover:bg-gray-50 text-black border border-[#126AD8] text-sm font-medium rounded transition-colors hover:bg-blue-50">
-                        
                         View Details
                     </button>
                 </Link>
@@ -132,6 +153,12 @@ const AllProperty: React.FC = () => {
     const [totalProperties, setTotalProperties] = useState(0);
     const [searchTerm, setSearchTerm] = useState(urlSearch);
     const [sortBy, setSortBy] = useState('newest');
+
+    // Price type filter: null = show all, 'pcm' or 'pa' = filter
+    const [priceTypeFilter, setPriceTypeFilter] = useState<{ pcm: boolean; pa: boolean }>({
+        pcm: false,
+        pa: false,
+    });
 
     // Filter states - Initialize from URL
     const [propertyTypes, setPropertyTypes] = useState({
@@ -237,6 +264,8 @@ const AllProperty: React.FC = () => {
                     description: property.description?.substring(0, 80) + (property.description?.length > 80 ? '...' : '') || 'No description available',
                     propertyType: property.property_type,
                     transaction: property.transaction,
+                    price: property.price ?? null,
+                    priceType: property.price_type ?? null,
                 };
             });
 
@@ -281,6 +310,11 @@ const AllProperty: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const handlePriceTypeChange = (type: 'pcm' | 'pa') => {
+        setPriceTypeFilter(prev => ({ ...prev, [type]: !prev[type] }));
+        setCurrentPage(1);
+    };
+
     const resetFilters = () => {
         setPropertyTypes({
             office: false,
@@ -289,6 +323,7 @@ const AllProperty: React.FC = () => {
             land: false,
             // house: false,
         });
+        setPriceTypeFilter({ pcm: false, pa: false });
         setSearchTerm('');
         setCurrentPage(1);
         setSortBy('newest');
@@ -419,6 +454,39 @@ const AllProperty: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Price Type Filter */}
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-gray-900 font-bold text-sm">Price Type</h3>
+                            <button
+                                onClick={() => setPriceTypeFilter({ pcm: false, pa: false })}
+                                className="text-xs text-blue-600 hover:text-blue-800"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={priceTypeFilter.pcm}
+                                    onChange={() => handlePriceTypeChange('pcm')}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">PCM <span className="text-gray-400 text-xs">(Per Calendar Month)</span></span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={priceTypeFilter.pa}
+                                    onChange={() => handlePriceTypeChange('pa')}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm text-gray-700">PA <span className="text-gray-400 text-xs">(Per Annum)</span></span>
+                            </label>
+                        </div>
+                    </div>
+
                     {/* Reset Filters Button */}
                     <button
                         onClick={resetFilters}
@@ -475,7 +543,15 @@ const AllProperty: React.FC = () => {
                                 <>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                        {properties.map((property) => (
+                                        {properties
+                                            .filter((p) => {
+                                                const anySelected = priceTypeFilter.pcm || priceTypeFilter.pa;
+                                                if (!anySelected) return true;
+                                                if (priceTypeFilter.pcm && p.priceType === 'pcm') return true;
+                                                if (priceTypeFilter.pa && p.priceType === 'pa') return true;
+                                                return false;
+                                            })
+                                            .map((property) => (
                                             <PropertyCard
                                                 key={property.id}
                                                 id={property.id}
@@ -487,6 +563,8 @@ const AllProperty: React.FC = () => {
                                                 description={property.description}
                                                 propertyType={property.propertyType}
                                                 transaction={property.transaction}
+                                                price={property.price}
+                                                priceType={property.priceType}
                                             />
                                         ))}
                                     </div>

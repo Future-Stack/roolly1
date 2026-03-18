@@ -5,6 +5,7 @@ import RiskProfileManagement from './RiskProfileManagement';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEditPropertyMutation } from '@/redux/features/vendor/property/editPropertyApi';
 import { useGetPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
+import { useDeletePropertyImageMutation } from '@/redux/features/broker/property/deletePropertyImageApi';
 import { toast } from 'react-toastify';
 
 interface ImageUpload {
@@ -14,6 +15,7 @@ interface ImageUpload {
     file?: File;
     preview?: string;
     existingUrl?: string;
+    backendId?: number;
 }
 
 interface FormData {
@@ -22,7 +24,8 @@ interface FormData {
     transaction: string;
     property_type: string;
     location: string;
-    estimated_price: string;
+    pcm: string;
+    pa: string;
     lease_duration: string;
     location_description: string;
     built_area: string;
@@ -64,6 +67,7 @@ const PropertyEdit: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [editProperty, { isLoading: isSubmitting }] = useEditPropertyMutation();
+    const [deletePropertyImage] = useDeletePropertyImageMutation();
     const { data: propertyData, isLoading: isLoadingProperty } = useGetPropertyDetailsQuery(id);
     console.log(propertyData)
 
@@ -73,7 +77,8 @@ const PropertyEdit: React.FC = () => {
         transaction: 'sale',
         property_type: 'industrial',
         location: '',
-        estimated_price: '',
+        pcm: '',
+        pa: '',
         lease_duration: '',
         location_description: '',
         built_area: '',
@@ -109,6 +114,8 @@ const PropertyEdit: React.FC = () => {
         images: [],
     });
 
+    const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
+
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
     const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
 
@@ -132,7 +139,8 @@ const PropertyEdit: React.FC = () => {
                 transaction: propertyData.transaction || 'sale',
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
-                estimated_price: propertyData.estimated_price || '',
+                pcm: propertyData.pcm || '',
+                pa: propertyData.pa || '',
                 lease_duration: propertyData.lease_duration?.toString() || '',
                 location_description: propertyData.location_description || '',
                 built_area: propertyData.built_area || '',
@@ -167,6 +175,9 @@ const PropertyEdit: React.FC = () => {
                 phone_number: propertyData.phone_number || '',
                 images: [],
             });
+            // Determine price type from loaded data
+            if (propertyData.pcm) setPriceType('pcm');
+            else if (propertyData.pa) setPriceType('pa');
 
             // Set existing images
             if (propertyData.existing_images && propertyData.existing_images.length > 0) {
@@ -178,7 +189,8 @@ const PropertyEdit: React.FC = () => {
                         imageMap[key] = {
                             ...imageMap[key],
                             preview: img.url,
-                            existingUrl: img.url
+                            existingUrl: img.url,
+                            backendId: img.id
                         };
                     }
                 });
@@ -203,6 +215,11 @@ const PropertyEdit: React.FC = () => {
             setFormData(prev => ({
                 ...prev,
                 [name]: checkbox.checked
+            }));
+        } else if (type === 'number') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value === '' ? 0 : parseFloat(value)
             }));
         } else {
             setFormData(prev => ({
@@ -238,6 +255,26 @@ const PropertyEdit: React.FC = () => {
             reader.readAsDataURL(file);
         }
     };
+
+    const handleImageRemove = async (id: string) => {
+        const image = images[id];
+        // If image has a backend ID, delete it from the server
+        if (image?.backendId) {
+            try {
+                await deletePropertyImage(image.backendId).unwrap();
+                toast.success('Image deleted successfully');
+            } catch (error) {
+                console.error('Error deleting image:', error);
+                toast.error('Failed to delete image from server');
+                return;
+            }
+        }
+        setImages(prev => ({
+            ...prev,
+            [id]: { ...prev[id], file: undefined, preview: undefined, existingUrl: undefined, backendId: undefined }
+        }));
+    };
+
 
     // const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     //     const file = e.target.files?.[0];
@@ -315,8 +352,8 @@ const PropertyEdit: React.FC = () => {
             toast.error('Transaction type is required');
             return;
         }
-        if (!formData.estimated_price) {
-            toast.error('Estimated price is required');
+        if (!formData.pcm?.trim() && !formData.pa?.trim()) {
+            toast.error('Price is required');
             return;
         }
          if (!formData.location_description) {
@@ -373,9 +410,26 @@ const PropertyEdit: React.FC = () => {
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images') {
+                    // Skip non-backend fields
+                    if (key === 'is_poa' || key === 'price_type') return;
+
+                    // Only send the active price field
+                    if (key === 'pcm') {
+                        if (value && value.toString().trim() !== '') {
+                            formDataToSend.append('pcm', value.toString());
+                        }
+                        return;
+                    }
+                    if (key === 'pa') {
+                        if (value && value.toString().trim() !== '') {
+                            formDataToSend.append('pa', value.toString());
+                        }
+                        return;
+                    }
+
                     if (typeof value === 'boolean') {
                         formDataToSend.append(key, value ? 'true' : 'false');
-                    } else {
+                    } else if (value !== undefined && value !== null) {
                         let val = value.toString().trim();
 
                         // If it's a numeric field and empty, send '0'
@@ -549,20 +603,78 @@ const PropertyEdit: React.FC = () => {
                                     />
                                 </div>
 
-                                {/* Rent or purchase estimated price */}
-                                <div>
-                                    <label className="block text-base text-gray-900 mb-2">
-                                        Price (£) or POA
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="estimated_price"
-                                        value={formData.estimated_price}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 10000"
-                                        step="0.01"
-                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
+                                 {/* Rent or purchase estimated price */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-base text-gray-900">
+                                            Price (£) or POA *
+                                        </label>
+                                        {/* <label className="flex items-center gap-2 cursor-pointer">
+                                             <input
+                                                 type="checkbox"
+                                                 name="is_poa"
+                                                 checked={formData.is_poa}
+                                                 onChange={handleInputChange}
+                                                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                             />
+                                             <span className="text-sm font-medium text-gray-700">POA</span>
+                                         </label> */}
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name={priceType === 'pcm' ? 'pcm' : 'pa'}
+                                            value={formData.pcm || formData.pa}
+                                            onChange={handleInputChange}
+                                            placeholder={"e.g., 10000"}
+                                            className={`w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PCM / PA Selection */}
+
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="price_type"
+                                                value="pcm"
+                                                checked={priceType === 'pcm'}
+                                                onChange={() => {
+                                                    setPriceType('pcm');
+                                                    setFormData(prev => ({ ...prev, pa: '', pcm: prev.pcm || prev.pa }));
+                                                }}
+                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">PCM (Per Month)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="price_type"
+                                                value="pa"
+                                                checked={priceType === 'pa'}
+                                                onChange={() => {
+                                                    setPriceType('pa');
+                                                    setFormData(prev => ({ ...prev, pcm: '', pa: prev.pa || prev.pcm }));
+                                                }}
+                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">PA (Per Annum)</span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPriceType('');
+                                                setFormData(prev => ({ ...prev, pcm: '', pa: '' }));
+                                            }}
+                                            className="text-xs text-blue-600 hover:underline"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+
                                 </div>
 
                                 {/* lease Duration */}
@@ -988,61 +1100,6 @@ const PropertyEdit: React.FC = () => {
                             />
                         </div>
 
-                        {/* Risk Level */}
-                        {/* <div className="mb-6">
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">
-                                Risk Level
-                            </h2>
-                            <select
-                                name="risk_level"
-                                value={formData.risk_level}
-                                onChange={handleInputChange}
-                                className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                {riskLevelOptions.map(option => (
-                                    <option key={option} value={option}>
-                                        {option.charAt(0).toUpperCase() + option.slice(1)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div> */}
-
-                        {/* Contact Information */}
-                        {/* <div className="mb-8">
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">
-                                Contact Information
-                            </h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                <div>
-                                    <label className="block text-base text-gray-900 mb-1.5">
-                                        Phone Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="phone_number"
-                                        value={formData.phone_number}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., +44 07123 456789"
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-base text-gray-900 mb-1.5">
-                                        WhatsApp Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="whatsapp_number"
-                                        value={formData.whatsapp_number}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., +44 07123 456789"
-                                        className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                </div>
-                            </div>
-                        </div> */}
 
                         {/* Image Upload Section */}
                         <div className="mb-6 border border-gray-200 rounded-lg p-4">
@@ -1052,10 +1109,22 @@ const PropertyEdit: React.FC = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                                 {Object.values(images).map((img) => (
-                                    <div key={img.id} className="bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
+                                    <div key={img.id} className="relative bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
                                         <h3 className="text-base font-medium text-[#303539] mb-3">
                                             {img.title}
                                         </h3>
+
+                                        {img.preview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleImageRemove(img.id)}
+                                                className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-all z-10"
+                                                title="Remove image"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+
 
                                         <div className='flex justify-center'>
                                             <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">

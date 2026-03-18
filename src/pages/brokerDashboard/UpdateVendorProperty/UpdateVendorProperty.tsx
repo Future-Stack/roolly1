@@ -2,6 +2,7 @@
 import RiskProfileManagementForm from '@/components/brokerDashboard/BrokerProperty/RiskProfileManagementForm';
 import { useGetSinglePropertyQuery } from '@/redux/features/broker/property/getSinglePropertyApi';
 import { useUpdateBrokerPropertyMutation } from '@/redux/features/broker/property/updateBrokerPropertyApi';
+import { useDeletePropertyImageMutation } from '@/redux/features/broker/property/deletePropertyImageApi';
 import { ImageIcon, Plus, SquarePlay } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +15,7 @@ interface ImageUpload {
     file?: File;
     preview?: string;
     existingUrl?: string;
+    backendId?: number;
 }
 
 interface PropertyFormData {
@@ -22,7 +24,8 @@ interface PropertyFormData {
     transaction: string;
     property_type: string;
     location: string;
-    estimated_price: string;
+    pcm: string;
+    pa: string;
     lease_duration: number;
     location_description: string;
     built_area: string;
@@ -64,6 +67,7 @@ const UpdateVendorProperty: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [updateVendorProperty, { isLoading: isSubmitting }] = useUpdateBrokerPropertyMutation();
+    const [deletePropertyImage] = useDeletePropertyImageMutation();
     const { data: propertyData, isLoading: isLoadingProperty } = useGetSinglePropertyQuery(id);
     console.log(propertyData)
 
@@ -73,7 +77,8 @@ const UpdateVendorProperty: React.FC = () => {
         postcode: '',
         property_type: 'industrial',
         location: '',
-        estimated_price: '',
+        pcm: '',
+        pa: '',
         lease_duration: 0,
         location_description: '',
         built_area: '',
@@ -105,8 +110,10 @@ const UpdateVendorProperty: React.FC = () => {
         existing_images: '',
         phone_number: '',
         whatsapp_number: '',
-        email:''
+        email:'',
     });
+
+    const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
 
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
@@ -131,7 +138,8 @@ const UpdateVendorProperty: React.FC = () => {
                 transaction: propertyData.transaction || 'sale',
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
-                estimated_price: propertyData.estimated_price || '',
+                pcm: propertyData.pcm || '',
+                pa: propertyData.pa || '',
                 lease_duration: propertyData.lease_duration || 0,
                 location_description: propertyData.location_description || '',
                 built_area: propertyData.built_area || '',
@@ -166,6 +174,9 @@ const UpdateVendorProperty: React.FC = () => {
                 whatsapp_number: propertyData.whatsapp_number || '',
                 email:propertyData.email || '',
             });
+            // Determine price type from loaded data
+            if (propertyData.pcm) setPriceType('pcm');
+            else if (propertyData.pa) setPriceType('pa');
 
             // Set existing images
             if (propertyData.existing_images && propertyData.existing_images.length > 0) {
@@ -177,7 +188,8 @@ const UpdateVendorProperty: React.FC = () => {
                         imageMap[key] = {
                             ...imageMap[key],
                             preview: img.url,
-                            existingUrl: img.url
+                            existingUrl: img.url,
+                            backendId: img.id
                         };
                     }
                 });
@@ -243,6 +255,26 @@ const UpdateVendorProperty: React.FC = () => {
             reader.readAsDataURL(file);
         }
     };
+
+    const handleImageRemove = async (id: string) => {
+        const image = images[id];
+        // If image has a backend ID, delete it from the server
+        if (image?.backendId) {
+            try {
+                await deletePropertyImage(image.backendId).unwrap();
+                toast.success('Image deleted successfully');
+            } catch (error) {
+                console.error('Error deleting image:', error);
+                toast.error('Failed to delete image from server');
+                return;
+            }
+        }
+        setImages(prev => ({
+            ...prev,
+            [id]: { ...prev[id], file: undefined, preview: undefined, existingUrl: undefined, backendId: undefined }
+        }));
+    };
+
     const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -304,8 +336,8 @@ const UpdateVendorProperty: React.FC = () => {
                     toast.error('Transaction type is required');
                     return;
                 }
-                if (!formData.estimated_price) {
-                    toast.error('Estimated price is required');
+                if (!formData.pcm?.trim() && !formData.pa?.trim()) {
+                    toast.error('Price is required');
                     return;
                 }
                  if (!formData.location_description) {
@@ -337,9 +369,26 @@ const UpdateVendorProperty: React.FC = () => {
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images') {
+                    // Skip non-backend fields
+                    if (key === 'is_poa' || key === 'price_type') return;
+
+                    // Only send the active price field
+                    if (key === 'pcm') {
+                        if (value && value.toString().trim() !== '') {
+                            formDataToSend.append('pcm', value.toString());
+                        }
+                        return;
+                    }
+                    if (key === 'pa') {
+                        if (value && value.toString().trim() !== '') {
+                            formDataToSend.append('pa', value.toString());
+                        }
+                        return;
+                    }
+
                     if (typeof value === 'boolean') {
                         formDataToSend.append(key, value ? 'true' : 'false');
-                    } else {
+                    } else if (value !== undefined && value !== null) {
                         formDataToSend.append(key, value.toString());
                     }
                 }
@@ -510,20 +559,76 @@ const UpdateVendorProperty: React.FC = () => {
                                     />
                                 </div>
 
-                                {/* Rent or purchase estimated price */}
-                                <div>
-                                    <label className="block text-base text-gray-900 mb-2">
-                                        Price (£) or POA *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="estimated_price"
-                                        value={formData.estimated_price || ''}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., 10000"
-                                        // step="0.01"
-                                        className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
+                                  {/* Rent or purchase estimated price */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-base text-gray-900">
+                                            Price (£) or POA *
+                                        </label>
+                                        {/* <label className="flex items-center gap-2 cursor-pointer">
+                                             <input
+                                                 type="checkbox"
+                                                 name="is_poa"
+                                                 checked={formData.is_poa}
+                                                 onChange={handleInputChange}
+                                                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                             />
+                                             <span className="text-sm font-medium text-gray-700">POA</span>
+                                         </label> */}
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name={priceType === 'pcm' ? 'pcm' : 'pa'}
+                                            value={formData.pcm || formData.pa}
+                                            onChange={handleInputChange}
+                                            placeholder={"e.g., 10000"}
+                                            className={`w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PCM / PA Selection */}
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="price_type"
+                                                value="pcm"
+                                                checked={priceType === 'pcm'}
+                                                onChange={() => {
+                                                    setPriceType('pcm');
+                                                    setFormData(prev => ({ ...prev, pa: '', pcm: prev.pcm || prev.pa }));
+                                                }}
+                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">PCM (Per Month)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="price_type"
+                                                value="pa"
+                                                checked={priceType === 'pa'}
+                                                onChange={() => {
+                                                    setPriceType('pa');
+                                                    setFormData(prev => ({ ...prev, pcm: '', pa: prev.pa || prev.pcm }));
+                                                }}
+                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">PA (Per Annum)</span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPriceType('');
+                                                setFormData(prev => ({ ...prev, pcm: '', pa: '' }));
+                                            }}
+                                            className="text-xs text-blue-600 hover:underline"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* lease Duration */}
@@ -963,10 +1068,22 @@ const UpdateVendorProperty: React.FC = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                                 {Object.values(images).map((img) => (
-                                    <div key={img.id} className="bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
+                                    <div key={img.id} className="relative bg-white border border-dashed border-[#EA4335] rounded-lg p-4">
                                         <h3 className="text-base font-medium text-[#303539] mb-3">
                                             {img.title}
                                         </h3>
+
+                                        {img.preview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleImageRemove(img.id)}
+                                                className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-all z-10"
+                                                title="Remove image"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+
 
                                         <div className='flex justify-center'>
                                             <div className="w-[55%] h-[100px] bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">

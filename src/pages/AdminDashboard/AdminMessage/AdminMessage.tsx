@@ -10,8 +10,10 @@ import EmojiPickerButton from '@/components/shared/EmojiPickerButton';
 // import FileUploadButton from '@/components/shared/FileUploadButton';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useGetAdminProfileQuery } from '@/redux/features/admin/settings/getAdminProfileApi';
 
 const AdminMessage: React.FC = () => {
+  const { data: profile } = useGetAdminProfileQuery(undefined);
   const [messageInput, setMessageInput] = useState('');
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'vendor' | 'broker'>('chat');
@@ -260,7 +262,14 @@ const AdminMessage: React.FC = () => {
       });
 
       // Avatars
-      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      const initials = profile?.full_name
+        ? profile.full_name
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .toUpperCase()
+        : "";
+      const yourAvatar = profile?.image || initials;
       const otherAvatar = msg.sender?.avatar || selectedChat.avatar;
 
       return {
@@ -499,16 +508,23 @@ const AdminMessage: React.FC = () => {
     // CRITICAL: Ensure robust equality check (string vs number)
     const isUserMessage = String(senderId) === String(currentUserId);
 
-    console.log('📨 Processing incoming message:', {
-      senderId: senderId,
-      currentUserId: currentUserId,
-      isUserMessage: isUserMessage,
-      alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
-      senderUsername: data.sender?.username
-    });
+    // console.log('📨 Processing incoming message:', {
+    //   senderId: senderId,
+    //   currentUserId: currentUserId,
+    //   isUserMessage: isUserMessage,
+    //   alignment: isUserMessage ? 'RIGHT (Your message)' : 'LEFT (Other\'s message)',
+    //   senderUsername: data.sender?.username
+    // });
 
     // Avatars
-    const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+    const initials = profile?.full_name
+      ? profile.full_name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+      : "";
+    const yourAvatar = profile?.image || initials;
     const otherAvatar = data.sender?.avatar || selectedChat?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop';
 
     const newMessage: Message = {
@@ -589,7 +605,14 @@ const AdminMessage: React.FC = () => {
 
       // Add temporary message on RIGHT side (your side)
       const tempId = `temp-${Date.now()}`;
-      const yourAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+      const initials = profile?.full_name
+        ? profile.full_name
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .toUpperCase()
+        : "";
+      const yourAvatar = profile?.image || initials;
 
       const optimisticMessage: Message = {
         id: tempId,
@@ -721,22 +744,6 @@ const AdminMessage: React.FC = () => {
     return users;
   };
 
-  // // Get connection status
-  // const getConnectionStatusInfo = () => {
-  //   switch (connectionStatus) {
-  //     case 'connected':
-  //       return { color: 'bg-green-100 text-green-800 border-green-300', text: 'Connected', icon: <Wifi size={16} /> };
-  //     case 'connecting':
-  //       return { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Connecting...', icon: <RefreshCw size={16} className="animate-spin" /> };
-  //     case 'error':
-  //       return { color: 'bg-red-100 text-red-800 border-red-300', text: 'Connection Error', icon: <WifiOff size={16} /> };
-  //     default:
-  //       return { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Disconnected', icon: <WifiOff size={16} /> };
-  //   }
-  // };
-
-  // const statusInfo = getConnectionStatusInfo();
-
   // Scroll to bottom
   useEffect(() => {
     if (messages.length > 0 && !isLoadingMessages && !isLoadingSingleMessages) {
@@ -766,25 +773,6 @@ const AdminMessage: React.FC = () => {
   return (
     <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
 
-      {/* Connection Status */}
-      {/* <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg ${statusInfo.color}`}>
-        {statusInfo.icon}
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">{statusInfo.text}</span>
-         {connectionError && (
-            <span className="text-xs mt-1 max-w-xs">{connectionError}</span>
-          )}
-          {connectionStatus !== 'connected' && selectedChat?.id && (
-            <button
-              onClick={manualReconnect}
-              className="text-xs underline mt-1 text-left"
-            >
-              Reconnect Now
-            </button>
-          )} 
-        </div>
-      </div> */}
-
       {/* Header */}
       <div className="pb-4 md:pb-6">
         <div className="flex items-center justify-between md:block">
@@ -798,11 +786,11 @@ const AdminMessage: React.FC = () => {
             {isChatListOpen ? <XIcon size={24} /> : <Menu size={24} />}
           </button>
         </div>
-        <p className="text-sm md:text-[15px] text-gray-600 font-normal">
+        {/* <p className="text-sm md:text-[15px] text-gray-600 font-normal">
           {connectionStatus === 'connected'
             ? 'Real-time messaging system'
             : connectionError || 'Establishing connection...'}
-        </p>
+        </p> */}
       </div>
 
       {/* Chat Interface */}
@@ -1044,11 +1032,22 @@ const AdminMessage: React.FC = () => {
                   {message.sender === 'user' && (
                     <div className="flex flex-row-reverse items-start gap-2 md:gap-3 max-w-[90%] md:max-w-[80%]">
                       {/* Avatar */}
-                      <img
+                      {/* <img
                         src={message.avatar}
                         alt="You"
                         className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm"
+                      /> */}
+                      {message.avatar?.startsWith("http") ? (
+                      <img
+                        src={message.avatar}
+                        alt="avatar"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
                       />
+                    ) : (
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold border-2 border-white shadow">
+                        {message.avatar}
+                      </div>
+                    )}
 
                       <div className="flex flex-col items-end">
                         <div className="bg-blue-600 text-white px-3.5 md:px-4 py-2 md:py-3 rounded-2xl rounded-tr-none shadow-sm">
