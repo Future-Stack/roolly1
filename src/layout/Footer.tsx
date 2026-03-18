@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
 
 
         {/* Logo and Social */}
-        <div className="bg-white rounded-xl shadow-lg w-full p-2 sm:p-4 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 -z-1">
+        <div className="bg-white rounded-xl shadow-lg w-full p-4 sm:p-6 flex flex-col z-20 sm:flex-row items-center justify-between gap-4 sm:gap-6 mb-8 mt-4">
           <button onClick={() => navigate("/")}><img src={logoImg} alt="Logo" className="w-24 sm:w-32" /></button>
 
           <div className="flex flex-col items-center gap-1 sm:gap-2">
@@ -77,11 +77,10 @@ const Footer: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-400 w-full pt-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center text-white text-sm sm:text-base gap-2 sm:gap-0">
-            <p>© 2025 All Rights Reserved</p>
-            <div className="flex gap-4">
-              <button onClick={() => navigate('/privecy-policy')} className='cursor-pointer'>Privacy Policy</button>
-              {/* <button onClick={() => navigate('/terms')} className='cursor-pointer'>Terms of Use</button> */}
+          <div className="flex flex-col sm:flex-row justify-between items-center text-white text-sm sm:text-base gap-4 sm:gap-0 font-Inter">
+            <p className="opacity-80 text-center sm:text-left">© {new Date().getFullYear()} Broker360. All Rights Reserved</p>
+            <div className="flex gap-6">
+              <button onClick={() => navigate('/privecy-policy')} className='cursor-pointer hover:text-gray-300 transition-colors'>Privacy Policy</button>
             </div>
           </div>
         </div>

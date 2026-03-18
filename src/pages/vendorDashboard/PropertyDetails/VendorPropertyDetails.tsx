@@ -28,7 +28,9 @@ interface PropertyDetailsType {
     property_type: string;
     location: string;
     location_description: string;
-    estimated_price: string;
+    pcm: string;
+    pa: string;
+    price_type?: string;
     lease_duration: number | null;
     description: string;
     built_area: string;
@@ -166,14 +168,21 @@ const VendorPropertyDetails: React.FC = () => {
     };
 
     // Helper function to format price
-    const formatPrice = (price: string) => {
+    const formatPrice = (price: string, priceType?: string) => {
+        if (price === 'POA' || !price) return 'POA';
         const numPrice = parseFloat(price);
-        return new Intl.NumberFormat('en-US', {
+        if (isNaN(numPrice)) return price;
+        
+        const formatted = new Intl.NumberFormat('en-GB', {
             style: 'currency',
-            currency: 'EUR',
+            currency: 'GBP',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(numPrice);
+
+        if (priceType === 'pcm') return `${formatted} PCM`;
+        if (priceType === 'pa') return `${formatted} PA`;
+        return formatted;
     };
 
     // Helper function to format transaction type
@@ -212,7 +221,7 @@ const VendorPropertyDetails: React.FC = () => {
                             {propertyData.property_name}
                         </h2>
                         <p className="text-md text-[#126AD8] font-medium mb-2">
-                            {propertyData.transaction === 'sale' ? 'Price: ' : 'Lease: '} {formatPrice(propertyData.estimated_price)}
+                            {propertyData.transaction === 'sale' ? 'Price: ' : 'Lease: '} {formatPrice(propertyData?.pcm || propertyData?.pa )}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-[#082D5B]">
                             <Home size={16} />
@@ -450,21 +459,27 @@ const VendorPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Yard space included-</li>
                                         <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.yard_space || 'N/A'}
+                                            {propertyData.yard_space === "false" ? "No" : "Yes"}
                                         </span>
                                     </div>
-                                    <div className="flex text-[13px]">
-                                        <li className="text-gray-600">Yard surface-</li>
-                                        <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.yard_surface || 'N/A'}
-                                        </span>
-                                    </div>
-                                    <div className="flex text-[13px]">
-                                        <li className="text-gray-600">Area of yard-</li>
-                                        <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.yard_area ? `${propertyData.yard_area} sq ft` : 'N/A'}
-                                        </span>
-                                    </div>
+                                    {
+                                        propertyData.yard_space === "true" && (
+                                            <>
+                                                <div className="flex text-[13px]">
+                                                    <li className="text-gray-600">Yard surface-</li>
+                                                    <span className="text-gray-900 ml-1 font-medium">
+                                                        {propertyData.yard_surface || 'N/A'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex text-[13px]">
+                                                    <li className="text-gray-600">Area of yard-</li>
+                                                    <span className="text-gray-900 ml-1 font-medium">
+                                                        {propertyData.yard_area ? `${propertyData.yard_area} sq ft` : 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )
+                                    }
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Parking included-</li>
                                         <span className="text-gray-900 ml-1 font-medium">

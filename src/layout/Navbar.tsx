@@ -13,7 +13,7 @@ const Broker360Header: React.FC = () => {
   const isDetailsPage = location.pathname === `/details/${id}`;
   return (
     <header className={`${isDetailsPage ? 'bg-white shadow-md' : 'bg-[#0000002E]'} w-full fixed top-0 left-0 right-0 z-50`}>
-      <div className="px-4 sm:px-6 lg:px-[200px] py-2.5 sm:py-3">
+      <div className="px-4 sm:px-6 lg:px-12 xl:px-[120px] 2xl:px-[200px] py-2.5 sm:py-3">
         <div className="flex items-center justify-between w-full">
           {/* Mobile Hamburger Menu (Left side) */}
           <div className="lg:hidden flex items-center">

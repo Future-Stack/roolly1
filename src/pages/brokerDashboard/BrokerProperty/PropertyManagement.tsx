@@ -9,12 +9,20 @@ import { useDeleteBrokerPropertyMutation } from '@/redux/features/broker/propert
 
 interface Property {
   id: number;
+  property_owner?: {
+    id: string;
+    full_name: string;
+    phone_number: string;
+    email: string;
+  };
   image: string;
   property_name: string;
   transaction: string;
   property_type: string;
   location: string;
   estimated_price: string;
+  pcm: string | null;
+  pa: string | null;
   lease_duration: number;
   description: string;
   built_area: string;
@@ -44,6 +52,8 @@ interface Property {
   phone_number?: string;
   status?: string;
   is_listed: boolean;
+  occupied: boolean;
+  created_at: string;
 }
 
 interface ApiResponse {
@@ -223,12 +233,12 @@ const PropertyManagement: React.FC = () => {
                   {/* Price and Status */}
                   <div className="flex items-center justify-between mb-3 mt-4">
                     <span className="text-[24px] font-bold text-[#126AD8]">
-                      £{property.estimated_price}
-                      {property.transaction === 'lease' ? '/month' : ''}
+                      { 
+                        property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/month` : `£${property.pa}/year`}
                     </span>
-                    <span className={`flex items-center gap-1.5 text-[13px] font-medium ${property.is_listed === false ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
-                      <span className={`w-2 h-2 rounded-full ${property.is_listed === false ? 'bg-green-600' : 'bg-gray-400'}`}></span>
-                      {property.is_listed === false ? property.transaction === 'lease' ? 'Rented' : 'Occupied': 'Available'  }
+                    <span className={`flex items-center gap-1.5 text-[13px] font-medium ${!property.occupied ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
+                      <span className={`w-2 h-2 rounded-full ${!property.occupied ? 'bg-green-600' : 'bg-gray-400'}`}></span>
+                      {!property.occupied ? 'Available' : property.transaction === 'lease' ? 'Rented' : 'Occupied'}
                     </span>
                   </div>
 
@@ -241,9 +251,16 @@ const PropertyManagement: React.FC = () => {
                   </h3>
 
                   {/* Address */}
-                  <p className="text-[14px] text-[#82868A] font-normal mb-3">
+                  <p className="text-[14px] text-[#82868A] font-normal mb-1">
                     PR{property.id.toString().padStart(4, '0')}: {property.location}
                   </p>
+
+                  {/* Property Owner */}
+                  {property.property_owner && (
+                    <p className="text-[12px] text-[#A9ACAF] font-normal mb-3">
+                      Owner: {property.property_owner.full_name} ({property.property_owner.phone_number})
+                    </p>
+                  )}
 
                   {/* Property Info */}
                   <div className="space-y-2 mb-5">
@@ -354,7 +371,7 @@ const PropertyManagement: React.FC = () => {
                       <h4 className="font-medium text-gray-900">{propertyToDelete.property_name}</h4>
                       <p className="text-sm text-gray-500">ID: PR{propertyToDelete.id.toString().padStart(4, '0')}</p>
                       <p className="text-sm text-gray-500">{propertyToDelete.location}</p>
-                      <p className="text-sm text-gray-500">${propertyToDelete.estimated_price}</p>
+                      <p className="text-sm text-gray-500">{propertyToDelete.pcm !== null ? `£${propertyToDelete.pcm}/month` : `£${propertyToDelete.pa}/year`}</p>
                     </div>
                   </div>
                 </div>

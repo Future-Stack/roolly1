@@ -18,7 +18,8 @@ interface PropertyItem {
     property_broker: PropertyBroker;
     property_name: string;
     location: string;
-    estimated_price: string;
+    pcm: string;
+    pa: string;
     property_type: string;
     built_area: string;
     created_at: string;
@@ -66,14 +67,21 @@ const formatTransaction = (transaction: string) => {
 };
 
 // Helper function to format price
-const formatPrice = (price: string) => {
+const formatPrice = (price: string, priceType?: string, isPoa?: boolean) => {
+    if (price === 'POA' || isPoa) return 'POA';
     const numPrice = parseFloat(price);
-    return new Intl.NumberFormat('en-US', {
+    if (isNaN(numPrice)) return price || 'POA';
+    
+    const formatted = new Intl.NumberFormat('en-GB', {
         style: 'currency',
-        currency: 'EUR',
+        currency: 'GBP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(numPrice);
+
+    if (priceType === 'pcm') return `${formatted} PCM`;
+    if (priceType === 'pa') return `${formatted} PA`;
+    return formatted;
 };
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
@@ -112,7 +120,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         property_broker,
         property_name,
         location,
-        estimated_price,
         property_type,
         built_area,
         created_at,
@@ -218,7 +225,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <div className="md:col-span-3">
                         <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
                         <div className="text-[15px] text-gray-900 font-normal">
-                            {formatPrice(estimated_price)}
+                            {formatPrice(property?.pcm || property?.pa)}
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,8 @@
 import Pagination from '@/components/ui/Pagination';
 import { useGetAdminLeadListQuery } from '@/redux/features/admin/lead/getAdminLeadListApi';
-import { ArrowDown, Calendar, Clock, Clock3, Headset, Info, Mail, MapPin, Phone, Search, ShoppingBag, User, } from 'lucide-react';
+import { useDeleteAdminLeadMutation } from '@/redux/features/admin/lead/deleteAdminLeadApi';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import { ArrowDown, Calendar, Clock, Clock3, Headset, Info, Mail, MapPin, MoreVertical, Phone, Search, ShoppingBag, User, } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import debounce from 'lodash/debounce';
 
@@ -68,7 +70,7 @@ interface QueryParams {
 }
 
 const AdminLeads = () => {
-    const [, setOpenActionMenuId] = useState<string | null>(null);
+    const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [assignmentFilterOpen, setAssignmentFilterOpen] = useState(false);
     const [sourceFilterOpen, setSourceFilterOpen] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState('All');
@@ -106,7 +108,10 @@ const AdminLeads = () => {
     }, [currentPage, pageSize, searchTerm, selectedAssignment, selectedSource]);
 
     // Use the query with dynamic parameters
-    const { data: leadsList, isLoading } = useGetAdminLeadListQuery(buildQueryParams());
+    const { data: leadsList, isLoading, refetch } = useGetAdminLeadListQuery(buildQueryParams());
+    const [deleteAdminLead, { isLoading: isDeleting }] = useDeleteAdminLeadMutation();
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
 
 
     // Format time ago
@@ -253,6 +258,28 @@ const AdminLeads = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+    };
+
+    const handleMoreClick = (leadId: string) => {
+        setOpenActionMenuId(openActionMenuId === leadId ? null : leadId);
+    };
+
+    const handleDeleteLeadRequest = (leadId: string) => {
+        setLeadToDelete(leadId);
+        setDeleteModalOpen(true);
+        setOpenActionMenuId(null);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!leadToDelete) return;
+        try {
+            await deleteAdminLead(parseInt(leadToDelete)).unwrap();
+            setDeleteModalOpen(false);
+            setLeadToDelete(null);
+            refetch();
+        } catch (err: any) {
+            alert(err?.data?.detail || 'Failed to delete lead');
+        }
     };
 
     // Calculate unassigned leads (leads without property)
@@ -438,6 +465,39 @@ const AdminLeads = () => {
                                             {lead.secondaryStatus}
                                         </span>
                                     </div>
+
+                                    {/* Action Menu */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleMoreClick(lead.id);
+                                            }}
+                                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                        >
+                                            <MoreVertical className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                                        </button>
+
+                                        {openActionMenuId === lead.id && (
+                                            <>
+                                                <div
+                                                    className="fixed inset-0 z-40"
+                                                    onClick={() => setOpenActionMenuId(null)}
+                                                />
+                                                <div className="absolute right-0 top-full mt-2 z-50 w-[160px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                                                    <div className="p-1">
+                                                        <button
+                                                            disabled={isDeleting}
+                                                            onClick={() => handleDeleteLeadRequest(lead.id)}
+                                                            className="w-full text-left px-4 py-2 hover:bg-red-50 text-sm text-red-600 rounded transition-colors flex items-center gap-2"
+                                                        >
+                                                            Delete Lead
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Property Info */}
@@ -506,6 +566,17 @@ const AdminLeads = () => {
                     )}
                 </div>
             </div>
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setLeadToDelete(null);
+                }}
+                onConfirm={handleDeleteConfirm}
+                isLoading={isDeleting}
+                title="Delete Lead"
+                message="Are you sure you want to delete this lead? This action cannot be undone."
+            />
             <div className='flex justify-center mt-6'>
                 <Pagination
                     totalPages={totalPages}

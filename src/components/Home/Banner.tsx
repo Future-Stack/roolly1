@@ -269,13 +269,13 @@ const Banner: React.FC = () => {
             </div>
 
             {/* Search Button */}
-            <div className="w-32">
+            <div className="w-full lg:w-32">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSearch();
                 }}
-                className="w-full px-6 py-3 text-base bg-[#126AD8] text-white border border-[#0D4B99] font-medium rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700"
+                className="w-full px-6 py-3 text-base bg-[#126AD8] text-white border border-[#0D4B99] font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700 active:scale-95 shadow-md hover:shadow-lg"
               >
                 <span>Search</span>
               </button>
