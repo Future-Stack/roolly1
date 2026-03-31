@@ -28,8 +28,11 @@ interface PropertyDetails {
   property_name: string;
   postcode: string;
   transaction: string;
-  pcm: string;
-  pa:string;
+  price: string;
+  price_type: string;
+  service_charge: string;
+  insurance: string;
+  business_rates: string;
   property_type: string;
   location: string;
   location_description: string;
@@ -163,8 +166,11 @@ const HomePropertyDetails: React.FC = () => {
             </h2>
 
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              Price: £{parseInt(property?.pcm || property?.pa)}/{property?.pcm ? 'PCM':'PA'}
+              Price: £{parseInt(property?.price_type === 'sale' ? property?.price : property?.price_type === 'pcm' ? property?.price + '/PCM' : property?.price + '/PA')}
             </p>
+            {property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>}
+            {property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}
+            {property?.business_rates && <p className="text-sm text-gray-600 mb-2">Business Rates: £{property.business_rates}</p>}
             {/* <p className="text-md text-[#126AD8] font-medium mb-2">
               Built Area: {parseInt(property?.built_area)} Sqft
             </p> */}
@@ -309,10 +315,10 @@ const HomePropertyDetails: React.FC = () => {
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Height & width of shutters-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.dimensions_roller_shutter ? property?.dimensions_roller_shutter  : 'N/A'}</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{property?.dimensions_roller_shutter ? property?.dimensions_roller_shutter : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
-                    <li className="text-gray-600">Office space included-</li>
+                    <li className="text-gray-600">Office space-</li>
                     <span className="text-gray-900 ml-1 font-medium text-md">{property?.office_space ? property?.office_space + ' sq ft' : 'N/A'} </span>
                   </div>
                   <div className="flex text-[13px]">
@@ -325,16 +331,16 @@ const HomePropertyDetails: React.FC = () => {
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">EPC Rating-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.epc_rating ? property?.epc_rating : 'N/A'}</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.epc_rating ? (property?.epc_rating === 'U' ? 'Unknown' : `Rating ${property?.epc_rating}`) : 'N/A'}</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Power capacity-</li>
                     <span className="text-gray-900 ml-1 font-medium text-md">{property?.power_capacity ? property?.power_capacity + ' KVA' : 'N/A'}</span>
                   </div>
-                  <div className="flex text-[13px]">
+                  {/* <div className="flex text-[13px]">
                     <li className="text-gray-600">User restrictions-</li>
                     <span className="text-gray-900 ml-1 font-medium">{property?.other_restrictions || "None"}</span>
-                  </div>
+                  </div> */}
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Electricity supply-</li>
                     <span className="text-gray-900 ml-1 font-medium">{property?.electricity_supply ? property?.electricity_supply : 'N/A'}</span>
@@ -345,7 +351,7 @@ const HomePropertyDetails: React.FC = () => {
                   </div>
                 </div>
               </div>
-               {/* Location Description */}
+              {/* Location Description */}
               <div className='bg-[#E7F0FB] p-3 rounded-sm'>
                 <h4 className="text-xl font-semibold text-gray-900">Location Description</h4>
               </div>
@@ -365,24 +371,24 @@ const HomePropertyDetails: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Yard space included-</li>
-                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_space === "false"? 'No' : 'Yes'}</span>
+                    <span className="text-gray-900 ml-1 font-medium">{property?.yard_space === "false" ? 'No' : 'Yes'}</span>
                   </div>
                   {
                     property?.yard_space === "true" && (
                       <>
-                      <div className="flex text-[13px]">
-                        <li className="text-gray-600">Yard surface-</li>
-                        <span className="text-gray-900 ml-1 font-medium">{property?.yard_surface}</span>
-                      </div>
-                      <div className="flex text-[13px]">
-                        <li className="text-gray-600">Area of yard-</li>
-                        <span className="text-gray-900 ml-1 font-medium">{property?.yard_area}</span>
-                      </div>
+                        <div className="flex text-[13px]">
+                          <li className="text-gray-600">Yard surface-</li>
+                          <span className="text-gray-900 ml-1 font-medium">{property?.yard_surface}</span>
+                        </div>
+                        <div className="flex text-[13px]">
+                          <li className="text-gray-600">Area of yard-</li>
+                          <span className="text-gray-900 ml-1 font-medium">{property?.yard_area}</span>
+                        </div>
                       </>
 
                     )
                   }
-                  <div className="flex text-[13px]"> 
+                  <div className="flex text-[13px]">
                     <li className="text-gray-600">Parking included-</li>
                     <span className="text-gray-900 ml-1 font-medium">{property?.parking_include}</span>
                   </div>
@@ -448,7 +454,7 @@ const HomePropertyDetails: React.FC = () => {
                 </a>
                 <a href={`mailto:${property?.email || 'rob@broker360re.com'}`} className="bg-[#ffedd4] hover:bg-[#ffedd4] text-[#101828] font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <Mail size={20} />
-                  {property?.email || 'rob@broker360re.com' }
+                  {property?.email || 'rob@broker360re.com'}
                 </a>
               </div>
 
@@ -496,53 +502,53 @@ const HomePropertyDetails: React.FC = () => {
 
         {property?.related_properties?.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {property?.related_properties?.slice(0, 4).map((relProperty) => (
-            <div
-              key={relProperty.id}
-              className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E7F0FB] p-3  transition-shadow duration-300"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <img
-                  src={getImageUrl(relProperty.image)}
-                  alt={relProperty.property_name}
-                  className="w-full h-full rounded-[8px] object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
+            {property?.related_properties?.slice(0, 4).map((relProperty) => (
+              <div
+                key={relProperty.id}
+                className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#E7F0FB] p-3  transition-shadow duration-300"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={getImageUrl(relProperty.image)}
+                    alt={relProperty.property_name}
+                    className="w-full h-full rounded-[8px] object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[#126AD8] font-semibold text-2xl">
-                    {relProperty.property_type}
-                  </span>
-                  <div className="flex items-center bg-[#C8FFDD] py-1 px-2 rounded-[20px]">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-[#0C7233] text-xs font-medium ml-1">
-                      {relProperty.transaction}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[#126AD8] font-semibold text-2xl">
+                      {relProperty.property_type}
                     </span>
+                    <div className="flex items-center bg-[#C8FFDD] py-1 px-2 rounded-[20px]">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-[#0C7233] text-xs font-medium ml-1">
+                        {relProperty.transaction}
+                      </span>
+                    </div>
                   </div>
+
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-gray-900 font-semibold text-xl">
+                      {relProperty.property_name}
+                    </h3>
+                  </div>
+
+                  <p className="text-[#82868A] leading-5 text-sm mb-4 line-clamp-2">
+                    {relProperty.location_description}
+                  </p>
+
+                  <button
+                    onClick={() => navigate(`/details/${relProperty.id}`)}
+                    className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
+                  >
+                    View Details
+                  </button>
+
                 </div>
-
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-gray-900 font-semibold text-xl">
-                    {relProperty.property_name}
-                  </h3>
-                </div>
-
-                <p className="text-[#82868A] leading-5 text-sm mb-4 line-clamp-2">
-                  {relProperty.location_description}
-                </p>
-
-                <button
-                  onClick={() => navigate(`/details/${relProperty.id}`)}
-                  className="w-full py-2.5 border-2 border-[#126AD8] hover:bg-gray-100 text-[#126AD8] rounded-md font-medium transition-all duration-300"
-                >
-                  View Details
-                </button>
-
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
         ) : (
           <p className="text-gray-600 text-center">No related properties found.</p>
         )}

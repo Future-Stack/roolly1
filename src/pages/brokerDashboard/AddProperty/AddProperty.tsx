@@ -21,8 +21,10 @@ interface PropertyFormData {
     postcode: string;
     transaction: string;
     property_type: string;
-    pcm: string;
-    pa: string;
+    price: string;
+    price_type: string;
+    // pcm: string;
+    // pa: string;
     location: string;
     lease_duration: number;
     location_description: string;
@@ -44,6 +46,9 @@ interface PropertyFormData {
     yard_surface: string;
     parking_include: number;
     key_specification: string;
+    service_charge: string;
+    insurance: string;
+    business_rates: string;
     brochure_pdf_url?: string | null;
     brochure_video_url?: string | null;
     vehicle_repair_use: boolean;
@@ -74,8 +79,10 @@ const AddProperty: React.FC = () => {
         postcode: '',
         property_type: 'industrial',
         location: '',
-        pcm: '',
-        pa: '',
+        price: '',
+        price_type: 'sale',
+        // pcm: '',
+        // pa: '',
         lease_duration: 0,
         location_description: '',
         built_area: '',
@@ -90,6 +97,9 @@ const AddProperty: React.FC = () => {
         lighting_type: '1',
         epc_rating: 1,
         any_further_details: '',
+        service_charge: '',
+        insurance: '',
+        business_rates: '',
         yard_space: false,
         yard_area: '',
         yard_surface: 'Concrete',
@@ -110,7 +120,7 @@ const AddProperty: React.FC = () => {
         whatsapp_number: '',
     });
 
-    const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
+    // const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
     const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
@@ -126,6 +136,19 @@ const AddProperty: React.FC = () => {
         amenities: { id: 'amenities', title: 'Amenities', description: 'Cafeteria or canteen or office, kitchenette, reception, and toilets.' }
     });
 
+    const handleCurrencyBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (value) {
+            const parsed = parseFloat(value);
+            if (!isNaN(parsed)) {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: parsed.toFixed(2)
+                }));
+            }
+        }
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
 
@@ -138,7 +161,13 @@ const AddProperty: React.FC = () => {
         } else if (type === 'number') {
             setFormData(prev => ({
                 ...prev,
-                [name]: value === '' ? 0 : parseFloat(value)
+                [name]: value === '' ? '' : value // Keep as string or handle conversion in handleSubmit
+            }));
+        } else if (name === 'transaction') {
+            setFormData(prev => ({
+                ...prev,
+                transaction: value,
+                price_type: value === 'sale' ? 'sale' : ''
             }));
         } else {
             setFormData(prev => ({
@@ -235,7 +264,9 @@ const AddProperty: React.FC = () => {
             if (!formData.vendor_id) missing.push('Vendor');
             if (!formData.location.trim()) missing.push('Location');
             if (!formData.postcode.trim()) missing.push('Post Code');
-            if (!formData.pcm.trim() && !formData.pa.trim()) missing.push('Price');
+            if (!formData.price.trim()) missing.push('Price');
+            // if (!formData.price_type.trim()) missing.push('Price Type');
+            // if (!formData.pcm.trim() && !formData.pa.trim()) missing.push('Price');
             // if (!formData.lease_duration && formData.lease_duration !== 0) missing.push('Minimum Lease Duration');
             if (!formData.location_description.trim()) missing.push('Location Description');
 
@@ -273,21 +304,21 @@ const AddProperty: React.FC = () => {
                 if (key === 'images' || key === 'brochure_pdf_url' || key === 'brochure_video_url' || key === 'existing_images') return;
 
                 // Skip non-backend fields
-                if (key === 'is_poa' || key === 'price_type') return;
+                if (key === 'is_poa') return;
 
                 // Only send the active price field
-                if (key === 'pcm') {
-                    if (value && (value as string).trim() !== '') {
-                        formDataToSend.append('pcm', value as string);
-                    }
-                    return;
-                }
-                if (key === 'pa') {
-                    if (value && (value as string).trim() !== '') {
-                        formDataToSend.append('pa', value as string);
-                    }
-                    return;
-                }
+                // if (key === 'pcm') {
+                //     if (value && (value as string).trim() !== '') {
+                //         formDataToSend.append('pcm', value as string);
+                //     }
+                //     return;
+                // }
+                // if (key === 'pa') {
+                //     if (value && (value as string).trim() !== '') {
+                //         formDataToSend.append('pa', value as string);
+                //     }
+                //     return;
+                // }
 
                 if (typeof value === 'boolean') {
                     formDataToSend.append(key, value ? 'true' : 'false');
@@ -348,7 +379,7 @@ const AddProperty: React.FC = () => {
     const phaseOptions = ['Single phase', 'Three Phase',];
     const lightingTypeOptions = ['Halogen', 'LED',];
 
-    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'Unknown'];
+    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'U'];
     const evChanging = ['yes', 'no',];
     const solarPanel = ['yes', 'no',];
     return (
@@ -480,29 +511,31 @@ const AddProperty: React.FC = () => {
                                          </label> */}
                                     </div>
                                     <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
                                         <input
-                                            type="text"
-                                            name={priceType === 'pcm' ? 'pcm' : 'pa'}
-                                            value={formData.pcm || formData.pa}
+                                            type="number"
+                                            name="price"
+                                            value={formData.price}
                                             onChange={handleInputChange}
-                                            placeholder={"e.g., 10000"}
-                                            className={`w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder={"0.00"}
+                                            step="0.01"
+                                            min="0"
+                                            className={`w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                                             required
                                         />
                                     </div>
 
                                     {/* PCM / PA Selection */}
+                                    {formData.transaction === 'lease' && (
                                     <div className="flex items-center gap-4 mt-2">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="radio"
                                                 name="price_type"
                                                 value="pcm"
-                                                checked={priceType === 'pcm'}
-                                                onChange={() => {
-                                                    setPriceType('pcm');
-                                                    setFormData(prev => ({ ...prev, pa: '', pcm: prev.pcm || prev.pa }));
-                                                }}
+                                                checked={formData.price_type === 'pcm'}
+                                                onChange={(e) => handleInputChange(e as any)}
                                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                                             />
                                             <span className="text-sm text-gray-700">PCM (Per Month)</span>
@@ -512,11 +545,8 @@ const AddProperty: React.FC = () => {
                                                 type="radio"
                                                 name="price_type"
                                                 value="pa"
-                                                checked={priceType === 'pa'}
-                                                onChange={() => {
-                                                    setPriceType('pa');
-                                                    setFormData(prev => ({ ...prev, pcm: '', pa: prev.pa || prev.pcm }));
-                                                }}
+                                                checked={formData.price_type === 'pa'}
+                                                onChange={(e) => handleInputChange(e as any)}
                                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                                             />
                                             <span className="text-sm text-gray-700">PA (Per Annum)</span>
@@ -524,14 +554,14 @@ const AddProperty: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setPriceType('');
-                                                setFormData(prev => ({ ...prev, pcm: '', pa: '' }));
+                                                setFormData(prev => ({ ...prev, price_type: '' }));
                                             }}
                                             className="text-xs text-blue-600 hover:underline"
                                         >
                                             Clear
                                         </button>
                                     </div>
+                                    )}
                                 </div>
 
                                 {/* lease Duration */}
@@ -549,6 +579,69 @@ const AddProperty: React.FC = () => {
                                         min="0"
                                         className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
+                                </div>
+
+                                {/* Service Charge */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Service charge
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                        <input
+                                            type="number"
+                                            name="service_charge"
+                                            value={formData.service_charge}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Insurance */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Insurance
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                        <input
+                                            type="number"
+                                            name="insurance"
+                                            value={formData.insurance}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Business Rates */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Business Rates
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                        <input
+                                            type="number"
+                                            name="business_rates"
+                                            value={formData.business_rates}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -780,7 +873,7 @@ const AddProperty: React.FC = () => {
                                     >
                                         {epcRatingOptions.map(option => (
                                             <option key={option} value={option}>
-                                                Rating {option}
+                                                {option === 'U' ? 'Unknown' : `Rating ${option}`}
                                             </option>
                                         ))}
                                     </select>

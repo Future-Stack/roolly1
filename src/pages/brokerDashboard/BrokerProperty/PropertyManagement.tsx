@@ -20,7 +20,8 @@ interface Property {
   transaction: string;
   property_type: string;
   location: string;
-  estimated_price: string;
+  price: string;
+  price_type: string;
   pcm: string | null;
   pa: string | null;
   lease_duration: number;
@@ -233,8 +234,9 @@ const PropertyManagement: React.FC = () => {
                   {/* Price and Status */}
                   <div className="flex items-center justify-between mb-3 mt-4">
                     <span className="text-[24px] font-bold text-[#126AD8]">
-                      { 
-                        property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/PCM` : `£${property.pa}/PA`}
+                      {property.price_type === "sale" ? `£${property.price}` : property.price_type === "pcm" ? `£${property.price}/PCM` : `£${property.price}/PA`}
+                      {/* { 
+                        property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/PCM` : `£${property.pa}/PA`} */}
                     </span>
                     <span className={`flex items-center gap-1.5 text-[13px] font-medium ${!property.occupied ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
                       <span className={`w-2 h-2 rounded-full ${!property.occupied ? 'bg-green-600' : 'bg-gray-400'}`}></span>
@@ -371,7 +373,8 @@ const PropertyManagement: React.FC = () => {
                       <h4 className="font-medium text-gray-900">{propertyToDelete.property_name}</h4>
                       <p className="text-sm text-gray-500">ID: PR{propertyToDelete.id.toString().padStart(4, '0')}</p>
                       <p className="text-sm text-gray-500">{propertyToDelete.location}</p>
-                      <p className="text-sm text-gray-500">{propertyToDelete.pcm !== null ? `£${propertyToDelete.pcm}/month` : `£${propertyToDelete.pa}/year`}</p>
+                      <p className="text-sm text-gray-500">{propertyToDelete.price_type === "sale" ? `£${propertyToDelete.price}` : propertyToDelete.pcm ? `£${propertyToDelete.pcm}/month` : `£${propertyToDelete.pa}/year`}</p>
+                      {/* <p className="text-sm text-gray-500">{propertyToDelete.pcm !== null ? `£${propertyToDelete.pcm}/month` : `£${propertyToDelete.pa}/year`}</p> */}
                     </div>
                   </div>
                 </div>

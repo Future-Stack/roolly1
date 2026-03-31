@@ -19,7 +19,8 @@ const CreateNewLead = () => {
     const [emailAddress, setEmailAddress] = useState<string>('');
     const [phoneNumber, setPhoneNumber] = useState<string>('');
     const [leadStatus, setLeadStatus] = useState<string>('enquired');
-    const [sqftRange, setSqftRange] = useState<string>('0-1000');
+    const [leadTraffic, setLeadTraffic] = useState<string>('green');
+    const [sqftRange, setSqftRange] = useState<string>('1000-2000');
     const [location, setLocation] = useState<string>('');
     const [message, setMessage] = useState<string>('');
     const [financialDetailsProvided, setFinancialDetailsProvided] = useState<boolean>(false);
@@ -39,12 +40,14 @@ const CreateNewLead = () => {
     };
     const sqftRangeOptions = [
         // { value: '', label: 'Select SQFT Range' },
-        { value: '0-1000', label: '0-1000' },
         { value: '1000-2000', label: '1000-2000' },
-        { value: '2000-3000', label: '2000-3000' },
-        { value: '3000-4000', label: '3000-4000' },
-        { value: '4000-5000', label: '4000-5000' },
-        { value: '5000+', label: '5000+' }
+        { value: '2000-4000', label: '2000-4000' },
+        { value: '4000-6000', label: '4000-6000' },
+        { value: '6000-8000', label: '6000-8000' },
+        { value: '8000-15000', label: '8000-15000' },
+        { value: '15000-30000', label: '15000-30000' },
+        { value: '30000-60000', label: '30000-60000' },
+        { value: '60000+', label: '60000+' }
     ];
 
     const validateForm = () => {
@@ -81,7 +84,7 @@ const CreateNewLead = () => {
                 email_address: emailAddress,
                 phone_number: phoneNumber,
                 lead_status: leadStatus,
-                lead_traffic: 'green',
+                lead_traffic: leadTraffic,
                 sqft_range: sqftRange,
                 location: location,
                 financial_details_provided: financialDetailsProvided,
@@ -302,6 +305,24 @@ const CreateNewLead = () => {
                                     </select>
                                 </div>
 
+                                {/* Lead Traffic */}
+                                <div className="space-y-2">
+                                    <label htmlFor="lead_traffic" className="block text-sm font-medium text-gray-700">
+                                        Lead Traffic *
+                                    </label>
+                                        <select
+                                            id="lead_traffic"
+                                            name="lead_traffic"
+                                            value={leadTraffic}
+                                            onChange={(e) => setLeadTraffic(e.target.value)}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                                        >
+                                            <option value="green">Green</option>
+                                            <option value="amber">Amber</option>
+                                            <option value="red">Red</option>
+                                        </select>
+                                </div>
+
                                 {/* Budget Range */}
                                 <div className="space-y-2">
                                     <label htmlFor="sqft_range" className="block text-sm font-medium text-gray-700">
@@ -330,7 +351,8 @@ const CreateNewLead = () => {
                                     )}
                                 </div>
 
-                                <div className=" space-y-2">
+                            </div>
+                                <div className="flex-1 mt-6 space-y-2">
                                     <label htmlFor="location" className="block text-sm font-medium text-gray-700">
                                         Location
                                     </label>
@@ -352,7 +374,6 @@ const CreateNewLead = () => {
                                         <p className="text-red-500 text-sm mt-1">{formErrors.location}</p>
                                     )}
                                 </div>
-                            </div>
                             {/* financial details provided */}
                            <div className="mt-6 space-y-2">
                                 <label className="block text-sm font-medium text-gray-700">

@@ -27,7 +27,7 @@ interface PropertyData {
     location: string;
     created_at: string;
     property_type: string;
-    estimated_price: string;
+    price: string;
     price_type?: string;
     is_poa?: boolean;
     built_area: string;
@@ -188,11 +188,8 @@ const AdminProperty: React.FC = () => {
             return 'Property is not listed. Needs review before publishing.';
         }
 
-        if (property.estimated_price === 'POA' || property.is_poa) {
-            return 'POA Property. Price details available on application.';
-        }
 
-        const price = parseFloat(property.estimated_price);
+        const price = parseFloat(property.price);
         if (isNaN(price)) {
             return 'Property information from vendor. Ready to process quickly.';
         }
@@ -231,7 +228,7 @@ const AdminProperty: React.FC = () => {
             date: formatDate(property.created_at),
             alertMessage: getAlertMessage(property),
             propertyType: formatPropertyType(property.property_type),
-            estimatedPrice: formatPrice(property.estimated_price, property.price_type),
+            estimatedPrice: formatPrice(property.price, property.price_type),
             sqft: formatArea(property.built_area),
             transaction: formatTransaction(property.transaction),
             broker: property.broker?.full_name || 'Unassigned',

@@ -26,6 +26,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
 }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
   const { data: propertyCribSheet } = useGetPropertyCribSheetQuery(undefined);
+  console.log("propertyCribSheet", propertyCribSheet);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const properties: Property[] = propertyCribSheet?.results.map((item: any) => ({
@@ -34,7 +35,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
     transaction: item.transaction,
     location: item.location,
     size: item.built_area,
-    price: item.estimated_price,
+    price: item.price_type === "sale" ? item.price : item.pcm ? item.pcm : item.pa,
     id: item.id
   }))
 
@@ -251,7 +252,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
                       {property.size}
                     </td>
                     <td className="py-4 px-4 text-[13px] text-gray-900">
-                      {property.price}
+                      £{property.price}
                     </td>
                     <td className="py-4 px-4">
                       <button onClick={() => setSelectedProperty(property)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">

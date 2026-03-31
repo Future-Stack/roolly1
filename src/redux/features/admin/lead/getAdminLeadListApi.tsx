@@ -15,8 +15,14 @@ const getAdminLeadListApi = baseApi.injectEndpoints({
                 method: 'GET',
                 params: params 
             })
+        }),
+        getAdminLeadDetail: builder.query({
+            query : () => ({
+                url : `/admin/leads-overview/`,
+                method: 'GET',
+            })
         })
     }),
 })
 
-export const {useGetAdminLeadListQuery} = getAdminLeadListApi;
+export const {useGetAdminLeadListQuery, useGetAdminLeadDetailQuery} = getAdminLeadListApi;

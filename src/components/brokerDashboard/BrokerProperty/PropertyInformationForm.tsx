@@ -19,8 +19,8 @@ interface PropertyData {
     transaction: string;
     property_type: string;
     location: string;
-    pcm: string;
-    pa: string;
+    price_type:string;
+    price:string;
     lease_duration: number;
     location_description: string;
     built_area: string;
@@ -34,7 +34,7 @@ interface PropertyData {
     roller_shutters: string;
     dimensions_roller_shutter: string;
     lighting_type: string;
-    epc_rating: number;
+    epc_rating: string;
     ev_chaging: boolean;
     solar_panels: boolean;
     any_further_details: string;
@@ -64,6 +64,9 @@ interface PropertyData {
     email: string;
     phone_number: string;
     whatsapp_number: string;
+    service_charge: string;
+    insurance: string;
+    business_rates: string;
 }
 
 const PropertyInformationForm: React.FC = () => {
@@ -246,7 +249,9 @@ const PropertyInformationForm: React.FC = () => {
                                     Price or POA
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
-                                    £{propertyData.pa || propertyData.pcm} {propertyData.transaction === 'lease' ? '/month' : ''}
+                                    {/* £{propertyData.price_type === "pcm" ?  propertyData.price} {propertyData.transaction === 'lease' ? '/month' : ''} */}
+                                    
+                                    {propertyData.price_type === "sale" ? `£${propertyData.price}` : propertyData.price_type === "pcm" ? `£${propertyData.price}/PCM` : `£${propertyData.price}/PA`}
                                 </div>
                             </div>
 
@@ -256,7 +261,37 @@ const PropertyInformationForm: React.FC = () => {
                                     Minimum lease duration (years)
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
-                                    {propertyData.lease_duration} years
+                                    {propertyData.lease_duration ? propertyData.lease_duration + ' years' : 'N/A'}
+                                </div>
+                            </div>
+
+                            {/* Service Charge */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-2">
+                                    Service charge
+                                </label>
+                                <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
+                                    {propertyData.service_charge ? '£' + propertyData.service_charge : 'N/A'}
+                                </div>
+                            </div>
+
+                            {/* Insurance */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-2">
+                                    Insurance
+                                </label>
+                                <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
+                                    {propertyData.insurance ? '£' + propertyData.insurance : 'N/A'}
+                                </div>
+                            </div>
+
+                            {/* Business Rates */}
+                            <div>
+                                <label className="block text-base text-gray-900 mb-2">
+                                    Business Rates
+                                </label>
+                                <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
+                                    {propertyData.business_rates ? '£' + propertyData.business_rates : 'N/A'}
                                 </div>
                             </div>
                         </div>
@@ -285,7 +320,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Built Area (sq ft)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.built_area} sq ft
+                                    {propertyData.built_area ? propertyData.built_area + ' sq ft' : 'N/A'}
                                 </div>
                             </div>
 
@@ -295,7 +330,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Eaves Height (m)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.eaves_height} m
+                                    {propertyData.eaves_height ? propertyData.eaves_height + ' m' : 'N/A'}
                                 </div>
                             </div>
 
@@ -305,7 +340,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Type of roller shutter
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.roller_shutter_type}
+                                    {propertyData.roller_shutter_type ? propertyData.roller_shutter_type : 'N/A'}
                                 </div>
                             </div>
 
@@ -315,7 +350,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Number of Roller Shutters
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.roller_shutters}
+                                    {propertyData.roller_shutters ? propertyData.roller_shutters : 'N/A'}
                                 </div>
                             </div>
 
@@ -325,7 +360,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Length & Width (m)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.length_width} 
+                                    {propertyData.length_width ? propertyData.length_width : 'N/A'}
                                 </div>
                             </div>
 
@@ -335,7 +370,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Dimensions of roller shutter
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.dimensions_roller_shutter}
+                                    {propertyData.dimensions_roller_shutter ? propertyData.dimensions_roller_shutter : 'N/A'}
                                 </div>
                             </div>
 
@@ -345,7 +380,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Office space included (sq m)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.office_space} sq m
+                                    {propertyData.office_space ? propertyData.office_space + ' sq m' : 'N/A'}
                                 </div>
                             </div>
 
@@ -359,23 +394,13 @@ const PropertyInformationForm: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Eaves Height */}
-                            {/* <div>
-                                <label className="block text-base text-gray-900 mb-1.5">
-                                    Eaves height (ft)
-                                </label>
-                                <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.eaves_height} ft
-                                </div>
-                            </div> */}
-
                             {/* EPC Rating */}
                             <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
                                     EPC Rating
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {formatEPCRating(propertyData.epc_rating)}
+                                    {formatEPCRating(propertyData.epc_rating === 'U' ? 'Unknown' : propertyData.epc_rating)}
                                 </div>
                             </div>
                             {/* EV Charging */}
@@ -404,7 +429,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Power capacity (Amps or KVA)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.power_capacity} kVA
+                                    {propertyData.power_capacity ? propertyData.power_capacity + ' KVA' : 'N/A'}
                                 </div>
                             </div>
 
@@ -432,7 +457,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Any further details
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.any_further_details}
+                                    {propertyData.any_further_details ? propertyData.any_further_details : 'N/A'}
                                 </div>
                             </div>
                         </div>
@@ -471,7 +496,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Area of yard (sq ft)
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.yard_area} sq ft
+                                    {propertyData.yard_area ? propertyData.yard_area + ' sq ft' : 'N/A'}
                                 </div>
                             </div>
 
@@ -481,7 +506,7 @@ const PropertyInformationForm: React.FC = () => {
                                     Parking included
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {propertyData.parking_include} cars
+                                    {propertyData.parking_include ? propertyData.parking_include + ' cars' : 'N/A'}
                                 </div>
                             </div>
                         </div>

@@ -28,9 +28,11 @@ interface PropertyDetailsType {
     property_type: string;
     location: string;
     location_description: string;
-    pcm: string;
-    pa: string;
-    price_type?: string;
+    price:string;
+    service_charge: string;
+    insurance: string;
+    business_rates: string;
+    price_type: string;
     lease_duration: number | null;
     description: string;
     built_area: string;
@@ -76,7 +78,7 @@ const VendorPropertyDetails: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [currentImage, setCurrentImage] = useState(0);
-    const { data: property, isLoading, isError } = useGetPropertyDetailsQuery(id);
+    const { data: property, isLoading } = useGetPropertyDetailsQuery(id);
 
     // Loading state
     if (isLoading) {
@@ -88,16 +90,16 @@ const VendorPropertyDetails: React.FC = () => {
     }
 
     // Error state
-    if (isError) {
-        return (
-            <div className="min-h-screen p-4">
-                <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                    <div className="text-red-500 mb-4">Failed to load property details</div>
-                    <p className="text-gray-400">Please try again later.</p>
-                </div>
-            </div>
-        );
-    }
+    // if (isError) {
+    //     return (
+    //         <div className="min-h-screen p-4">
+    //             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+    //                 <div className="text-red-500 mb-4">Failed to load property details</div>
+    //                 <p className="text-gray-400">Please try again later.</p>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     if (!property) {
         return (
@@ -167,23 +169,7 @@ const VendorPropertyDetails: React.FC = () => {
         setCurrentImage((prev) => (prev - 1 + totalImages) % totalImages);
     };
 
-    // Helper function to format price
-    const formatPrice = (price: string, priceType?: string) => {
-        if (price === 'POA' || !price) return 'POA';
-        const numPrice = parseFloat(price);
-        if (isNaN(numPrice)) return price;
-        
-        const formatted = new Intl.NumberFormat('en-GB', {
-            style: 'currency',
-            currency: 'GBP',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(numPrice);
 
-        if (priceType === 'pcm') return `${formatted} PCM`;
-        if (priceType === 'pa') return `${formatted} PA`;
-        return formatted;
-    };
 
     // Helper function to format transaction type
     const formatTransaction = (transaction: string) => {
@@ -221,8 +207,12 @@ const VendorPropertyDetails: React.FC = () => {
                             {propertyData.property_name}
                         </h2>
                         <p className="text-md text-[#126AD8] font-medium mb-2">
-                            {propertyData.transaction === 'sale' ? 'Price: ' : 'Lease: '} {formatPrice(propertyData?.pcm || propertyData?.pa )}/{property?.pcm ? 'PCM':'PA'}
+                            price: {propertyData.price_type === "sale" ? `£${propertyData.price}` : propertyData.price_type === "pcm" ? `£${propertyData.price}/PCM` : `£${propertyData.price}/PA`}
+
                         </p>
+                        {propertyData.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{propertyData.service_charge}</p>}
+                        {propertyData.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{propertyData.insurance}</p>}
+                        {propertyData.business_rates && <p className="text-sm text-gray-600 mb-2">Business Rates: £{propertyData.business_rates}</p>}
                         <div className="flex items-center gap-2 text-sm text-[#082D5B]">
                             <Home size={16} />
                             <span>{parseFloat(propertyData.built_area).toLocaleString()} sq ft • {propertyData.location} {propertyData.postcode && `(${propertyData.postcode})`}</span>
@@ -358,7 +348,7 @@ const VendorPropertyDetails: React.FC = () => {
                                     <div className="flex text-sm">
                                         <li className="text-gray-600">Area-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
-                                            {parseFloat(propertyData.built_area).toLocaleString()} sq ft
+                                            {propertyData.built_area ? parseFloat(propertyData.built_area).toLocaleString() + ' sq ft' : 'N/A'} 
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
@@ -380,7 +370,7 @@ const VendorPropertyDetails: React.FC = () => {
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
-                                        <li className="text-gray-600">Office space included-</li>
+                                        <li className="text-gray-600">Office space-</li>
                                         <span className="text-gray-900 ml-1 font-medium text-md">
                                             {propertyData.office_space ? `${propertyData.office_space} sq m` : 'N/A'}
                                         </span>
@@ -409,12 +399,12 @@ const VendorPropertyDetails: React.FC = () => {
                                             {propertyData.power_capacity || 'N/A'}
                                         </span>
                                     </div>
-                                    <div className="flex text-[13px]">
+                                    {/* <div className="flex text-[13px]">
                                         <li className="text-gray-600">User restrictions-</li>
                                         <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.key_specification || 'N/A'}
+                                            {propertyData.u || 'N/A'}
                                         </span>
-                                    </div>
+                                    </div> */}
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">Single or Three phase-</li>
                                         <span className="text-gray-900 ml-1 font-medium">
