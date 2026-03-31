@@ -341,6 +341,45 @@ const PropertyDetails = () => {
                 </div>
               )}
 
+              {/* Service Charge */}
+              {property.service_charge && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900 flex items-center">
+                      <Zap className="w-4 h-4 mr-2" />
+                      Service Charge
+                    </span>
+                    <span className="font-semibold">£{property.service_charge}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Insurance */}
+              {property.insurance && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900 flex items-center">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Insurance
+                    </span>
+                    <span className="font-semibold">£{property.insurance}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Business Rates */}
+              {property.business_rates && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900 flex items-center">
+                      <Building className="w-4 h-4 mr-2" />
+                      Business Rates
+                    </span>
+                    <span className="font-semibold">£{property.business_rates}</span>
+                  </div>
+                </div>
+              )}
+
               <div className="border-t pt-6 mt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Contact Information</h3>
                 

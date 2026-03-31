@@ -91,19 +91,6 @@ const AdminOverview: React.FC = () => {
         }
     };
 
-    // Helper function to generate average response time
-    const getAvgResponse = (index: number): string => {
-        const responses = ['1.2h', '0.5h', '1h', '1.2h', '1.8h'];
-        return responses[index % responses.length];
-    };
-
-    // Helper function to get response color
-    const getResponseColor = (responseTime: string): string => {
-        const time = parseFloat(responseTime);
-        if (time < 1) return 'text-green-600';
-        if (time <= 1.5) return 'text-orange-500';
-        return 'text-red-500';
-    };
 
     const getInitials = (fullName: string): string => {
         return fullName
@@ -305,14 +292,14 @@ const AdminOverview: React.FC = () => {
                                             <th className="text-left py-3 px-4 text-xs font-bold text-[#1D1F22] uppercase tracking-wider">PROPERTY HANDLING</th>
                                             <th className="text-left py-3 px-4 text-xs font-bold text-[#1D1F22] uppercase tracking-wider">ACTIVE LEADS</th>
                                             <th className="text-left py-3 px-4 text-xs font-bold text-[#1D1F22] uppercase tracking-wider">COMPLETED DEALS</th>
-                                            <th className="text-left py-3 px-4 text-xs font-bold text-[#1D1F22] uppercase tracking-wider">AVG RESPONSE</th>
+                                            {/* <th className="text-left py-3 px-4 text-xs font-bold text-[#1D1F22] uppercase tracking-wider">AVG RESPONSE</th> */}
                                             <th className="text-left py-3 px-4 text-xs font-bold text-[#1D1F22] uppercase tracking-wider">ACTION</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {brokerPerformance?.map((broker, idx) => {
-                                            const avgResponse = getAvgResponse(idx);
-                                            const responseColor = getResponseColor(avgResponse);
+                                            // const avgResponse = getAvgResponse(idx);
+                                            // const responseColor = getResponseColor(avgResponse);
                                             const memberColor = getMemberColor(broker.joining_date);
                                             const leadColor = getLeadColor(broker.active_leads);
                                             const formattedDate = formatDate(broker.joining_date);
@@ -350,9 +337,9 @@ const AdminOverview: React.FC = () => {
                                                     <td className="py-4 px-4">
                                                         <span className="text-sm font-semibold text-blue-600">{broker.complete_leads}</span>
                                                     </td>
-                                                    <td className="py-4 px-4">
+                                                    {/* <td className="py-4 px-4">
                                                         <span className={`text-sm font-semibold ${responseColor}`}>{avgResponse}</span>
-                                                    </td>
+                                                    </td> */}
                                                     <td className="py-4 px-4">
                                                         <div className="flex items-center gap-2 relative">
                                                             <a href={`mailto:${broker.email}`} className="p-1.5 hover:bg-gray-100 rounded">
@@ -405,8 +392,8 @@ const AdminOverview: React.FC = () => {
                             {/* Mobile Cards */}
                             <div className="lg:hidden space-y-4">
                                 {brokerPerformance?.map((broker, idx) => {
-                                    const avgResponse = getAvgResponse(idx);
-                                    const responseColor = getResponseColor(avgResponse);
+                                    // const avgResponse = getAvgResponse(idx);
+                                    // const responseColor = getResponseColor(avgResponse);
                                     const memberColor = getMemberColor(broker.joining_date);
                                     const leadColor = getLeadColor(broker.active_leads);
                                     const formattedDate = formatDate(broker.joining_date);
@@ -481,10 +468,10 @@ const AdminOverview: React.FC = () => {
                                                     <span className="text-gray-500">Completed:</span>
                                                     <div className="font-semibold text-blue-600 mt-0.5">{broker.complete_leads}</div>
                                                 </div>
-                                                <div>
+                                                {/* <div>
                                                     <span className="text-gray-500">Avg Response:</span>
                                                     <div className={`font-semibold ${responseColor} mt-0.5`}>{avgResponse}</div>
-                                                </div>
+                                                </div> */}
                                             </div>
                                             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
                                                 <a href={`mailto:${broker.email}`} className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-700">

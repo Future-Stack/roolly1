@@ -1,8 +1,8 @@
 import Pagination from '@/components/ui/Pagination';
-import { useGetAdminLeadListQuery } from '@/redux/features/admin/lead/getAdminLeadListApi';
+import { useGetAdminLeadDetailQuery, useGetAdminLeadListQuery } from '@/redux/features/admin/lead/getAdminLeadListApi';
 import { useDeleteAdminLeadMutation } from '@/redux/features/admin/lead/deleteAdminLeadApi';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import { ArrowDown, Calendar, Clock, Clock3, Headset, Info, Mail, MapPin, MoreVertical, Phone, Search, ShoppingBag, User, } from 'lucide-react';
+import { Anchor, ArrowDown, Calendar,  Clock, Clock3, Info, Mail, MapPin, MoreVertical, Phone, Search, ShoppingBag,  User, } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import debounce from 'lodash/debounce';
 
@@ -81,6 +81,9 @@ const AdminLeads = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
+    const {data: leadsOverview} = useGetAdminLeadDetailQuery(undefined);
+    console.log(totalLeads)
+    console.log(leads);
 
     // Build query params object
     const buildQueryParams = useCallback(() => {
@@ -283,31 +286,31 @@ const AdminLeads = () => {
     };
 
     // Calculate unassigned leads (leads without property)
-    const unassignedLeads = leads.filter(lead => lead.propertyName === 'No property selected').length;
+    // const unassignedLeads = leads.filter(lead => lead.propertyName === 'No property selected').length;
 
     const statCards = [
         {
             icon: User,
-            value: totalLeads.toString(),
+            value: leadsOverview?.total_leads?.toString(),
             label: 'TOTAL LEADS',
-            trend: 'up'
+            trend: leadsOverview?.total_leads > 0 ? 'up' : null
         },
         {
             icon: Clock3,
-            value: unassignedLeads.toString(),
+            value: leadsOverview?.unassigned_leads?.toString(),
             label: 'Unassigned leads',
-            trend: unassignedLeads > 0 ? 'up' : null
+            trend: leadsOverview?.unassigned_leads > 0 ? 'up' : null
         },
         {
             icon: ShoppingBag,
-            value: '1.2k',
-            label: 'Completed Deals',
-            trend: 'up'
+            value: leadsOverview?.completed_leads?.toString(),
+            label: 'Completed Leads',
+            trend: leadsOverview?.completed_leads > 0 ? 'up' : null
         },
         {
-            icon: Headset,
-            value: '5/7',
-            label: 'Brokers Online',
+            icon: Anchor,
+            value: leadsOverview?.qualified_leads?.toString(),
+            label: 'Qualified Leads',
             trend: null
         }
     ];
@@ -339,7 +342,7 @@ const AdminLeads = () => {
                                 </div>
                             </div>
                             <div className="flex items-baseline gap-2">
-                                <div className={`text-3xl sm:text-4xl font-black ${card.value === unassignedLeads.toString() && unassignedLeads > 0 ? 'text-[#D81212]' : 'text-gray-900'}`}>
+                                <div className={`text-3xl sm:text-4xl font-black ${card.value === leadsOverview?.unassigned_leads?.toString() && leadsOverview?.unassigned_leads > 0 ? 'text-[#D81212]' : 'text-gray-900'}`}>
                                     {card.value}
                                 </div>
                                 {card.trend && (

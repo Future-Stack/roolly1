@@ -7,6 +7,7 @@ import { ImageIcon, Plus, SquarePlay } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useGetVendorListQuery } from '@/redux/features/broker/property/vendorListApi';
 
 interface ImageUpload {
     id: string;
@@ -23,9 +24,9 @@ interface PropertyFormData {
     postcode: string;
     transaction: string;
     property_type: string;
+    price: string;
+    price_type: string;
     location: string;
-    pcm: string;
-    pa: string;
     lease_duration: number;
     location_description: string;
     built_area: string;
@@ -60,6 +61,10 @@ interface PropertyFormData {
     phone_number: string;
     whatsapp_number: string;
     email:string;
+    service_charge: string;
+    insurance: string;
+    business_rates: string;
+    vendor_id: string;
 }
 
 
@@ -69,6 +74,8 @@ const UpdateVendorProperty: React.FC = () => {
     const [updateVendorProperty, { isLoading: isSubmitting }] = useUpdateBrokerPropertyMutation();
     const [deletePropertyImage] = useDeletePropertyImageMutation();
     const { data: propertyData, isLoading: isLoadingProperty } = useGetSinglePropertyQuery(id);
+    const { data: vendorsData } = useGetVendorListQuery({});
+    
     console.log(propertyData)
 
     const [formData, setFormData] = useState<PropertyFormData>({
@@ -77,8 +84,8 @@ const UpdateVendorProperty: React.FC = () => {
         postcode: '',
         property_type: 'industrial',
         location: '',
-        pcm: '',
-        pa: '',
+        price: '',
+        price_type: 'pcm',
         lease_duration: 0,
         location_description: '',
         built_area: '',
@@ -111,9 +118,13 @@ const UpdateVendorProperty: React.FC = () => {
         phone_number: '',
         whatsapp_number: '',
         email:'',
+        service_charge: '',
+        insurance: '',
+        business_rates: '',
+        vendor_id: '',
     });
 
-    const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
+    // const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
 
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
@@ -138,8 +149,8 @@ const UpdateVendorProperty: React.FC = () => {
                 transaction: propertyData.transaction || 'sale',
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
-                pcm: propertyData.pcm || '',
-                pa: propertyData.pa || '',
+                price: propertyData.price || '',
+                price_type: propertyData.price_type || 'sale',
                 lease_duration: propertyData.lease_duration || 0,
                 location_description: propertyData.location_description || '',
                 built_area: propertyData.built_area || '',
@@ -173,10 +184,14 @@ const UpdateVendorProperty: React.FC = () => {
                 phone_number: propertyData.phone_number || '',
                 whatsapp_number: propertyData.whatsapp_number || '',
                 email:propertyData.email || '',
+                service_charge: propertyData.service_charge || '',
+                insurance: propertyData.insurance || '',
+                business_rates: propertyData.business_rates || '',
+                vendor_id: propertyData.vendor_id || '',
             });
             // Determine price type from loaded data
-            if (propertyData.pcm) setPriceType('pcm');
-            else if (propertyData.pa) setPriceType('pa');
+            // if (propertyData.pcm) setPriceType('pcm');
+            // else if (propertyData.pa) setPriceType('pa');
 
             // Set existing images
             if (propertyData.existing_images && propertyData.existing_images.length > 0) {
@@ -205,6 +220,19 @@ const UpdateVendorProperty: React.FC = () => {
             }
         }
     }, [propertyData]);
+
+    const handleCurrencyBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (value) {
+            const parsed = parseFloat(value);
+            if (!isNaN(parsed)) {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: parsed.toFixed(2)
+                }));
+            }
+        }
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -336,7 +364,7 @@ const UpdateVendorProperty: React.FC = () => {
                     toast.error('Transaction type is required');
                     return;
                 }
-                if (!formData.pcm?.trim() && !formData.pa?.trim()) {
+                if (!formData.price?.trim()) {
                     toast.error('Price is required');
                     return;
                 }
@@ -450,7 +478,7 @@ const UpdateVendorProperty: React.FC = () => {
     // const riskLevelOptions = ['low', 'medium', 'high'];
     const phaseOptions = ['Single phase', 'Three Phase'];
     const lightingTypeOptions = ['Halogen', 'LED',];
-    const epcRatingOptions = ['1', '2', '3', '4', '5', '6', '7'];
+    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'U'];
 
     return (
         <div className="w-full min-h-screen">
@@ -577,28 +605,32 @@ const UpdateVendorProperty: React.FC = () => {
                                          </label> */}
                                     </div>
                                     <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
                                         <input
-                                            type="text"
-                                            name={priceType === 'pcm' ? 'pcm' : 'pa'}
-                                            value={formData.pcm || formData.pa}
+                                            type="number"
+                                            name={formData.price_type === 'pcm' ? 'pcm' : 'pa'}
+                                            value={formData.price}
                                             onChange={handleInputChange}
-                                            placeholder={"e.g., 10000"}
-                                            className={`w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder={"0.00"}
+                                            step="0.01"
+                                            min="0"
+                                            className={`w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                                             required
                                         />
                                     </div>
 
                                     {/* PCM / PA Selection */}
+                                    {formData.transaction === 'lease' && (
                                     <div className="flex items-center gap-4 mt-2">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="radio"
                                                 name="price_type"
                                                 value="pcm"
-                                                checked={priceType === 'pcm'}
+                                                checked={formData.price_type === 'pcm'}
                                                 onChange={() => {
-                                                    setPriceType('pcm');
-                                                    setFormData(prev => ({ ...prev, pa: '', pcm: prev.pcm || prev.pa }));
+                                                    setFormData(prev => ({ ...prev, price: '', price_type: 'pcm' }));
                                                 }}
                                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -609,10 +641,9 @@ const UpdateVendorProperty: React.FC = () => {
                                                 type="radio"
                                                 name="price_type"
                                                 value="pa"
-                                                checked={priceType === 'pa'}
+                                                checked={formData.price_type === 'pa'}
                                                 onChange={() => {
-                                                    setPriceType('pa');
-                                                    setFormData(prev => ({ ...prev, pcm: '', pa: prev.pa || prev.pcm }));
+                                                    setFormData(prev => ({ ...prev, price: '', price_type: 'pa' }));
                                                 }}
                                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -621,14 +652,14 @@ const UpdateVendorProperty: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setPriceType('');
-                                                setFormData(prev => ({ ...prev, pcm: '', pa: '' }));
+                                                setFormData(prev => ({ ...prev, price: '', price_type: '' }));
                                             }}
                                             className="text-xs text-blue-600 hover:underline"
                                         >
                                             Clear
                                         </button>
                                     </div>
+                                    )}
                                 </div>
 
                                 {/* lease Duration */}
@@ -645,6 +676,69 @@ const UpdateVendorProperty: React.FC = () => {
                                         step="0.5"
                                         className="w-full h-[42px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
+                                </div>
+
+                                {/* Service Charge */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Service charge
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                        <input
+                                            type="number"
+                                            name="service_charge"
+                                            value={formData.service_charge}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Insurance */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Insurance
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                        <input
+                                            type="number"
+                                            name="insurance"
+                                            value={formData.insurance}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Business Rates */}
+                                <div>
+                                    <label className="block text-base text-gray-900 mb-2">
+                                        Business Rates
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
+                                        <input
+                                            type="number"
+                                            name="business_rates"
+                                            value={formData.business_rates}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCurrencyBlur}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full h-[42px] pl-7 pr-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -840,7 +934,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     >
                                         {epcRatingOptions.map(option => (
                                             <option key={option} value={option}>
-                                                Rating {option}
+                                                {option === 'U' ? 'Unknown' : `Rating ${option}`}
                                             </option>
                                         ))}
                                     </select>
@@ -1227,7 +1321,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>                        
 
                         <RiskProfileManagementForm
                             vehicleRepairUse={formData.vehicle_repair_use}
@@ -1250,6 +1344,26 @@ const UpdateVendorProperty: React.FC = () => {
                                 }));
                             }}
                         />
+
+                        {/* Assigned Vendor */}
+                        <div>
+                            <label className="block text-base text-gray-900 mb-1.5 font-medium">
+                                Assigned Vendor *
+                            </label>
+                            <select
+                                name="vendor_id"
+                                value={formData.vendor_id}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            >
+                                <option value="" className="text-gray-900">Select Vendor</option>
+                                {(Array.isArray(vendorsData?.results) ? vendorsData.results : (Array.isArray(vendorsData) ? vendorsData : [])).map((vendor: any) => (
+                                    <option key={vendor.id} value={vendor.id} className="text-gray-900">
+                                        {vendor.full_name || vendor.name || vendor.username || vendor.email || `Vendor #${vendor.id}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
                         {/* Bottom Actions */}
                         <div className="flex items-center gap-3 mt-8">

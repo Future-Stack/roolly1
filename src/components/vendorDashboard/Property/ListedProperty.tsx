@@ -18,8 +18,8 @@ interface PropertyItem {
     property_broker: PropertyBroker;
     property_name: string;
     location: string;
-    pcm: string;
-    pa: string;
+    price: string;
+    price_type: string;
     property_type: string;
     built_area: string;
     created_at: string;
@@ -66,23 +66,6 @@ const formatTransaction = (transaction: string) => {
     return transaction.charAt(0).toUpperCase() + transaction.slice(1);
 };
 
-// Helper function to format price
-const formatPrice = (price: string, priceType?: string, isPoa?: boolean) => {
-    if (price === 'POA' || isPoa) return 'POA';
-    const numPrice = parseFloat(price);
-    if (isNaN(numPrice)) return price || 'POA';
-    
-    const formatted = new Intl.NumberFormat('en-GB', {
-        style: 'currency',
-        currency: 'GBP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(numPrice);
-
-    if (priceType === 'pcm') return `${formatted} PCM`;
-    if (priceType === 'pa') return `${formatted} PA`;
-    return formatted;
-};
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -183,7 +166,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                 <div className="flex items-start gap-2">
                     <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
                     <p className="text-[13px] text-blue-700">
-                        Property Information From Vendor. Ready to process quickly.
+                        Property Information From Broker. Ready to process quickly.
                     </p>
                 </div>
             </div>
@@ -225,7 +208,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <div className="md:col-span-3">
                         <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
                         <div className="text-[15px] text-gray-900 font-normal">
-                            {formatPrice(property?.pcm || property?.pa)}/{property?.pcm ? 'PCM':'PA'}
+                            {property.price_type === "sale" ? `£${property.price}` : property.price_type === "pcm" ? `£${property.price}/PCM` : `£${property.price}/PA`}
+
                         </div>
                     </div>
                 </div>
@@ -282,7 +266,7 @@ const ListedProperty: React.FC = () => {
         search: debouncedSearchTerm || undefined,
     };
 
-    const { data: listedProperty, isLoading, isError } = useGetAllVendorPropertyQuery(queryParams);
+    const { data: listedProperty, isLoading } = useGetAllVendorPropertyQuery(queryParams);
     console.log(listedProperty)
 
     const handlePageChange = (page: number) => {
@@ -310,18 +294,18 @@ const ListedProperty: React.FC = () => {
         );
     }
 
-    if (isError) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-4">
-                <div className="max-w-7xl mx-auto">
-                    <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                        <div className="text-red-500 mb-4">Failed to load properties</div>
-                        <p className="text-gray-400">Please try again later.</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // if (isError) {
+    //     return (
+    //         <div className="min-h-screen bg-gray-50 p-4">
+    //             <div className="max-w-7xl mx-auto">
+    //                 <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+    //                     <div className="text-red-500 mb-4">Failed to load properties</div>
+    //                     <p className="text-gray-400">Please try again later.</p>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="min-h-screen bg-gray-50">

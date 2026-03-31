@@ -10,6 +10,7 @@ interface FormData {
   emailAddress: string;
   phoneNumber: string;
   leadStatus: string;
+  lead_traffic: string;
   sqftRange: string;
   location: string;
   financialDetailsProvided: boolean;
@@ -30,11 +31,13 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
     emailAddress: '',
     phoneNumber: '',
     leadStatus: 'enquired',
+    lead_traffic: 'green',
     sqftRange: '0-1000',
     location: '',
     financialDetailsProvided: false,
     message: ''
   });
+
 
   const handleInputChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -48,6 +51,7 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
       emailAddress: '',
       phoneNumber: '',
       leadStatus: 'enquired',
+      lead_traffic: 'green',
       sqftRange: '0-1000',
       location: '',
       financialDetailsProvided: false,
@@ -69,6 +73,7 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
         email_address: formData.emailAddress,
         phone_number: formData.phoneNumber,
         lead_status: formData.leadStatus,
+        lead_traffic: formData.lead_traffic,
         sqft_range: formData.sqftRange,
         location: formData.location,
         financial_details_provided: formData.financialDetailsProvided,
@@ -213,6 +218,31 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
                     className="w-full h-[44px] px-4 text-[14px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+                
+                {/* Budget Range */}
+              <div>
+                <label className="block text-[14px] font-medium text-gray-900 mb-2">
+                  Sqft Range
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.sqftRange}
+                    onChange={(e) => handleInputChange('sqftRange', e.target.value)}
+                    className="w-full h-[44px] px-4 pr-10 text-[14px] text-gray-900 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                  >
+
+                    <option value="1000-2000">1000-2000</option>
+                    <option value="2000-4000">2000-4000</option>
+                    <option value="4000-6000">4000-6000</option>
+                    <option value="6000-8000">6000-8000</option>
+                    <option value="8000-15000">8000-15000</option>
+                    <option value="15000-30000">15000-30000</option>
+                    <option value="30000-60000">30000-60000</option>
+                    <option value="60000+">60000+</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" strokeWidth={2} />
+                </div>
+              </div>
 
                 <div>
                   <label className="block text-[14px] font-medium text-gray-900 mb-2">
@@ -234,29 +264,53 @@ const LeadGenerationEnquiryForm: React.FC<LeadGenerationEnquiryFormProps> = ({ i
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" strokeWidth={2} />
                   </div>
                 </div>
-              </div>
 
-              {/* Budget Range */}
-              <div>
-                <label className="block text-[14px] font-medium text-gray-900 mb-2">
-                  Sqft Range
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.sqftRange}
-                    onChange={(e) => handleInputChange('sqftRange', e.target.value)}
-                    className="w-full h-[44px] px-4 pr-10 text-[14px] text-gray-900 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-                  >
-                    <option value="0-1000">0-1000</option>
-                    <option value="1000-2000">1000-2000</option>
-                    <option value="2000-3000">2000-3000</option>
-                    <option value="3000-4000">3000-4000</option>
-                    <option value="4000-5000">4000-5000</option>
-                    <option value="5000+">5000+</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" strokeWidth={2} />
+                <div>
+                  <label className="block text-[14px] font-medium text-gray-900 mb-3">
+                    Lead Traffic
+                  </label>
+                  <div className="relative">
+                    <div className="flex gap-2">
+                      <div className='flex items-center gap-1'>
+                        <input 
+                        type="radio"
+                        name="lead_traffic"
+                        value="green"
+                        checked={formData.lead_traffic === 'green'}
+                        onChange={(e) => handleInputChange('lead_traffic', e.target.value)}
+                        className='w-3 h-3 accent-green-500'
+                        />
+                        <label htmlFor="green">Green</label>
+
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        <input 
+                        type="radio"
+                        name="lead_traffic"
+                        value="amber"
+                        checked={formData.lead_traffic === 'amber'}
+                        onChange={(e) => handleInputChange('lead_traffic', e.target.value)}
+                        className='w-3 h-3 accent-amber-500'
+                        />
+                        <label htmlFor="amber">Amber</label>
+                        </div>
+                        <div className='flex items-center gap-1'>
+                        <input 
+                        type="radio"
+                        name="lead_traffic"
+                        value="red"
+                        checked={formData.lead_traffic === 'red'}
+                        onChange={(e) => handleInputChange('lead_traffic', e.target.value)}
+                        className='w-3 h-3 accent-red-500'
+                        />
+                        <label htmlFor="red">Red</label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              
 
               {/* Location */}
               <div>

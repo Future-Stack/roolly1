@@ -28,20 +28,20 @@ const getFullImageUrl = (url: string | null | undefined) => {
 interface PropertyCardProps {
   id: number;
   image: string;
-  price: number;
+  // price: number;
   period: string;
   title: string;
   address: string;
-  bedrooms: number;
-  bathrooms: number;
-  privatePool: number;
+  // bedrooms: number;
+  // bathrooms: number;
+  // privatePool: number;
   forRent: boolean;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({
   id,
   image,
-  price,
+  // price,
   period,
   title,
   address,
@@ -50,12 +50,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   // privatePool,
   forRent,
 }) => {
+  console.log(period, "period")
 
   return (
     <div className="bg-white p-1.5 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       {/* Image */}
       <div className="relative">
-        <img src={image} alt={title} className="w-full h-36 object-cover" />
+        <img src={image} alt={title} className="w-full h-45 object-cover" />
         {forRent && (
           <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-medium px-2.5 py-1 rounded flex items-center gap-1">
             <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
@@ -67,10 +68,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Content */}
       <div className="p-1.5">
         {/* Price */}
-        <div className="flex items-baseline gap-1 mb-3">
+        {/* <div className="flex items-baseline gap-1 mb-3">
           <span className="text-blue-600 text-xl font-bold">£{price.toLocaleString()}</span>
           <span className="text-gray-500 text-sm">/{period}</span>
-        </div>
+        </div> */}
 
         {/* Title */}
         <h3 className="text-gray-900 font-semibold text-base mb-2">{title}</h3>
@@ -115,41 +116,43 @@ const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
     page_size: 100
   });
 
+  // console.log(featuredProperty, "featuredProperty")
+
   // Helper function to get random image
   const getRandomImage = (propertyId: number) => {
     return randomImages[propertyId % randomImages.length];
   };
 
-  // Helper function to generate random price based on property type
-  const generatePrice = (propertyType: string, transaction: string): number => {
-    const basePrices: Record<string, number> = {
-      industrial: transaction === 'sale' ? 500000 : 5000,
-      office: transaction === 'sale' ? 300000 : 3000,
-      retail: transaction === 'sale' ? 200000 : 2000,
-      land: transaction === 'sale' ? 150000 : 1500,
-      house: transaction === 'sale' ? 400000 : 4000,
-    };
+  // // Helper function to generate random price based on property type
+  // const generatePrice = (propertyType: string, transaction: string): number => {
+  //   const basePrices: Record<string, number> = {
+  //     industrial: transaction === 'sale' ? 500000 : 5000,
+  //     office: transaction === 'sale' ? 300000 : 3000,
+  //     retail: transaction === 'sale' ? 200000 : 2000,
+  //     land: transaction === 'sale' ? 150000 : 1500,
+  //     house: transaction === 'sale' ? 400000 : 4000,
+  //   };
 
-    const basePrice = basePrices[propertyType] || 250000;
-    const randomFactor = 0.8 + Math.random() * 0.4;
-    return Math.round(basePrice * randomFactor);
-  };
+  //   const basePrice = basePrices[propertyType] || 250000;
+  //   const randomFactor = 0.8 + Math.random() * 0.4;
+  //   return Math.round(basePrice * randomFactor);
+  // };
 
-  // Helper function to generate random features
-  const generateRandomFeatures = (propertyType: string) => {
-    if (propertyType === 'land') {
-      return { bedrooms: 0, bathrooms: 0, privatePool: 0 };
-    }
+  // // Helper function to generate random features
+  // const generateRandomFeatures = (propertyType: string) => {
+  //   if (propertyType === 'land') {
+  //     return { bedrooms: 0, bathrooms: 0, privatePool: 0 };
+  //   }
 
-    const bedrooms = propertyType === 'house' ?
-      Math.floor(Math.random() * 4) + 2 :
-      Math.floor(Math.random() * 3) + 1;
+  //   const bedrooms = propertyType === 'house' ?
+  //     Math.floor(Math.random() * 4) + 2 :
+  //     Math.floor(Math.random() * 3) + 1;
 
-    const bathrooms = Math.floor(Math.random() * 3) + 1;
-    const privatePool = Math.floor(Math.random() * 2);
+  //   const bathrooms = Math.floor(Math.random() * 3) + 1;
+  //   const privatePool = Math.floor(Math.random() * 2);
 
-    return { bedrooms, bathrooms, privatePool };
-  };
+  //   return { bedrooms, bathrooms, privatePool };
+  // };
 
   // Transform API data to component data
   const transformProperties = () => {
@@ -184,19 +187,19 @@ const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
       : propertiesList.slice(0, 4); // Limit to 4 for general view
 
     return filteredList.map((property: any) => {
-      const price = generatePrice(property.property_type, property.transaction);
-      const features = generateRandomFeatures(property.property_type);
+      // const price = generatePrice(property.property_type, property.transaction);
+      // const features = generateRandomFeatures(property.property_type);
 
       return {
         id: property.id,
         image: getFullImageUrl(property.image) || getRandomImage(property.id),
-        price: price,
+        // price: price,
         period: property.transaction === 'sale' ? 'total' : 'month',
         title: property.property_name,
         address: property.location,
-        bedrooms: features.bedrooms,
-        bathrooms: features.bathrooms,
-        privatePool: features.privatePool,
+        // bedrooms: features.bedrooms,
+        // bathrooms: features.bathrooms,
+        // privatePool: features.privatePool,
         forRent: property.transaction === 'lease',
       };
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Building, MapPin, DollarSign, ArrowRightLeft, Ruler } from 'lucide-react';
+import { X, Building, MapPin, ArrowRightLeft, Ruler, Euro } from 'lucide-react';
 
 interface Property {
     id: string;
@@ -69,12 +69,12 @@ const PropertyCribModal: React.FC<PropertyCribModalProps> = ({
                         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-green-100 rounded-lg">
-                                    <DollarSign className="w-4 h-4 text-green-600" />
+                                    <Euro className="w-4 h-4 text-green-600" />
                                 </div>
                                 <span className="text-sm font-medium text-gray-600">Price/Rent</span>
                             </div>
                             <p className="text-lg font-semibold text-gray-900 ml-1">
-                                {property.price}
+                                £{property.price}
                             </p>
                         </div>
 

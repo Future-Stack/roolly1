@@ -39,6 +39,7 @@ const Banner: React.FC = () => {
     { label: '8,000-15,000 sq ft', gte: 8000, lte: 15000 },
     { label: '15,000-30,000 sq ft', gte: 15000, lte: 30000 },
     { label: '30,000-60,000 sq ft', gte: 30000, lte: 60000 },
+    { label: '60,000+ sq ft', gte: 60000, lte: null },
   ];
 
   const handleSearch = () => {
@@ -53,8 +54,12 @@ const Banner: React.FC = () => {
     if (sqft) {
       const selectedSqft = sqftOptions.find(opt => opt.label === sqft);
       if (selectedSqft) {
-        queryParams.append('built_area__gte', selectedSqft.gte.toString());
-        queryParams.append('built_area__lte', selectedSqft.lte.toString());
+        if (selectedSqft.gte !== null) {
+          queryParams.append('built_area__gte', selectedSqft.gte.toString());
+        }
+        if (selectedSqft.lte !== null) {
+          queryParams.append('built_area__lte', selectedSqft.lte.toString());
+        }
       }
     }
 

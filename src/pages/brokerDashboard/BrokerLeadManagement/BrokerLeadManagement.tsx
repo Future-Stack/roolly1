@@ -406,7 +406,7 @@ const BrokerLeadManagement: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredLeads.length > 0 ? (
-                  filteredLeads.map((lead) => (
+                  filteredLeads.map((lead, index) => (
                     <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4 text-sm text-gray-900">#{lead.id}</td>
                       <td className="px-4 py-4 text-sm text-gray-900">{lead.client_name}</td>
@@ -483,7 +483,12 @@ const BrokerLeadManagement: React.FC = () => {
                                 className="fixed inset-0 z-40"
                                 onClick={closeActionMenu}
                               />
-                              <div className="absolute right-0 top-full mt-2 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                          <div
+                            className={`absolute right-0 ${
+                               index === filteredLeads.length - 1 || index === filteredLeads.length - 2 ? "bottom-full mb-1" : "top-full mt-1"
+                            } z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden`}
+                          >                        
+                              {/* <div className="absolute right-0 top-full last-of-type:bottom-full  mt-1 z-50 w-[250px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"> */}
                                 <div className="p-2">
                                   <button
                                     onClick={() => handleEditLead(lead.id, lead)}

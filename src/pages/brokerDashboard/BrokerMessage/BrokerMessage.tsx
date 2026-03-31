@@ -398,7 +398,8 @@ const BrokerMessage: React.FC = () => {
     setConnectionError('');
     setReconnectAttempts(0);
 
-    const wsUrl = `wss://broker360re.com/ws/conversation/${conversationId}/?token=${token}`;
+    const wsUrl = `ws://broker360re.com/ws/conversation/${conversationId}/?token=${token}`;
+    // const wsUrl = `ws://localhost:3000/ws/conversation/${conversationId}/?token=${token}`;
     console.log('🔗 Connecting to WebSocket:', wsUrl);
 
     try {

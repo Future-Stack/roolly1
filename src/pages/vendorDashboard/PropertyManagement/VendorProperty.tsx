@@ -29,7 +29,7 @@ const VendorProperty: React.FC = () => {
                 <div className="flex items-start justify-between mb-6">
                     <div>
                         <h1 className="text-[24px] font-bold text-gray-900 mb-1">
-                            Property Details from Vendor
+                            Property Details from Broker
                         </h1>
                         <p className="text-base text-gray-600 font-medium">
                             View and Confirm listing Property for  Users
