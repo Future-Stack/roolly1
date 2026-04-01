@@ -37,7 +37,7 @@ interface PropertyFormData {
     roller_shutter_type: string;
     roller_shutters: string;
     lighting_type: string;
-    epc_rating: number;
+    epc_rating: string;
     ev_chaging: boolean;
     solar_panels: boolean;
     any_further_details: string;
@@ -94,8 +94,8 @@ const AddProperty: React.FC = () => {
         roller_shutter_type: '',
         roller_shutters: '',
         dimensions_roller_shutter: '',
-        lighting_type: '1',
-        epc_rating: 1,
+        lighting_type: '',
+        epc_rating: '',
         any_further_details: '',
         service_charge: '',
         insurance: '',
@@ -358,6 +358,7 @@ const AddProperty: React.FC = () => {
 
             // Redirect to properties list page or property details page
             navigate('/broker-dashboard/properties');
+            console.log(response);
 
         } catch (error: any) {
             console.error('Error adding property:', error.data);
@@ -378,7 +379,6 @@ const AddProperty: React.FC = () => {
     // const riskLevelOptions = ['low', 'medium', 'high'];
     const phaseOptions = ['Single phase', 'Three Phase',];
     const lightingTypeOptions = ['Halogen', 'LED',];
-
     const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'U'];
     const evChanging = ['yes', 'no',];
     const solarPanel = ['yes', 'no',];

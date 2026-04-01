@@ -35,7 +35,7 @@ const PropertyCribSheet: React.FC<PropertyCribSheetProps> = ({
     transaction: item.transaction,
     location: item.location,
     size: item.built_area,
-    price: item.price_type === "sale" ? item.price : item.pcm ? item.pcm : item.pa,
+    price: item.price_type === "sale" ? item.price : item.price_type === "pcm" ? `${item.price}/PCM` : `${item.price}/PA`,
     id: item.id
   }))
 

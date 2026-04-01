@@ -37,8 +37,8 @@ interface PropertyFormData {
     electricity_supply: string;
     roller_shutter_type: string;
     roller_shutters: string;
-    lighting_type: number | string;
-    epc_rating: number | string;
+    lighting_type: string;
+    epc_rating: string;
     ev_chaging: boolean;
     solar_panels: boolean;
     any_further_details: string;
@@ -74,6 +74,7 @@ const UpdateVendorProperty: React.FC = () => {
     const [updateVendorProperty, { isLoading: isSubmitting }] = useUpdateBrokerPropertyMutation();
     const [deletePropertyImage] = useDeletePropertyImageMutation();
     const { data: propertyData, isLoading: isLoadingProperty } = useGetSinglePropertyQuery(id);
+    console.log(propertyData)
     const { data: vendorsData } = useGetVendorListQuery({});
     
     console.log(propertyData)
@@ -97,8 +98,8 @@ const UpdateVendorProperty: React.FC = () => {
         roller_shutter_type: '',
         roller_shutters: '',
         dimensions_roller_shutter: '',
-        lighting_type: '1',
-        epc_rating: 1,
+        lighting_type: '',
+        epc_rating: '',
         any_further_details: '',
         yard_space: false,
         yard_area: '',
@@ -187,7 +188,7 @@ const UpdateVendorProperty: React.FC = () => {
                 service_charge: propertyData.service_charge || '',
                 insurance: propertyData.insurance || '',
                 business_rates: propertyData.business_rates || '',
-                vendor_id: propertyData.vendor_id || '',
+                vendor_id: (propertyData.vendor || '').toString(),
             });
             // Determine price type from loaded data
             // if (propertyData.pcm) setPriceType('pcm');
@@ -396,22 +397,17 @@ const UpdateVendorProperty: React.FC = () => {
 
             // Add all form fields
             Object.entries(formData).forEach(([key, value]) => {
-                if (key !== 'images') {
+                if (key !== 'images' && key !== 'brochure_pdf_url' && key !== 'brochure_video_url' && key !== 'existing_images') {
                     // Skip non-backend fields
-                    if (key === 'is_poa' || key === 'price_type') return;
+                    if (key === 'is_poa') return;
 
-                    // Only send the active price field
-                    if (key === 'pcm') {
-                        if (value && value.toString().trim() !== '') {
+                    // Ensure specific price fields are synchronized with the main price field
+                    if (key === 'price') {
+                        if (formData.price_type === 'pcm') {
                             formDataToSend.append('pcm', value.toString());
-                        }
-                        return;
-                    }
-                    if (key === 'pa') {
-                        if (value && value.toString().trim() !== '') {
+                        } else if (formData.price_type === 'pa') {
                             formDataToSend.append('pa', value.toString());
                         }
-                        return;
                     }
 
                     if (typeof value === 'boolean') {
@@ -608,7 +604,7 @@ const UpdateVendorProperty: React.FC = () => {
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
                                         <input
                                             type="number"
-                                            name={formData.price_type === 'pcm' ? 'pcm' : 'pa'}
+                                            name="price"
                                             value={formData.price}
                                             onChange={handleInputChange}
                                             onBlur={handleCurrencyBlur}
@@ -630,7 +626,7 @@ const UpdateVendorProperty: React.FC = () => {
                                                 value="pcm"
                                                 checked={formData.price_type === 'pcm'}
                                                 onChange={() => {
-                                                    setFormData(prev => ({ ...prev, price: '', price_type: 'pcm' }));
+                                                    setFormData(prev => ({ ...prev, price_type: 'pcm' }));
                                                 }}
                                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -643,7 +639,7 @@ const UpdateVendorProperty: React.FC = () => {
                                                 value="pa"
                                                 checked={formData.price_type === 'pa'}
                                                 onChange={() => {
-                                                    setFormData(prev => ({ ...prev, price: '', price_type: 'pa' }));
+                                                    setFormData(prev => ({ ...prev, price_type: 'pa' }));
                                                 }}
                                                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                                             />
@@ -652,11 +648,11 @@ const UpdateVendorProperty: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setFormData(prev => ({ ...prev, price: '', price_type: '' }));
+                                                setFormData(prev => ({ ...prev, price_type: 'sale' }));
                                             }}
                                             className="text-xs text-blue-600 hover:underline"
                                         >
-                                            Clear
+                                            Reset to Sale
                                         </button>
                                     </div>
                                     )}
@@ -1352,7 +1348,8 @@ const UpdateVendorProperty: React.FC = () => {
                             </label>
                             <select
                                 name="vendor_id"
-                                value={formData.vendor_id}
+                                // value={formData.vendor_id}
+                                value={formData.vendor_id || ''}
                                 onChange={handleInputChange}
                                 className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             >

@@ -107,7 +107,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         built_area,
         created_at,
         transaction,
-        id
+        id,
     } = property;
 
     return (
@@ -184,9 +184,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
 
                     {/* SQFT */}
                     <div>
-                        <div className="text-[13px] text-gray-500 mb-1">SQFT</div>
+                        <div className="text-[13px] text-gray-500 mb-1">Built-up Area</div>
                         <div className="text-[15px] text-gray-900 font-normal">
-                            {parseFloat(built_area).toLocaleString()} sqft
+                            {built_area ? built_area + ' ' + 'sq ft' : 'N/A'}
                         </div>
                     </div>
 

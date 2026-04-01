@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Plus, Building2, Ruler, Maximize, ScanEye, X } from 'lucide-react';
+import { Plus, Building2, Ruler, Maximize, ScanEye, X, MapPin } from 'lucide-react';
 import Pagination from '@/components/vendorDashboard/Leads/Pagination';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -254,8 +254,9 @@ const PropertyManagement: React.FC = () => {
 
                   {/* Address */}
                   <p className="text-[14px] text-[#82868A] font-normal mb-1">
-                    PR{property.id.toString().padStart(4, '0')}: {property.location}
+                    Property ID: {property.id} 
                   </p>
+                 
 
                   {/* Property Owner */}
                   {property.property_owner && (
@@ -270,10 +271,16 @@ const PropertyManagement: React.FC = () => {
                       <Ruler className="w-4 h-4" strokeWidth={2} />
                       <span>Built Area: {property.built_area} sq ft</span>
                     </div>
-                    <div className="flex items-center gap-2 text-[13px] text-[#A9ACAF]">
-                      <Maximize className="w-4 h-4" strokeWidth={2} />
-                      <span>{property.length_width}</span>
-                    </div>
+                    {/* Location */}
+                    <p className="text-[14px] text-[#82868A] font-normal mb-1 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" strokeWidth={2} /> {property.location}
+                    </p>
+                    {property.length_width && (
+                      <div className="flex items-center gap-2 text-[13px] text-[#A9ACAF]">
+                        <Maximize className="w-4 h-4" strokeWidth={2} />
+                        <span>{property.length_width}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}
