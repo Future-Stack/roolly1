@@ -3,7 +3,7 @@ import { useGetAdminLeadDetailQuery, useGetAdminLeadListQuery } from '@/redux/fe
 import { useDeleteAdminLeadMutation } from '@/redux/features/admin/lead/deleteAdminLeadApi';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { Anchor, ArrowDown, Calendar,  Clock, Clock3, Info, Mail, MapPin, MoreVertical, Phone, Search, ShoppingBag,  User, } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 
 interface Lead {
@@ -69,6 +69,24 @@ interface QueryParams {
     page_size?: number;
 }
 
+const STATUS_OPTIONS = [
+    { value: 'All', label: 'All' },
+    { value: 'enquired', label: 'Enquired' },
+    { value: 'viewed', label: 'Viewed' },
+    { value: 'terms_sent', label: 'Terms Sent' },
+    { value: 'in_legals', label: 'In Legals' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'closed', label: 'Closed' },
+];
+
+const SOURCE_OPTIONS = [
+    { value: 'All Sources', label: 'All Sources' },
+    { value: 'industrial', label: 'Industrial' },
+    { value: 'land', label: 'Land' },
+    { value: 'office', label: 'Office' },
+    { value: 'retail', label: 'Retail' },
+];
+
 const AdminLeads = () => {
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
     const [assignmentFilterOpen, setAssignmentFilterOpen] = useState(false);
@@ -86,7 +104,7 @@ const AdminLeads = () => {
     console.log(leads);
 
     // Build query params object
-    const buildQueryParams = useCallback(() => {
+    const queryParams = useMemo(() => {
         const params: QueryParams = {
             page: currentPage,
             page_size: pageSize
@@ -111,7 +129,7 @@ const AdminLeads = () => {
     }, [currentPage, pageSize, searchTerm, selectedAssignment, selectedSource]);
 
     // Use the query with dynamic parameters
-    const { data: leadsList, isLoading, refetch } = useGetAdminLeadListQuery(buildQueryParams());
+    const { data: leadsList, isLoading, refetch } = useGetAdminLeadListQuery(queryParams);
     const [deleteAdminLead, { isLoading: isDeleting }] = useDeleteAdminLeadMutation();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
@@ -137,12 +155,12 @@ const AdminLeads = () => {
     };
 
     // Format budget
-    const formatBudget = (budget: string | null): string => {
-        if (!budget) return 'Not specified';
-        const amount = parseFloat(budget);
-        if (isNaN(amount)) return budget;
-        return `£${amount.toLocaleString('en-GB')}`;
-    };
+    // const formatBudget = (sqft_range: string | null): string => {
+    //     if (!sqft_range) return 'Not specified';
+    //     const amount = parseFloat(sqft_range);
+    //     if (isNaN(amount)) return sqft_range;
+    //     return `£${amount.toLocaleString('en-GB')}`;
+    // };
 
     // Get status display values
     const getStatusDisplay = (leadTraffic: string, leadStatus: string) => {
@@ -205,7 +223,7 @@ const AdminLeads = () => {
                     timeAgo: formatTimeAgo(apiLead.created_at),
                     date: formatDate(apiLead.created_at),
                     businessType: 'Consulting', // Default or from API if available
-                    budget: formatBudget(apiLead.sqft_range),
+                    budget: apiLead.sqft_range ? apiLead.sqft_range : 'Not specified',
                     source: apiLead.source || 'Unknown',
                     phone: apiLead.phone_number || 'N/A',
                     email: apiLead.email_address || 'N/A',
@@ -384,7 +402,9 @@ const AdminLeads = () => {
                                         }}
                                         className="flex justify-between items-center px-5 py-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 hover:bg-white hover:border-blue-500 transition-all bg-gray-50 cursor-pointer shadow-sm"
                                     >
-                                        <span className="flex-1 text-left">{selectedAssignment}</span>
+                                        <span className="flex-1 text-left">
+                                            {STATUS_OPTIONS.find(opt => opt.value === selectedAssignment)?.label || selectedAssignment}
+                                        </span>
                                         <ArrowDown className={`w-4 h-4 flex-shrink-0 transition-transform ${assignmentFilterOpen ? 'rotate-180' : ''}`} />
                                     </div>
 
@@ -395,13 +415,14 @@ const AdminLeads = () => {
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <div className="p-1">
-                                                {['All', 'enquired', 'viewed', 'new'].map((opt) => (
+                                                {STATUS_OPTIONS.map((opt) => (
                                                     <button
-                                                        key={opt}
-                                                        onClick={() => handleAssignmentSelect(opt)}
+                                                        key={opt.value}
+                                                        value={opt.value}
+                                                        onClick={() => handleAssignmentSelect(opt.value)}
                                                         className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-gray-700 rounded-lg text-sm font-medium transition-colors capitalize"
                                                     >
-                                                        {opt}
+                                                        {opt.label}
                                                     </button>
                                                 ))}
                                             </div>
@@ -418,7 +439,9 @@ const AdminLeads = () => {
                                         }}
                                         className="flex justify-between items-center px-5 py-3.5 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-700 hover:bg-white hover:border-blue-500 transition-all bg-gray-50 cursor-pointer shadow-sm"
                                     >
-                                        <span className="flex-1 text-left">{selectedSource}</span>
+                                        <span className="flex-1 text-left">
+                                            {SOURCE_OPTIONS.find(opt => opt.value === selectedSource)?.label || selectedSource}
+                                        </span>
                                         <ArrowDown className={`w-4 h-4 flex-shrink-0 transition-transform ${sourceFilterOpen ? 'rotate-180' : ''}`} />
                                     </div>
 
@@ -429,13 +452,14 @@ const AdminLeads = () => {
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <div className="p-1 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                                {['All Sources', 'industrial', 'land', 'office', 'retail', 'house', 'other'].map((opt) => (
+                                                {SOURCE_OPTIONS.map((opt) => (
                                                     <button
-                                                        key={opt}
-                                                        onClick={() => handleSourceSelect(opt)}
+                                                        key={opt.value}
+                                                        value={opt.value}
+                                                        onClick={() => handleSourceSelect(opt.value)}
                                                         className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-gray-700 rounded-lg text-sm font-medium transition-colors capitalize"
                                                     >
-                                                        {opt}
+                                                        {opt.label}
                                                     </button>
                                                 ))}
                                             </div>

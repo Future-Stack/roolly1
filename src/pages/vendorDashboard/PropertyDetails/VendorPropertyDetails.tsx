@@ -390,7 +390,7 @@ const VendorPropertyDetails: React.FC = () => {
                                     <div className="flex text-[13px]">
                                         <li className="text-gray-600">EPC Rating-</li>
                                         <span className="text-gray-900 ml-1 font-medium">
-                                            {propertyData.epc_rating ?`${propertyData.epc_rating} Amps or KVA` : 'N/A'}
+                                            {propertyData.epc_rating ?`${propertyData.epc_rating === 'U' ? 'Unknown' : propertyData.epc_rating + ' Amps or KVA'} ` : 'N/A'}
                                         </span>
                                     </div>
                                     <div className="flex text-[13px]">
