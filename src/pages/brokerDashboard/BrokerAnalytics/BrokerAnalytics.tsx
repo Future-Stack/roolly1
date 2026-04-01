@@ -221,7 +221,7 @@ const BrokerAnalytics: React.FC = () => {
                             {leadSources.map((source, index) => (
                                 <div key={index}>
                                     <div className="flex items-center justify-between mb-3">
-                                        <span className="text-gray-900 text-base font-medium">
+                                        <span className="text-gray-900 text-base font-medium capitalize">
                                             {source.name}
                                         </span>
                                         <span className="text-gray-900 text-base font-semibold">

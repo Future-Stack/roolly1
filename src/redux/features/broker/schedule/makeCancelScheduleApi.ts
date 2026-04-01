@@ -6,7 +6,8 @@ const makeCancelScheduleApi = baseApi.injectEndpoints({
             query : (scheduleId: number) => ({
                 url : `/brokers/viewing-schedule/${scheduleId}/cancel/`,
                 method: 'PUT',
-            })
+            }),
+            invalidatesTags: ["Schedule"]
         })
     }),
 })

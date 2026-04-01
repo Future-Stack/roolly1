@@ -134,12 +134,10 @@ const AdminProperty: React.FC = () => {
     // Helper function to format property type
     const formatPropertyType = useCallback((type: string): string => {
         const typeMap: Record<string, string> = {
-            'house': 'House',
             'land': 'Land',
             'industrial': 'Industrial',
             'office': 'Office',
             'retail': 'Retail',
-            'other': 'Other'
         };
         return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1);
     }, []);
@@ -170,8 +168,8 @@ const AdminProperty: React.FC = () => {
         }
 
         if (priceType === 'pcm') return `${formatted} PCM`;
-        if (priceType === 'pa') return `${formatted} PA`;
-        return formatted;
+        if (priceType === 'sale') return formatted;
+        return `${formatted} PA`;
     }, []);
 
     // Helper function to format area
@@ -293,7 +291,7 @@ const AdminProperty: React.FC = () => {
     }, []);
 
     const propertyTypeOptions = useMemo(() =>
-        ['All', 'House', 'Land', 'Industrial', 'Office', 'Retail', 'Other']
+        ['All', 'Land', 'Industrial', 'Office', 'Retail']
         , []);
 
     const handleCreateMessage = useCallback(async (ownerId: string) => {

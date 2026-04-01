@@ -1,9 +1,11 @@
-import { useGetScheduleListQuery } from '@/redux/features/broker/schedule/getScheduleList';
+import {
+    useGetScheduleListQuery,
+    useMakeCompleteScheduleMutation,
+    useMakeCancelScheduleMutation
+} from '@/redux/features/broker/schedule/scheduleApi';
 import { Calendar, Clock, Info, Mail, MapPin, MoreVertical, Phone } from 'lucide-react';
 import { useState } from 'react';
 import ScheduleViewModal from '../Overview/ScheduleViewModal';
-import { useMakeCompleteScheduleMutation } from '@/redux/features/broker/schedule/makeCompleteScheduleApi';
-import { useMakeCancelScheduleMutation } from '@/redux/features/broker/schedule/makeCancelScheduleApi';
 
 export interface Property {
     property_name: string;
@@ -46,7 +48,7 @@ const BrokerScheduleLeads = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    const { data: scheduleData, isLoading, refetch } = useGetScheduleListQuery(undefined);
+    const { data: scheduleData, isLoading } = useGetScheduleListQuery(undefined);
     const [makeCompleteSchedule, { isLoading: isCompleting }] = useMakeCompleteScheduleMutation();
     const [makeCancelSchedule, { isLoading: isCancelling }] = useMakeCancelScheduleMutation();
 
@@ -154,22 +156,20 @@ const BrokerScheduleLeads = () => {
         return financials ? 'Provided' : 'Not Provided';
     };
 
-    const handleCompleteSchedule = async (scheduleId: number) => {
+    const handleCompleteSchedule = async (scheduleId: string | number) => {
         if (!scheduleId) return;
         try {
-            await makeCompleteSchedule(scheduleId).unwrap();
-            refetch();
+            await makeCompleteSchedule(Number(scheduleId)).unwrap();
             closeActionMenu();
         } catch (error) {
             console.error('Failed to complete schedule:', error);
         }
     };
 
-    const handleCancelSchedule = async (scheduleId: number) => {
+    const handleCancelSchedule = async (scheduleId: string | number) => {
         if (!scheduleId) return;
         try {
-            await makeCancelSchedule(scheduleId).unwrap();
-            refetch();
+            await makeCancelSchedule(Number(scheduleId)).unwrap();
             closeActionMenu();
         } catch (error) {
             console.error('Failed to cancel schedule:', error);
@@ -279,7 +279,7 @@ const BrokerScheduleLeads = () => {
                                                                 View Details
                                                             </button>
                                                             <button
-                                                                onClick={() => handleCompleteSchedule(lead?.lead?.schedule_id)}
+                                                                onClick={() => handleCompleteSchedule(lead?.id)}
                                                                 disabled={isCompleting || isCancelling}
                                                                 className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             >
@@ -289,7 +289,7 @@ const BrokerScheduleLeads = () => {
                                                                 Complete
                                                             </button>
                                                             <button
-                                                                onClick={() => handleCancelSchedule(lead?.lead?.schedule_id)}
+                                                                onClick={() => handleCancelSchedule(lead?.id)}
                                                                 disabled={isCompleting || isCancelling}
                                                                 className="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                                             >

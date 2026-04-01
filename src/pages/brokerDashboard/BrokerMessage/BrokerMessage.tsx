@@ -672,6 +672,7 @@ const BrokerMessage: React.FC = () => {
 
   // Handle chat selection
   const handleChatSelect = (user: ChatUser) => {
+    if (selectedChat?.id === user.id) return;
     console.log('💬 Selecting chat:', user.name);
     setIsLoadingMessages(true);
     setSelectedChat(user);
@@ -877,7 +878,9 @@ const BrokerMessage: React.FC = () => {
           {/* Tab Navigation */}
           <div className="mb-3 flex gap-3">
             <button
-              onClick={() => setActiveTab('chat')}
+              onClick={() => {
+                if (activeTab !== 'chat') setActiveTab('chat');
+              }}
               className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'chat'
                 ? 'text-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -886,7 +889,9 @@ const BrokerMessage: React.FC = () => {
               Chat <span className="ml-1">({tabCounts.chat})</span>
             </button>
             <button
-              onClick={() => setActiveTab('vendor')}
+              onClick={() => {
+                if (activeTab !== 'vendor') setActiveTab('vendor');
+              }}
               className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'vendor'
                 ? 'text-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -895,7 +900,9 @@ const BrokerMessage: React.FC = () => {
               Vendor {tabCounts.vendor > 0 && <span className="ml-1">({tabCounts.vendor})</span>}
             </button>
             <button
-              onClick={() => setActiveTab('admin')}
+              onClick={() => {
+                if (activeTab !== 'admin') setActiveTab('admin');
+              }}
               className={`text-sm md:text-[15px] font-medium px-4 py-2 rounded-full transition-colors ${activeTab === 'admin'
                 ? 'text-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-100'
