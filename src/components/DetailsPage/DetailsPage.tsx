@@ -166,7 +166,7 @@ const HomePropertyDetails: React.FC = () => {
             </h2>
 
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              Price: £{parseInt(property?.price_type === 'sale' ? property?.price : property?.price_type === 'pcm' ? property?.price + '/PCM' : property?.price + '/PA')}
+              {property.price_type === "sale" ? `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? `£${parseInt(property.price).toLocaleString()}/PCM` : `£${parseInt(property.price).toLocaleString()}/PA`}
             </p>
             {property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>}
             {property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}

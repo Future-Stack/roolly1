@@ -251,7 +251,7 @@ const PropertyInformationForm: React.FC = () => {
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
                                     {/* £{propertyData.price_type === "pcm" ?  propertyData.price} {propertyData.transaction === 'lease' ? '/month' : ''} */}
                                     
-                                    {propertyData.price_type === "sale" ? `£${propertyData.price}` : propertyData.price_type === "pcm" ? `£${propertyData.price}/PCM` : `£${propertyData.price}/PA`}
+                                    {propertyData.price_type === "sale" ? `£${parseInt(propertyData.price).toLocaleString()}` : propertyData.price_type === "pcm" ? `£${parseInt(propertyData.price).toLocaleString()}/PCM` : `£${parseInt(propertyData.price).toLocaleString()}/PA`}
                                 </div>
                             </div>
 

@@ -155,21 +155,14 @@ const AdminProperty: React.FC = () => {
     // Helper function to format price
     const formatPrice = useCallback((price: string, priceType?: string): string => {
         if (price === 'POA' || !price) return 'POA';
-        const priceNum = parseFloat(price);
+        const priceNum = parseInt(price);
         if (isNaN(priceNum)) return price;
 
-        let formatted = '';
-        if (priceNum >= 1000000) {
-            formatted = `£${(priceNum / 1000000).toFixed(2)}M`;
-        } else if (priceNum >= 1000) {
-            formatted = `£${(priceNum / 1000).toFixed(2)}K`;
-        } else {
-            formatted = `£${priceNum.toFixed(2)}`;
-        }
+        const formatted = priceNum.toLocaleString('en-GB');
 
-        if (priceType === 'pcm') return `${formatted} PCM`;
-        if (priceType === 'sale') return formatted;
-        return `${formatted} PA`;
+        if (priceType === 'sale') return `£${formatted}`;
+        if (priceType === 'pcm' || priceType === 'lease') return `£${formatted}/PCM`;
+        return `£${formatted}/PA`;
     }, []);
 
     // Helper function to format area

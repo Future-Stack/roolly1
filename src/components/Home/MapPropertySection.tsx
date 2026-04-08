@@ -6,7 +6,7 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-l
 import L from 'leaflet';
 import type { LatLngExpression } from "leaflet";
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
-import { Search, MapPin, X, Navigation, Home, Building2, ExternalLink, CornerUpRight } from 'lucide-react';
+import { Search, MapPin, X, Navigation, Building2, ExternalLink, CornerUpRight } from 'lucide-react';
 
 const coordinateLookup: Record<string, [number, number]> = {
   'London': [51.5074, -0.1278],
@@ -59,7 +59,7 @@ const BoundsHandler: React.FC<{ positions: LatLngExpression[] }> = ({ positions 
   useEffect(() => {
     if (positions.length > 0) {
       const bounds = L.latLngBounds(positions);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
     }
   }, [positions, map]);
 
@@ -201,23 +201,23 @@ const MapPropertySection: React.FC = () => {
                 {selectedProperty.property_name}
               </h2>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                {/* <div className="flex items-center gap-1.5 text-gray-600">
+                   <Home size={16} className="text-[#126AD8]" />
+                   <span>{parseInt(selectedProperty.built_area)} Sqft</span> 
+                </div> */}
                 <div className="flex items-center gap-1.5 text-gray-600">
-                  <Home size={16} className="text-[#126AD8]" />
-                  <span>{parseInt(selectedProperty.built_area)} Sqft</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-gray-600 border-l border-gray-200 pl-4">
                   <MapPin size={16} className="text-[#126AD8]" />
-                  <span>{selectedProperty.location} ({selectedProperty.postcode})</span>
+                  <span>{selectedProperty.location}</span>
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[22px] font-bold text-[#126AD8]">
+              {/* <p className="text-[22px] font-bold text-[#126AD8]">
                 £{selectedProperty.price}
                 <span className="text-sm font-semibold ml-1">
                   {selectedProperty.price_type === 'pcm' ? '/PCM' : selectedProperty.price_type === 'pa' ? '/PA' : ''}
                 </span>
-              </p>
+              </p> */}
               <button 
                 onClick={() => setSelectedProperty(null)}
                 className="text-xs font-medium text-gray-400 hover:text-red-500 transition-colors"
@@ -255,7 +255,7 @@ const MapPropertySection: React.FC = () => {
             
             <div className="flex-1 min-w-0 pr-1">
               <p className="text-[13px] font-semibold text-gray-800 truncate leading-tight font-outfit">
-                {selectedProperty ? `${selectedProperty.location}, ${selectedProperty.postcode}` : 'Explore Featured Properties'}
+                {selectedProperty ? `${selectedProperty.location}` : 'Explore Featured Properties'}
               </p>
               <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1 font-outfit">
                 {selectedProperty ? 'Property selected' : 'No selection'} • UK

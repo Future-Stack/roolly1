@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useGetAllBrokerPropertyQuery } from '@/redux/features/broker/property/getAllVendorPropertyApi';
 import { useDeleteBrokerPropertyMutation } from '@/redux/features/broker/property/deleteBrokerPropertyApi';
+import { useMarkAsListedMutation } from '@/redux/features/broker/property/markAsListedApi';
 
 interface Property {
   id: number;
@@ -81,6 +82,7 @@ const PropertyManagement: React.FC = () => {
   });
 
   const [deleteProperty, { isLoading: isDeleting }] = useDeleteBrokerPropertyMutation();
+  const [markAsListed, { isLoading: isMarking }] = useMarkAsListedMutation();
 
   const propertiesData = apiResponse as ApiResponse | undefined;
   console.log(propertiesData)
@@ -129,6 +131,18 @@ const PropertyManagement: React.FC = () => {
     } catch (error: any) {
       console.error('Delete error:', error);
       setDeleteError(error?.data?.message || 'Failed to delete property. Please try again.');
+    }
+  };
+
+  // Mark property as listed
+  const handleMarkAsListed = async (id: number) => {
+    try {
+      await markAsListed(id).unwrap();
+      toast.success('Property marked as listed successfully!');
+      refetch();
+    } catch (error: any) {
+      console.error('Mark as listed error:', error);
+      toast.error(error?.data?.message || 'Failed to mark property as listed.');
     }
   };
 
@@ -234,14 +248,25 @@ const PropertyManagement: React.FC = () => {
                   {/* Price and Status */}
                   <div className="flex items-center justify-between mb-3 mt-4">
                     <span className="text-[24px] font-bold text-[#126AD8]">
-                      {property.price_type === "sale" ? `£${property.price}` : property.price_type === "pcm" ? `£${property.price}/PCM` : `£${property.price}/PA`}
+                      {property.price_type === "sale" ? `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? `£${parseInt(property.price).toLocaleString()}/PCM` : `£${parseInt(property.price).toLocaleString()}/PA`}
                       {/* { 
                         property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/PCM` : `£${property.pa}/PA`} */}
                     </span>
-                    <span className={`flex items-center gap-1.5 text-[13px] font-medium ${!property.occupied ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
-                      <span className={`w-2 h-2 rounded-full ${!property.occupied ? 'bg-green-600' : 'bg-gray-400'}`}></span>
-                      {!property.occupied ? 'Available' : property.transaction === 'lease' ? 'Rented' : 'Occupied'}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`flex items-center gap-1.5 text-[13px] font-medium ${!property.occupied ? 'text-[#0C7233] bg-[#C8FFDD]' : 'text-[#82868A] bg-[#F5F6F7]'} p-1.5 rounded-2xl`}>
+                        <span className={`w-2 h-2 rounded-full ${!property.occupied ? 'bg-green-600' : 'bg-gray-400'}`}></span>
+                        {!property.occupied ? 'Available' : property.transaction === 'lease' ? 'Rented' : 'Occupied'}
+                      </span>
+                      {property.transaction === 'lease' && property.occupied && (
+                        <button
+                          onClick={() => handleMarkAsListed(property.id)}
+                          disabled={isMarking}
+                          className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 transition-colors disabled:opacity-50"
+                        >
+                          {isMarking ? 'Listing...' : 'List Again'}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* border */}

@@ -554,7 +554,7 @@ const AdminLeads = () => {
                                 {/* Details Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-5">
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Business Type</p>
+                                        <p className="text-sm text-gray-500 mb-1">Property Type</p>
                                         <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
                                     </div>
                                     <div>

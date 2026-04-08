@@ -208,7 +208,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                     <div className="md:col-span-3">
                         <div className="text-[13px] text-gray-500 mb-1">Estimated Price</div>
                         <div className="text-[15px] text-gray-900 font-normal">
-                            {property.price_type === "sale" ? `£${property.price}` : property.price_type === "pcm" ? `£${property.price}/PCM` : `£${property.price}/PA`}
+                            {property.price_type === "sale" ? `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? `£${parseInt(property.price).toLocaleString()}/PCM` : `£${parseInt(property.price).toLocaleString()}/PA`}
 
                         </div>
                     </div>
