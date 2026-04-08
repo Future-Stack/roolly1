@@ -42,6 +42,8 @@ import PropertyDetails from "@/pages/Users/PropertyDetails/PropertyDetails";
 import PrivacyPolicy from "@/components/Home/PrivecyPolicy";
 import Terms from "@/components/Home/Terms";
 import RiskProfileInformation from "@/components/brokerDashboard/BrokerProperty/RiskProfileInformation";
+import CreateAdminLead from "@/pages/AdminDashboard/AdminLeads/CreateAdminLead";
+
 
 
 
@@ -246,6 +248,10 @@ const routes = createBrowserRouter([
       {
         path: 'leads',
         element: <AdminLeads />
+      },
+      {
+        path: 'create-lead',
+        element: <CreateAdminLead />
       },
       {
         path: 'property',

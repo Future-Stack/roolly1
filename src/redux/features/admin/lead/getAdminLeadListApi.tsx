@@ -3,7 +3,7 @@ import { baseApi } from "@/redux/api/baseApi";
 
 const getAdminLeadListApi = baseApi.injectEndpoints({
     endpoints : (builder) => ({
-       getAdminLeadList: builder.query({
+        getAdminLeadList: builder.query({
             query : (params?: {
                 search?: string;
                 lead_status?: string;
@@ -14,13 +14,15 @@ const getAdminLeadListApi = baseApi.injectEndpoints({
                 url : '/admin/leads-list/',
                 method: 'GET',
                 params: params 
-            })
+            }),
+            providesTags: ['Leads']
         }),
         getAdminLeadDetail: builder.query({
             query : () => ({
                 url : `/admin/leads-overview/`,
                 method: 'GET',
-            })
+            }),
+            providesTags: ['Leads']
         })
     }),
 })

@@ -1,8 +1,11 @@
 import Pagination from '@/components/ui/Pagination';
+import { useNavigate } from 'react-router-dom';
+
 import { useGetAdminLeadDetailQuery, useGetAdminLeadListQuery } from '@/redux/features/admin/lead/getAdminLeadListApi';
 import { useDeleteAdminLeadMutation } from '@/redux/features/admin/lead/deleteAdminLeadApi';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import { Anchor, ArrowDown, Calendar,  Clock, Clock3, Info, Mail, MapPin, MoreVertical, Phone, Search, ShoppingBag,  User, } from 'lucide-react';
+import { Anchor, ArrowDown, Calendar, Clock, Clock3, Info, Mail, MapPin, MoreVertical, Phone, Plus, Search, ShoppingBag, User, } from 'lucide-react';
+
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 
@@ -88,7 +91,9 @@ const SOURCE_OPTIONS = [
 ];
 
 const AdminLeads = () => {
+    const navigate = useNavigate();
     const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+
     const [assignmentFilterOpen, setAssignmentFilterOpen] = useState(false);
     const [sourceFilterOpen, setSourceFilterOpen] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState('All');
@@ -343,9 +348,21 @@ const AdminLeads = () => {
 
     return (
         <div onClick={closeAllDropdowns}>
-            <div className="mb-6">
-                <h1 className='font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-2'>Dashboard Overview</h1>
-                <p className='text-sm sm:text-base text-gray-600'>Welcome back! Here's what's happening with your platform today.</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h1 className='font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 mb-2'>Dashboard Overview</h1>
+                    <p className='text-sm sm:text-base text-gray-600'>Welcome back! Here's what's happening with your platform today.</p>
+                </div>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/admin-dashboard/create-lead');
+                    }}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-sm"
+                >
+                    <Plus className="w-5 h-5" />
+                    New Lead
+                </button>
             </div>
             <div className='bg-[#F8FAFC] p-2 rounded-lg'>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
