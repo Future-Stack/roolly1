@@ -6,7 +6,8 @@ import { Mutex } from "async-mutex";
 
 const mutex = new Mutex();
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.BASE_URL || "https://broker360re.com/api/v1",
+  baseUrl:"https://broker360re.com/api/v1",
+  // baseUrl: import.meta.env.BASE_URL || "https://broker360re.com/api/v1",
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.token;
     if (token) {
