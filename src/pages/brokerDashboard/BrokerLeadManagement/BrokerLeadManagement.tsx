@@ -410,8 +410,8 @@ const BrokerLeadManagement: React.FC = () => {
                     <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4 text-sm text-gray-900">#{lead.id}</td>
                       <td className="px-4 py-4 text-sm text-gray-900">{lead.client_name}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{lead.property_name || 'N/A'}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{formatPropertyType(lead.property_type)}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700 capitalize">{lead.property_name || 'N/A'}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700 capitalize">{formatPropertyType(lead.property_type)}</td>
                       <td className="px-4 py-4 text-sm text-gray-700 uppercase">{lead.source}</td>
                       <td className="px-4 py-4 text-sm text-gray-700">{lead.sqft_range || 'N/A'}</td>
                       <td className="px-4 py-4 text-sm text-gray-700">{lead.location || 'N/A'}</td>

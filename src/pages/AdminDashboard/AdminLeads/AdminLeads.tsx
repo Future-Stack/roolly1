@@ -18,7 +18,7 @@ interface Lead {
     propertyName: string;
     timeAgo: string;
     date: string;
-    businessType: string;
+    propertyType: string;
     budget: string;
     source: string;
     phone: string;
@@ -227,7 +227,7 @@ const AdminLeads = () => {
                     propertyName: apiLead.property ? apiLead.property.property_name : 'No property selected',
                     timeAgo: formatTimeAgo(apiLead.created_at),
                     date: formatDate(apiLead.created_at),
-                    businessType: 'Consulting', // Default or from API if available
+                    propertyType: apiLead.property?.property_type || 'Not specified', // Default or from API if available
                     budget: apiLead.sqft_range ? apiLead.sqft_range : 'Not specified',
                     source: apiLead.source || 'Unknown',
                     phone: apiLead.phone_number || 'N/A',
@@ -571,8 +571,8 @@ const AdminLeads = () => {
                                 {/* Details Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-5">
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Property Type</p>
-                                        <p className="text-sm text-gray-900 font-normal">{lead.businessType}</p>
+                                        <p className="text-sm text-gray-500 mb-1 capitalize">Property Type</p>
+                                        <p className="text-sm text-gray-900 font-normal capitalize">{lead.propertyType}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Sqft Range</p>

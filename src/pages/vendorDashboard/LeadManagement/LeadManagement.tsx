@@ -191,7 +191,7 @@ const LeadManagement: React.FC = () => {
                             >
                                 <td className="px-6 py-5 text-[15px] text-gray-900 font-normal whitespace-nowrap">{lead.id}</td>
                                 <td className="px-6 py-5 text-[15px] text-gray-900 font-normal whitespace-nowrap">{lead.client_name}</td>
-                                <td className="px-6 py-5 text-[15px] text-gray-900 font-normal">{lead.property_name}</td>
+                                <td className="px-6 py-5 text-[15px] text-gray-900 font-normal capitalize">{lead.property_name}</td>
                                 <td className="px-6 py-5 text-[15px] text-gray-900 font-normal capitalize whitespace-nowrap">{lead.property_type}</td>
                                 <td className="px-6 py-5 text-[15px] text-gray-900 font-normal whitespace-nowrap">{lead.sqft_range}</td>
                                 <td className="px-6 py-5 text-[15px] text-gray-900 font-normal whitespace-nowrap">{lead.location}</td>
