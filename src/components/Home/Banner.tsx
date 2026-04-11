@@ -11,11 +11,13 @@ const Banner: React.FC = () => {
   const [transaction, setTransaction] = useState('');
   const [sqft, setSqft] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [radius, setRadius] = useState('50');
 
   // Dropdown open states
   const [isPropertyOpen, setIsPropertyOpen] = useState(false);
   const [isTransactionOpen, setIsTransactionOpen] = useState(false);
   const [isSqftOpen, setIsSqftOpen] = useState(false);
+  const [isRadiusOpen, setIsRadiusOpen] = useState(false);
 
   // Options
   const propertyOptions = [
@@ -41,6 +43,16 @@ const Banner: React.FC = () => {
     { label: '30,000-60,000 sq ft', gte: 30000, lte: 60000 },
     { label: '60,000+ sq ft', gte: 60000, lte: null },
   ];
+
+  // const radiusOptions = [
+  //   { label: '+ 1 Mile', value: '1' },
+  //   { label: '+ 3 Miles', value: '3' },
+  //   { label: '+ 5 Miles', value: '5' },
+  //   { label: '+ 10 Miles', value: '10' },
+  //   { label: '+ 20 Miles', value: '20' },
+  //   { label: '+ 50 Miles', value: '50' },
+  //   { label: '+ 100 Miles', value: '100' },
+  // ];
 
   const handleSearch = () => {
     const queryParams = new URLSearchParams();
@@ -79,6 +91,10 @@ const Banner: React.FC = () => {
       }
     }
 
+    // Add radius (default 50)
+    if (radius) {
+      queryParams.append('radius', radius);
+    }
 
     queryParams.append('page', '1');
 
@@ -89,6 +105,7 @@ const Banner: React.FC = () => {
     setIsPropertyOpen(false);
     setIsTransactionOpen(false);
     setIsSqftOpen(false);
+    setIsRadiusOpen(false);
   };
 
   const getPropertyValue = (label: string) => {
@@ -172,6 +189,7 @@ const Banner: React.FC = () => {
                   setIsPropertyOpen(!isPropertyOpen);
                   setIsTransactionOpen(false);
                   setIsSqftOpen(false);
+                  setIsRadiusOpen(false);
                 }}
                 className="flex items-center justify-between px-4 py-3 bg-[#ECEDEE] border border-gray-200 rounded-xl cursor-pointer transition-colors"
               >
@@ -209,6 +227,7 @@ const Banner: React.FC = () => {
                   setIsTransactionOpen(!isTransactionOpen);
                   setIsPropertyOpen(false);
                   setIsSqftOpen(false);
+                  setIsRadiusOpen(false);
                 }}
                 className="flex items-center justify-between px-4 py-3 bg-[#ECEDEE] border border-gray-200 rounded-xl cursor-pointer transition-colors"
               >
@@ -246,6 +265,7 @@ const Banner: React.FC = () => {
                   setIsSqftOpen(!isSqftOpen);
                   setIsPropertyOpen(false);
                   setIsTransactionOpen(false);
+                  setIsRadiusOpen(false);
                 }}
                 className="flex items-center justify-between px-4 py-3 bg-[#ECEDEE] border border-gray-200 rounded-xl cursor-pointer transition-colors"
               >
@@ -272,6 +292,42 @@ const Banner: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Radius Dropdown */}
+            {/* <div className="flex-1 min-w-[120px] relative">
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsRadiusOpen(!isRadiusOpen);
+                  setIsPropertyOpen(false);
+                  setIsTransactionOpen(false);
+                  setIsSqftOpen(false);
+                }}
+                className="flex items-center justify-between px-4 py-3 bg-[#ECEDEE] border border-gray-200 rounded-xl cursor-pointer transition-colors"
+              >
+                <span className="text-sm text-[#82868A]">{radius || 'Radius'}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" viewBox="0 0 10 5" fill="none">
+                  <path d="M0 0L5 5L10 0H0Z" fill="#444A50" />
+                </svg>
+              </div>
+              {isRadiusOpen && (
+                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl mt-1 shadow-lg z-20">
+                  {radiusOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRadius(option.label);
+                        setIsRadiusOpen(false);
+                      }}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
+                      {option.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div> */}
 
             {/* Search Button */}
             <div className="w-full lg:w-32">
@@ -335,6 +391,17 @@ const Banner: React.FC = () => {
                   </button>
                 </span>
               )}
+              {/* {radius && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs">
+                  Radius: {radius}
+                  <button
+                    onClick={() => setRadius('')}
+                    className="text-rose-500 hover:text-rose-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}  */}
             </div>
           )}
         </div>

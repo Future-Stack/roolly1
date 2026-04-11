@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useAppSelector} from '@/redux/hook';
+import { selectCurrentRole } from '@/redux/features/auth/authSlice';
 import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';
+import { useDispatch } from 'react-redux';
 
 interface PropertyImage {
   image: string;
@@ -81,6 +83,9 @@ const HomePropertyDetails: React.FC = () => {
   const { data: propertyData, isLoading, error } = useGetUserPropertyDetailsQuery(id);
 
   const property: PropertyDetails | undefined = propertyData;
+  const role = useAppSelector(selectCurrentRole);
+  const canSeePrice = role === 'ADMIN' || role === 'BROKER' || role === 'VENDOR';
+
   console.log(property);
 
   useEffect(() => {
@@ -166,7 +171,11 @@ const HomePropertyDetails: React.FC = () => {
             </h2>
 
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              {property.price_type === "sale" ? `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? `£${parseInt(property.price).toLocaleString()}/PCM` : `£${parseInt(property.price).toLocaleString()}/PA`}
+              {canSeePrice ? (
+                property.price_type === "sale" ? "Price: " + `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${parseInt(property.price).toLocaleString()}/PCM` : "Price: " + `£${parseInt(property.price).toLocaleString()}/PA`
+              ) : (
+                'POA'
+              )}
             </p>
             {property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>}
             {property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}
@@ -517,7 +526,7 @@ const HomePropertyDetails: React.FC = () => {
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[#126AD8] font-semibold text-2xl">
+                    <span className="text-[#126AD8] font-semibold text-2xl capitalize">
                       {relProperty.property_type}
                     </span>
                     <div className="flex items-center bg-[#C8FFDD] py-1 px-2 rounded-[20px]">

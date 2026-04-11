@@ -311,43 +311,43 @@ const PropertyEdit: React.FC = () => {
     //         setBrochureVideoFile(file);
     //     }
     // };
-        const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-    
-            if (file.type !== 'application/pdf') {
-                toast.error('Invalid file type. Please upload a PDF file.');
-                e.target.value = '';
-                return;
-            }
-            const maxSizeMB = 10;
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`PDF file must be smaller than ${maxSizeMB}MB.`);
-                e.target.value = '';
-                return;
-            }
-            setBrochurePdfFile(file);
-            // toast.success(`PDF selected: ${file.name}`);
-        };
-    
-        const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-    
-            if (!file.type.startsWith('video/')) {
-                toast.error('Invalid file type. Please upload a video file.');
-                e.target.value = '';
-                return;
-            }
-            const maxSizeMB = 100;
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`Video file must be smaller than ${maxSizeMB}MB.`);
-                e.target.value = '';
-                return;
-            }
-            setBrochureVideoFile(file);
-            // toast.success(`Video selected: ${file.name}`);
-        };
+    const handleBrochurePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            toast.error('Invalid file type. Please upload a PDF file.');
+            e.target.value = '';
+            return;
+        }
+        const maxSizeMB = 10;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast.error(`PDF file must be smaller than ${maxSizeMB}MB.`);
+            e.target.value = '';
+            return;
+        }
+        setBrochurePdfFile(file);
+        // toast.success(`PDF selected: ${file.name}`);
+    };
+
+    const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('video/')) {
+            toast.error('Invalid file type. Please upload a video file.');
+            e.target.value = '';
+            return;
+        }
+        const maxSizeMB = 100;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast.error(`Video file must be smaller than ${maxSizeMB}MB.`);
+            e.target.value = '';
+            return;
+        }
+        setBrochureVideoFile(file);
+        // toast.success(`Video selected: ${file.name}`);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -356,7 +356,7 @@ const PropertyEdit: React.FC = () => {
         if (!formData.property_name) {
             toast.error('Property name is required');
             return;
-        } 
+        }
         if (!formData.postcode) {
             toast.error('Postcode is required');
             return;
@@ -378,7 +378,7 @@ const PropertyEdit: React.FC = () => {
             toast.error('Price is required');
             return;
         }
-         if (!formData.location_description) {
+        if (!formData.location_description) {
             toast.error('Location description is required');
             return;
         }
@@ -625,7 +625,7 @@ const PropertyEdit: React.FC = () => {
                                     />
                                 </div>
 
-                                 {/* Rent or purchase estimated price */}
+                                {/* Rent or purchase estimated price */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <label className="block text-base text-gray-900">
@@ -660,45 +660,45 @@ const PropertyEdit: React.FC = () => {
 
                                     {/* PCM / PA Selection */}
 
-                                   {/* PCM / PA Selection */}
+                                    {/* PCM / PA Selection */}
                                     {formData.transaction === 'lease' && (
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="price_type"
-                                                value="pcm"
-                                                checked={formData.price_type === 'pcm'}
-                                                onChange={() => {
-                                                    setFormData(prev => ({ ...prev, price: '', price_type: 'pcm' }));
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="price_type"
+                                                    value="pcm"
+                                                    checked={formData.price_type === 'pcm'}
+                                                    onChange={() => {
+                                                        setFormData(prev => ({ ...prev, price: '', price_type: 'pcm' }));
+                                                    }}
+                                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">PCM (Per Month)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="price_type"
+                                                    value="pa"
+                                                    checked={formData.price_type === 'pa'}
+                                                    onChange={() => {
+                                                        setFormData(prev => ({ ...prev, price: '', price_type: 'pa' }));
+                                                    }}
+                                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">PA (Per Annum)</span>
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, price: '', price_type: '' }));
                                                 }}
-                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm text-gray-700">PCM (Per Month)</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="price_type"
-                                                value="pa"
-                                                checked={formData.price_type === 'pa'}
-                                                onChange={() => {
-                                                    setFormData(prev => ({ ...prev, price: '', price_type: 'pa' }));
-                                                }}
-                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm text-gray-700">PA (Per Annum)</span>
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setFormData(prev => ({ ...prev, price: '', price_type: '' }));
-                                            }}
-                                            className="text-xs text-blue-600 hover:underline"
-                                        >
-                                            Clear
-                                        </button>
-                                    </div>
+                                                className="text-xs text-blue-600 hover:underline"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
                                     )}
 
                                 </div>

@@ -528,39 +528,39 @@ const AddProperty: React.FC = () => {
 
                                     {/* PCM / PA Selection */}
                                     {formData.transaction === 'lease' && (
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="price_type"
-                                                value="pcm"
-                                                checked={formData.price_type === 'pcm'}
-                                                onChange={(e) => handleInputChange(e as any)}
-                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm text-gray-700">PCM (Per Month)</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="price_type"
-                                                value="pa"
-                                                checked={formData.price_type === 'pa'}
-                                                onChange={(e) => handleInputChange(e as any)}
-                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm text-gray-700">PA (Per Annum)</span>
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setFormData(prev => ({ ...prev, price_type: '' }));
-                                            }}
-                                            className="text-xs text-blue-600 hover:underline"
-                                        >
-                                            Clear
-                                        </button>
-                                    </div>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="price_type"
+                                                    value="pcm"
+                                                    checked={formData.price_type === 'pcm'}
+                                                    onChange={(e) => handleInputChange(e as any)}
+                                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">PCM (Per Month)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="price_type"
+                                                    value="pa"
+                                                    checked={formData.price_type === 'pa'}
+                                                    onChange={(e) => handleInputChange(e as any)}
+                                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">PA (Per Annum)</span>
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, price_type: '' }));
+                                                }}
+                                                className="text-xs text-blue-600 hover:underline"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 

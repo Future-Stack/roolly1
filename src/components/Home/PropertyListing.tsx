@@ -1,5 +1,5 @@
 // import { useFeaturedPropertyQuery } from '@/redux/features/users/featuredPropertyApi';
-import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
+// useGetAllUsersPropertyQuery removed as data comes from parent
 import { Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -109,97 +109,43 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
 interface PropertyListingProps {
   search?: string;
+  properties?: any[];
+  isLoading?: boolean;
+  radius?: number;
+  onRadiusChange?: (radius: number) => void;
 }
 
-const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
-  const { data: featuredProperty, isLoading } = useGetAllUsersPropertyQuery({
-    page_size: 100
-  });
-
-  // console.log(featuredProperty, "featuredProperty")
-
+const PropertyListing: React.FC<PropertyListingProps> = ({
+  search,
+  properties: passedProperties = [],
+  isLoading = false,
+  radius,
+  onRadiusChange
+}) => {
+  // query map handled in parent if properties are passed
   // Helper function to get random image
   const getRandomImage = (propertyId: number) => {
     return randomImages[propertyId % randomImages.length];
   };
 
-  // // Helper function to generate random price based on property type
-  // const generatePrice = (propertyType: string, transaction: string): number => {
-  //   const basePrices: Record<string, number> = {
-  //     industrial: transaction === 'sale' ? 500000 : 5000,
-  //     office: transaction === 'sale' ? 300000 : 3000,
-  //     retail: transaction === 'sale' ? 200000 : 2000,
-  //     land: transaction === 'sale' ? 150000 : 1500,
-  //     house: transaction === 'sale' ? 400000 : 4000,
-  //   };
-
-  //   const basePrice = basePrices[propertyType] || 250000;
-  //   const randomFactor = 0.8 + Math.random() * 0.4;
-  //   return Math.round(basePrice * randomFactor);
-  // };
-
-  // // Helper function to generate random features
-  // const generateRandomFeatures = (propertyType: string) => {
-  //   if (propertyType === 'land') {
-  //     return { bedrooms: 0, bathrooms: 0, privatePool: 0 };
-  //   }
-
-  //   const bedrooms = propertyType === 'house' ?
-  //     Math.floor(Math.random() * 4) + 2 :
-  //     Math.floor(Math.random() * 3) + 1;
-
-  //   const bathrooms = Math.floor(Math.random() * 3) + 1;
-  //   const privatePool = Math.floor(Math.random() * 2);
-
-  //   return { bedrooms, bathrooms, privatePool };
-  // };
-
   // Transform API data to component data
   const transformProperties = () => {
-    if (!featuredProperty) return [];
-
-    const propertiesList = Array.isArray(featuredProperty)
-      ? featuredProperty
-      : (featuredProperty as any)?.results;
+    let propertiesList = Array.isArray(passedProperties)
+      ? passedProperties
+      : (passedProperties as any)?.results || [];
 
     if (!Array.isArray(propertiesList)) return [];
 
-    // ✅ Filter by location properly
-
-    const filteredList = search
-      ? propertiesList
-        .filter((property: any) => {
-          const loc = property.location?.toLowerCase() || "";
-          if (search === 'Others') {
-            const knownLocations = [
-              'London', 'Manchester', 'Liverpool', 'Birmingham', 'Leeds', 'Sheffield',
-              'Glasgow', 'Edinburgh', 'Cardiff', 'Belfast', 'Lancashire', 'North Wales',
-              'South Wales', 'West Midlands', 'East Midlands', 'North East England',
-              'North West England', 'South East England', 'South West England',
-              'Yorkshire and the Humber', 'Scotland', 'Wales', 'Northern Ireland',
-              'UK', 'Bangladesh', 'Dhaka', 'Mirpur', 'Dhanmondi', 'Uttara',
-              'Gulshan', 'Banani', 'Mohammadpur'
-            ];
-            return !knownLocations.some(k => loc.includes(k.toLowerCase()));
-          }
-          return loc.includes(search.toLowerCase());
-        })
-      : propertiesList.slice(0, 4); // Limit to 4 for general view
+    // Limit to 4 for general view if no search
+    const filteredList = search ? propertiesList : propertiesList.slice(0, 4);
 
     return filteredList.map((property: any) => {
-      // const price = generatePrice(property.property_type, property.transaction);
-      // const features = generateRandomFeatures(property.property_type);
-
       return {
         id: property.id,
         image: getFullImageUrl(property.image) || getRandomImage(property.id),
-        // price: price,
         period: property.transaction === 'sale' ? 'total' : 'month',
         title: property.property_name,
         address: property.location,
-        // bedrooms: features.bedrooms,
-        // bathrooms: features.bathrooms,
-        // privatePool: features.privatePool,
         forRent: property.transaction === 'lease',
       };
     });
@@ -238,7 +184,23 @@ const PropertyListing: React.FC<PropertyListingProps> = ({ search }) => {
             {search ? `Properties in ${search}` : "Perfect Commercial Space Is Just a Pin Away"}
           </h1>
           {search && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Radius:</span>
+                <select
+                  value={radius || 5}
+                  onChange={(e) => onRadiusChange?.(Number(e.target.value))}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-outfit"
+                >
+                  <option value={1}>1 Mile</option>
+                  <option value={3}>3 Miles</option>
+                  <option value={5}>5 Miles</option>
+                  <option value={10}>10 Miles</option>
+                  <option value={20}>20 Miles</option>
+                  <option value={50}>50 Miles</option>
+                  <option value={100}>100 Miles</option>
+                </select>
+              </div>
               <span className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100 whitespace-nowrap">
                 {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
               </span>

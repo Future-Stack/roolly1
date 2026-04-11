@@ -74,7 +74,23 @@ const MapPropertySection: React.FC = () => {
   const [showStreetView, setShowStreetView] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   
-  const { data: propertiesData } = useGetAllUsersPropertyQuery({ page_size: 100 });
+  // Radius Search States
+  const [searchCenter, setSearchCenter] = useState<[number, number] | null>(null);
+  const [searchRadius, setSearchRadius] = useState<number>(5); // default 5 miles
+  
+  const { data: propertiesData, isLoading: propsLoading } = useGetAllUsersPropertyQuery({ page_size: 100 });
+
+  // Haversine formula in miles
+  const getDistanceMiles = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
   // Dynamic Geocoding Logic
   useEffect(() => {
@@ -157,11 +173,23 @@ const MapPropertySection: React.FC = () => {
 
   const filteredProperties = useMemo(() => {
     if (!selectedLocation) return propertiesWithPositions;
+    
+    if (searchCenter) {
+      return propertiesWithPositions.filter(p => {
+        const pos = p.position as [number, number];
+        const dist = getDistanceMiles(searchCenter[0], searchCenter[1], pos[0], pos[1]);
+        if (dist <= searchRadius) return true;
+        // fallback to text match just in case
+        return (p.location || "").toLowerCase().includes(selectedLocation.toLowerCase()) ||
+               (p.matchedArea || "").toLowerCase().includes(selectedLocation.toLowerCase());
+      });
+    }
+
     return propertiesWithPositions.filter(p => 
       (p.location || "").toLowerCase().includes(selectedLocation.toLowerCase()) ||
       (p.matchedArea || "").toLowerCase().includes(selectedLocation.toLowerCase())
     );
-  }, [selectedLocation, propertiesWithPositions]);
+  }, [selectedLocation, searchCenter, searchRadius, propertiesWithPositions]);
 
   const allPositions = useMemo(() =>
     filteredProperties.map(p => p.position as LatLngExpression),
@@ -181,11 +209,34 @@ const MapPropertySection: React.FC = () => {
 
   const streetViewUrl = `https://maps.google.com/maps?q=${encodeURIComponent(streetViewQuery)}&layer=c&cbll=${encodeURIComponent(streetViewQuery)}&cbp=12,0,0,0,0&output=svembed`;
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
-      setSelectedLocation(searchInput.trim());
+      const q = searchInput.trim();
+      setSelectedLocation(q);
       setSearchInput("");
+      
+      const areaKey = Object.keys(coordinateLookup).find(k => k.toLowerCase() === q.toLowerCase());
+      if (areaKey) {
+        setSearchCenter(coordinateLookup[areaKey]);
+        return;
+      }
+      
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=gb,bd`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setSearchCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          return;
+        }
+      } catch (err) {
+        console.warn("Geocoding lookup failed", err);
+      }
+      
+      // Fallback
+      const match = propertiesWithPositions.find(p => (p.location || "").toLowerCase().includes(q.toLowerCase()));
+      if (match) setSearchCenter(match.position as [number, number]);
+      else setSearchCenter(null);
     }
   };
 
@@ -332,6 +383,7 @@ const MapPropertySection: React.FC = () => {
                     eventHandlers={{
                       click: () => {
                         setSelectedLocation(prop.matchedArea !== "Unknown" ? prop.matchedArea : prop.location);
+                        setSearchCenter(prop.position as [number, number]);
                         setSelectedProperty(prop);
                       },
                     }}
@@ -381,6 +433,7 @@ const MapPropertySection: React.FC = () => {
               <button
                 onClick={() => {
                   setSelectedLocation(undefined);
+                  setSearchCenter(null);
                   setSelectedProperty(null);
                 }}
                 className="text-xs font-semibold text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors bg-red-50 px-2.5 py-1.5 rounded-md border border-red-100"
@@ -390,7 +443,13 @@ const MapPropertySection: React.FC = () => {
             </div>
           )}
           <div className="w-full h-full overflow-y-auto max-h-[730px] custom-scrollbar">
-            <PropertyListing search={selectedLocation} />
+            <PropertyListing 
+              search={selectedLocation} 
+              properties={filteredProperties}
+              isLoading={propsLoading}
+              radius={searchRadius}
+              onRadiusChange={setSearchRadius}
+            />
           </div>
         </div>
 

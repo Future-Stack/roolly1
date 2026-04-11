@@ -60,7 +60,7 @@ interface PropertyFormData {
     existing_images: string;
     phone_number: string;
     whatsapp_number: string;
-    email:string;
+    email: string;
     service_charge: string;
     insurance: string;
     business_rates: string;
@@ -76,7 +76,7 @@ const UpdateVendorProperty: React.FC = () => {
     const { data: propertyData, isLoading: isLoadingProperty } = useGetSinglePropertyQuery(id);
     console.log(propertyData)
     const { data: vendorsData } = useGetVendorListQuery({});
-    
+
     console.log(propertyData)
 
     const [formData, setFormData] = useState<PropertyFormData>({
@@ -118,7 +118,7 @@ const UpdateVendorProperty: React.FC = () => {
         existing_images: '',
         phone_number: '',
         whatsapp_number: '',
-        email:'',
+        email: '',
         service_charge: '',
         insurance: '',
         business_rates: '',
@@ -184,7 +184,7 @@ const UpdateVendorProperty: React.FC = () => {
                 existing_images: propertyData.existing_images || '',
                 phone_number: propertyData.phone_number || '',
                 whatsapp_number: propertyData.whatsapp_number || '',
-                email:propertyData.email || '',
+                email: propertyData.email || '',
                 service_charge: propertyData.service_charge || '',
                 insurance: propertyData.insurance || '',
                 business_rates: propertyData.business_rates || '',
@@ -345,50 +345,50 @@ const UpdateVendorProperty: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.property_name) {
-                    toast.error('Property name is required');
-                    return;
-                } 
-                if (!formData.postcode) {
-                    toast.error('Postcode is required');
-                    return;
-                }
-        
-                if (!formData.location) {
-                    toast.error('Location is required');
-                    return;
-                }
-                if (!formData.property_type) {
-                    toast.error('Property type is required');
-                    return;
-                }
-                if (!formData.transaction) {
-                    toast.error('Transaction type is required');
-                    return;
-                }
-                if (!formData.price?.trim()) {
-                    toast.error('Price is required');
-                    return;
-                }
-                 if (!formData.location_description) {
-                    toast.error('Location description is required');
-                    return;
-                }
-                if (!formData.built_area) {
-                    toast.error('Built area is required');
-                    return;
-                }
-                if (!formData.email) {
-                    toast.error('Email is required');
-                    return;
-                }
-                if (!formData.whatsapp_number ) {
-                    toast.error('Whatsapp number is required');
-                    return;
-                }
-                if (!formData.phone_number) {
-                    toast.error('Phone number is required');
-                    return;
-                }
+            toast.error('Property name is required');
+            return;
+        }
+        if (!formData.postcode) {
+            toast.error('Postcode is required');
+            return;
+        }
+
+        if (!formData.location) {
+            toast.error('Location is required');
+            return;
+        }
+        if (!formData.property_type) {
+            toast.error('Property type is required');
+            return;
+        }
+        if (!formData.transaction) {
+            toast.error('Transaction type is required');
+            return;
+        }
+        if (!formData.price?.trim()) {
+            toast.error('Price is required');
+            return;
+        }
+        if (!formData.location_description) {
+            toast.error('Location description is required');
+            return;
+        }
+        if (!formData.built_area) {
+            toast.error('Built area is required');
+            return;
+        }
+        if (!formData.email) {
+            toast.error('Email is required');
+            return;
+        }
+        if (!formData.whatsapp_number) {
+            toast.error('Whatsapp number is required');
+            return;
+        }
+        if (!formData.phone_number) {
+            toast.error('Phone number is required');
+            return;
+        }
 
 
         try {
@@ -583,7 +583,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     />
                                 </div>
 
-                                  {/* Rent or purchase estimated price */}
+                                {/* Rent or purchase estimated price */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <label className="block text-base text-gray-900">
@@ -618,43 +618,43 @@ const UpdateVendorProperty: React.FC = () => {
 
                                     {/* PCM / PA Selection */}
                                     {formData.transaction === 'lease' && (
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="price_type"
-                                                value="pcm"
-                                                checked={formData.price_type === 'pcm'}
-                                                onChange={() => {
-                                                    setFormData(prev => ({ ...prev, price_type: 'pcm' }));
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="price_type"
+                                                    value="pcm"
+                                                    checked={formData.price_type === 'pcm'}
+                                                    onChange={() => {
+                                                        setFormData(prev => ({ ...prev, price_type: 'pcm' }));
+                                                    }}
+                                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">PCM (Per Month)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="price_type"
+                                                    value="pa"
+                                                    checked={formData.price_type === 'pa'}
+                                                    onChange={() => {
+                                                        setFormData(prev => ({ ...prev, price_type: 'pa' }));
+                                                    }}
+                                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-700">PA (Per Annum)</span>
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, price_type: 'sale' }));
                                                 }}
-                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm text-gray-700">PCM (Per Month)</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="price_type"
-                                                value="pa"
-                                                checked={formData.price_type === 'pa'}
-                                                onChange={() => {
-                                                    setFormData(prev => ({ ...prev, price_type: 'pa' }));
-                                                }}
-                                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm text-gray-700">PA (Per Annum)</span>
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setFormData(prev => ({ ...prev, price_type: 'sale' }));
-                                            }}
-                                            className="text-xs text-blue-600 hover:underline"
-                                        >
-                                            Reset to Sale
-                                        </button>
-                                    </div>
+                                                className="text-xs text-blue-600 hover:underline"
+                                            >
+                                                Reset to Sale
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
@@ -1081,7 +1081,7 @@ const UpdateVendorProperty: React.FC = () => {
                                 Contact Information
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                
+
                                 <div>
                                     <label className="block text-base text-gray-900 mb-1.5">
                                         Email *
@@ -1110,7 +1110,7 @@ const UpdateVendorProperty: React.FC = () => {
                                         required
                                     />
                                 </div>
-                                
+
 
 
                                 <div>
@@ -1317,7 +1317,7 @@ const UpdateVendorProperty: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>                        
+                        </div>
 
                         <RiskProfileManagementForm
                             vehicleRepairUse={formData.vehicle_repair_use}

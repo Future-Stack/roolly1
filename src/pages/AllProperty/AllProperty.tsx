@@ -1,6 +1,7 @@
 import Pagination from '@/components/ui/Pagination';
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
-import { Building, Home, Store, TreePine, Warehouse } from 'lucide-react';
+import { useAppSelector } from '@/redux/hook';
+import { selectCurrentRole } from '@/redux/features/auth/authSlice';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -39,6 +40,53 @@ interface ApiResponse {
     results: ApiProperty[];
 }
 
+const coordinateLookup: Record<string, [number, number]> = {
+    'London': [51.5074, -0.1278],
+    'Manchester': [53.4808, -2.2426],
+    'Liverpool': [53.4084, -2.9916],
+    'Birmingham': [52.4862, -1.8904],
+    'Leeds': [53.7997, -1.5492],
+    'Sheffield': [53.3811, -1.4701],
+    'Glasgow': [55.8642, -4.2518],
+    'Edinburgh': [55.9533, -3.1883],
+    'Cardiff': [51.4816, -3.1791],
+    'Belfast': [54.5973, -5.9301],
+    'Lancashire': [53.7632, -2.7044],
+    'North Wales': [53.1362, -4.0954],
+    'South Wales': [51.6000, -3.9167],
+    'West Midlands': [52.4862, -1.8904],
+    'East Midlands': [52.8300, -1.3270],
+    'North East England': [54.9783, -1.6178],
+    'North West England': [53.483959, -2.244644],
+    'South East England': [51.3556, -0.5593],
+    'South West England': [51.4545, -2.5879],
+    'Yorkshire and the Humber': [53.9915, -1.5412],
+    'Scotland': [56.4907, -4.2026],
+    'Wales': [52.1307, -3.7837],
+    'Northern Ireland': [54.7877, -6.4923],
+    'UK': [55.3781, -3.4360],
+    'Bangladesh': [23.6850, 90.3563],
+    'Dhaka': [23.8103, 90.4125],
+    'Mirpur': [23.8041, 90.3673],
+    'Dhanmondi': [23.7461, 90.3742],
+    'Uttara': [23.8759, 90.3795],
+    'Gulshan': [23.7925, 90.4078],
+    'Banani': [23.7937, 90.4066],
+    'Mohammadpur': [23.7662, 90.3589],
+};
+
+const getDistanceMiles = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 3958.8; // Radius of earth in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
+
+
 interface QueryParams {
     search?: string;
     property_type?: string | string[];
@@ -63,6 +111,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     price,
     priceType,
 }) => {
+    const role = useAppSelector(selectCurrentRole);
+    const canSeePrice = role === 'ADMIN' || role === 'BROKER' || role === 'VENDOR';
+
     // Get property type icon
     const getPropertyTypeIcon = (type: string) => {
         const icons: Record<string, React.ReactNode> = {
@@ -113,20 +164,27 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                     <span className="truncate">{subtitle}</span>
                 </div>
                 {/* Price display */}
-                {price != null && (
-                    <div className="flex items-center gap-1.5 mb-3">
-                        <span className="text-gray-900 font-bold text-sm">
-                            £{price.toLocaleString()}
-                        </span>
-                        {priceType && (
-                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                                priceType === 'pcm'
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-purple-100 text-purple-700'
-                            }`}>
-                                {priceType.toUpperCase()}
+                {canSeePrice ? (
+                    price != null && (
+                        <div className="flex items-center gap-1.5 mb-3">
+                            <span className="text-gray-900 font-bold text-sm">
+                                £{price.toLocaleString()}
                             </span>
-                        )}
+                            {priceType && (
+                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceType === 'pcm'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-purple-100 text-purple-700'
+                                    }`}>
+                                    {priceType.toUpperCase()}
+                                </span>
+                            )}
+                        </div>
+                    )
+                ) : (
+                    <div className="flex items-center gap-1.5 mb-3">
+                         <span className="text-gray-900 font-bold text-sm">
+                            POA
+                        </span>
                     </div>
                 )}
                 <Link to={`/details/${id}`}>
@@ -144,6 +202,7 @@ const AllProperty: React.FC = () => {
     const queryParams = new URLSearchParams(location.search);
 
     const urlSearch = queryParams.get('search') || '';
+    const urlRadius = queryParams.get('radius') || '50';
     const urlPropertyType = queryParams.get('property_type') || '';
     const urlTransaction = queryParams.get('transaction') as 'sale' | 'lease' || 'sale';
     const urlBuiltAreaGte = queryParams.get('built_area__gte');
@@ -156,7 +215,34 @@ const AllProperty: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalProperties, setTotalProperties] = useState(0);
     const [searchTerm, setSearchTerm] = useState(urlSearch);
+    const [radius, setRadius] = useState<number>(parseInt(urlRadius));
     const [sortBy, setSortBy] = useState('newest');
+
+    const [searchCenter, setSearchCenter] = useState<[number, number] | null>(null);
+
+    // Dynamic Geocoding Logic for SearchTerm
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setSearchCenter(null);
+            return;
+        }
+        const q = searchTerm.trim();
+        const areaKey = Object.keys(coordinateLookup).find(k => k.toLowerCase() === q.toLowerCase());
+        if (areaKey) {
+            setSearchCenter(coordinateLookup[areaKey]);
+            return;
+        }
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=gb,bd`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    setSearchCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+                } else {
+                    setSearchCenter(null);
+                }
+            })
+            .catch(() => setSearchCenter(null));
+    }, [searchTerm]);
 
     // Price type filter: null = show all, 'pcm' or 'pa' = filter
     const [priceTypeFilter, setPriceTypeFilter] = useState<{ pcm: boolean; pa: boolean }>({
@@ -182,12 +268,11 @@ const AllProperty: React.FC = () => {
     const buildQueryParams = useCallback((): QueryParams => {
         const params: QueryParams = {
             transaction: activeTab,
-            page: currentPage,
-            page_size: pageSize,
+            page: 1, // High static limit for local logic
+            page_size: 1000,
         };
-        if (searchTerm.trim()) {
-            params.search = searchTerm;
-        }
+        // Removed params.search; we handle string match and distance locally
+
         const selectedTypes = Object.entries(propertyTypes)
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .filter(([_, value]) => value)
@@ -234,43 +319,58 @@ const AllProperty: React.FC = () => {
 
         console.log('API Request Params:', params);
         return params;
-    }, [activeTab, currentPage, pageSize, searchTerm, propertyTypes, priceTypeFilter, sortBy, urlBuiltAreaGte, urlBuiltAreaLte]);
+    }, [activeTab, propertyTypes, priceTypeFilter, sortBy, urlBuiltAreaGte, urlBuiltAreaLte]);
 
     const { data: apiData, isLoading, error } = useGetAllUsersPropertyQuery(buildQueryParams());
 
     const [properties, setProperties] = useState<PropertyCardProps[]>([]);
-    
+
 
     // Process API response
     useEffect(() => {
         if (apiData) {
             const data = apiData as ApiResponse;
 
-            // Store first result and all results
-            if (data.results.length > 0) {
-                setFirstResult(data.results[0]);
-                setAllResults(data.results);
+            // Optional: local filtering via Nominatim / Distance
+            let filteredResults = data.results;
+
+            if (searchTerm.trim()) {
+                filteredResults = filteredResults.filter((p: ApiProperty) => {
+                    const locStr = p.location ? p.location.toLowerCase() : "";
+                    const termStr = searchTerm.toLowerCase();
+                    const textMatch = locStr.includes(termStr);
+
+                    if (searchCenter) {
+                        // find area pos for the property
+                        const pAreaKey = Object.keys(coordinateLookup).find(k => locStr.includes(k.toLowerCase()));
+                        let pPos = pAreaKey ? coordinateLookup[pAreaKey] : null;
+
+                        if (pPos) {
+                            const dist = getDistanceMiles(searchCenter[0], searchCenter[1], pPos[0], pPos[1]);
+                            if (dist <= radius) return true;
+                        }
+                    }
+                    return textMatch;
+                });
+            }
+
+            setTotalProperties(filteredResults.length);
+            setTotalPages(Math.ceil(filteredResults.length / pageSize));
+
+            const slicedResults = filteredResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+            if (slicedResults.length > 0) {
+                setFirstResult(slicedResults[0]);
+                setAllResults(slicedResults);
             } else {
                 setFirstResult(null);
                 setAllResults([]);
             }
 
-            console.log('API Response:', {
-                count: data.count,
-                next: data.next,
-                previous: data.previous,
-                resultsCount: data.results.length,
-                firstResult: data.results[0],
-                allResults: data.results
-            });
-
-            setTotalProperties(data.count);
-            setTotalPages(Math.ceil(data.count / pageSize));
-
-            const transformedProperties: PropertyCardProps[] = data.results.map((property: ApiProperty) => {
+            const transformedProperties: PropertyCardProps[] = slicedResults.map((property: ApiProperty) => {
                 const finalPrice = property.price ?? (property.pcm ? parseFloat(property.pcm as string) : (property.pa ? parseFloat(property.pa as string) : null));
                 const finalPriceType = property.price_type ?? (property.pcm ? 'pcm' : (property.pa ? 'pa' : null));
-                
+
                 return {
                     id: property.id,
                     image: property.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&h=300&fit=crop',
@@ -288,7 +388,7 @@ const AllProperty: React.FC = () => {
 
             setProperties(transformedProperties);
         }
-    }, [apiData, pageSize]);
+    }, [apiData, currentPage, pageSize, searchTerm, searchCenter, radius]);
 
     // Log error if any
     useEffect(() => {
@@ -327,10 +427,10 @@ const AllProperty: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handlePriceTypeChange = (type: 'pcm' | 'pa') => {
-        setPriceTypeFilter(prev => ({ ...prev, [type]: !prev[type] }));
-        setCurrentPage(1);
-    };
+    // const handlePriceTypeChange = (type: 'pcm' | 'pa') => {
+    //     setPriceTypeFilter(prev => ({ ...prev, [type]: !prev[type] }));
+    //     setCurrentPage(1);
+    // };
 
     const resetFilters = () => {
         setPropertyTypes({
@@ -342,6 +442,7 @@ const AllProperty: React.FC = () => {
         });
         setPriceTypeFilter({ pcm: false, pa: false });
         setSearchTerm('');
+        setRadius(50);
         setCurrentPage(1);
         setSortBy('newest');
     };
@@ -395,14 +496,29 @@ const AllProperty: React.FC = () => {
                             type="text"
                             placeholder="Search properties..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    setCurrentPage(1);
-                                }
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                        />
+                        <h3 className="text-gray-900 font-bold text-sm mb-2">Distance</h3>
+                        <select
+                            value={radius}
+                            onChange={(e) => {
+                                setRadius(Number(e.target.value));
+                                setCurrentPage(1);
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        >
+                            <option value={1}>+ 1 Mile</option>
+                            <option value={3}>+ 3 Miles</option>
+                            <option value={5}>+ 5 Miles</option>
+                            <option value={10}>+ 10 Miles</option>
+                            <option value={20}>+ 20 Miles</option>
+                            <option value={50}>+ 50 Miles</option>
+                            <option value={100}>+ 100 Miles</option>
+                        </select>
                     </div>
 
                     {/* Property Type */}
@@ -472,7 +588,7 @@ const AllProperty: React.FC = () => {
                     </div>
 
                     {/* Price Type Filter */}
-                    <div className="mb-6">
+                    {/* <div className="mb-6">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="text-gray-900 font-bold text-sm">Price Type</h3>
                             <button
@@ -502,7 +618,7 @@ const AllProperty: React.FC = () => {
                                 <span className="ml-2 text-sm text-gray-700">PA <span className="text-gray-400 text-xs">(Per Annum)</span></span>
                             </label>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Reset Filters Button */}
                     <button
@@ -562,21 +678,21 @@ const AllProperty: React.FC = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {properties
                                             .map((property) => (
-                                            <PropertyCard
-                                                key={property.id}
-                                                id={property.id}
-                                                image={property.image}
-                                                badge={property.badge}
-                                                badgeType={property.badgeType}
-                                                title={property.title}
-                                                subtitle={property.subtitle}
-                                                description={property.description}
-                                                propertyType={property.propertyType}
-                                                transaction={property.transaction}
-                                                price={property.price}
-                                                priceType={property.priceType}
-                                            />
-                                        ))}
+                                                <PropertyCard
+                                                    key={property.id}
+                                                    id={property.id}
+                                                    image={property.image}
+                                                    badge={property.badge}
+                                                    badgeType={property.badgeType}
+                                                    title={property.title}
+                                                    subtitle={property.subtitle}
+                                                    description={property.description}
+                                                    propertyType={property.propertyType}
+                                                    transaction={property.transaction}
+                                                    price={property.price}
+                                                    priceType={property.priceType}
+                                                />
+                                            ))}
                                     </div>
 
                                     {/* Pagination */}
