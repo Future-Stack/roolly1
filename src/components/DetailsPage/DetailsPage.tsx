@@ -177,9 +177,11 @@ const HomePropertyDetails: React.FC = () => {
                 'POA'
               )}
             </p>
-            {property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>}
-            {property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}
-            {property?.business_rates && <p className="text-sm text-gray-600 mb-2">Business Rates: £{property.business_rates}</p>}
+            {
+              canSeePrice && property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>
+            }
+            {canSeePrice && property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}
+            {canSeePrice && property?.business_rates && <p className="text-sm text-gray-600 mb-2">Business Rates: £{property.business_rates}</p>}
             {/* <p className="text-md text-[#126AD8] font-medium mb-2">
               Built Area: {parseInt(property?.built_area)} Sqft
             </p> */}
