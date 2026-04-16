@@ -11,13 +11,13 @@ const Banner: React.FC = () => {
   const [transaction, setTransaction] = useState('');
   const [sqft, setSqft] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [radius, setRadius] = useState('50');
+  const [radius] = useState('50');
 
   // Dropdown open states
   const [isPropertyOpen, setIsPropertyOpen] = useState(false);
   const [isTransactionOpen, setIsTransactionOpen] = useState(false);
   const [isSqftOpen, setIsSqftOpen] = useState(false);
-  const [isRadiusOpen, setIsRadiusOpen] = useState(false);
+  const [, setIsRadiusOpen] = useState(false);
 
   // Options
   const propertyOptions = [
