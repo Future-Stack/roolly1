@@ -22,6 +22,7 @@ interface PropertyFormData {
     transaction: string;
     property_type: string;
     price: string;
+    is_poa:boolean;
     price_type: string;
     // pcm: string;
     // pa: string;
@@ -81,6 +82,7 @@ const AddProperty: React.FC = () => {
         location: '',
         price: '',
         price_type: 'sale',
+        is_poa:false,
         // pcm: '',
         // pa: '',
         lease_duration: 0,
@@ -304,7 +306,15 @@ const AddProperty: React.FC = () => {
                 if (key === 'images' || key === 'brochure_pdf_url' || key === 'brochure_video_url' || key === 'existing_images') return;
 
                 // Skip non-backend fields
-                if (key === 'is_poa') return;
+                
+                if (key === 'price') {
+                    let finalPrice = parseFloat(value as string);
+                    if (!isNaN(finalPrice)) {
+                        finalPrice = Math.abs(finalPrice);
+                        formDataToSend.append('price', finalPrice.toString());
+                    }
+                    return;
+                }
 
                 // Only send the active price field
                 // if (key === 'pcm') {
@@ -499,16 +509,16 @@ const AddProperty: React.FC = () => {
                                         <label className="block text-base text-gray-900">
                                             Price (£) or POA *
                                         </label>
-                                        {/* <label className="flex items-center gap-2 cursor-pointer">
-                                             <input
-                                                 type="checkbox"
-                                                 name="is_poa"
-                                                 checked={formData.is_poa}
-                                                 onChange={handleInputChange}
-                                                 className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                             />
-                                             <span className="text-sm font-medium text-gray-700">POA</span>
-                                         </label> */}
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="is_poa"
+                                                checked={formData.is_poa}
+                                                onChange={handleInputChange}
+                                                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">POA</span>
+                                        </label>
                                     </div>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>

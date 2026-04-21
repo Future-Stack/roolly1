@@ -25,6 +25,7 @@ interface PropertyFormData {
     transaction: string;
     property_type: string;
     price: string;
+    is_poa:boolean;
     price_type: string;
     location: string;
     lease_duration: number;
@@ -86,6 +87,7 @@ const UpdateVendorProperty: React.FC = () => {
         property_type: 'industrial',
         location: '',
         price: '',
+        is_poa:false,
         price_type: 'pcm',
         lease_duration: 0,
         location_description: '',
@@ -150,7 +152,8 @@ const UpdateVendorProperty: React.FC = () => {
                 transaction: propertyData.transaction || 'sale',
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
-                price: propertyData.price || '',
+                price: propertyData.price ? Math.abs(parseFloat(propertyData.price)).toString() : '',
+                is_poa: propertyData.is_poa || false,
                 price_type: propertyData.price_type || 'sale',
                 lease_duration: propertyData.lease_duration || 0,
                 location_description: propertyData.location_description || '',
@@ -365,7 +368,7 @@ const UpdateVendorProperty: React.FC = () => {
             toast.error('Transaction type is required');
             return;
         }
-        if (!formData.price?.trim()) {
+        if (!formData.price) {
             toast.error('Price is required');
             return;
         }
@@ -399,15 +402,21 @@ const UpdateVendorProperty: React.FC = () => {
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images' && key !== 'brochure_pdf_url' && key !== 'brochure_video_url' && key !== 'existing_images') {
                     // Skip non-backend fields
-                    if (key === 'is_poa') return;
-
-                    // Ensure specific price fields are synchronized with the main price field
+                    
                     if (key === 'price') {
-                        if (formData.price_type === 'pcm') {
-                            formDataToSend.append('pcm', value.toString());
-                        } else if (formData.price_type === 'pa') {
-                            formDataToSend.append('pa', value.toString());
+                        let finalPrice = parseFloat(value as string);
+                        if (!isNaN(finalPrice)) {
+                            finalPrice = Math.abs(finalPrice);
+                            formDataToSend.append('price', finalPrice.toString());
+                            
+                            // Synchronize specific price fields
+                            if (formData.price_type === 'pcm') {
+                                formDataToSend.append('pcm', finalPrice.toString());
+                            } else if (formData.price_type === 'pa') {
+                                formDataToSend.append('pa', finalPrice.toString());
+                            }
                         }
+                        return;
                     }
 
                     if (typeof value === 'boolean') {
@@ -589,7 +598,7 @@ const UpdateVendorProperty: React.FC = () => {
                                         <label className="block text-base text-gray-900">
                                             Price (£) or POA *
                                         </label>
-                                        {/* <label className="flex items-center gap-2 cursor-pointer">
+                                        <label className="flex items-center gap-2 cursor-pointer">
                                              <input
                                                  type="checkbox"
                                                  name="is_poa"
@@ -598,7 +607,7 @@ const UpdateVendorProperty: React.FC = () => {
                                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                              />
                                              <span className="text-sm font-medium text-gray-700">POA</span>
-                                         </label> */}
+                                         </label>
                                     </div>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>

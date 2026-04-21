@@ -248,7 +248,7 @@ const PropertyManagement: React.FC = () => {
                   {/* Price and Status */}
                   <div className="flex items-center justify-between mb-3 mt-4">
                     <span className="text-[24px] font-bold text-[#126AD8]">
-                      {property.price_type === "sale" ? `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? `£${parseInt(property.price).toLocaleString()}/PCM` : `£${parseInt(property.price).toLocaleString()}/PA`}
+                      {property.price_type === "sale" ? `£${Math.abs(parseInt(property.price)).toLocaleString()}` : property.price_type === "pcm" ? `£${Math.abs(parseInt(property.price)).toLocaleString()}/PCM` : `£${Math.abs(parseInt(property.price)).toLocaleString()}/PA`}
                       {/* { 
                         property.pcm === null && property.pa === null ? '£0' : property.pcm !== null ? `£${property.pcm}/PCM` : `£${property.pa}/PA`} */}
                     </span>

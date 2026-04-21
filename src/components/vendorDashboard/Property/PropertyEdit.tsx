@@ -25,6 +25,7 @@ interface FormData {
     property_type: string;
     location: string;
     price: string;
+    is_poa:boolean;
     price_type: string;
     lease_duration: string;
     location_description: string;
@@ -81,6 +82,7 @@ const PropertyEdit: React.FC = () => {
         property_type: 'industrial',
         location: '',
         price: '',
+        is_poa: false,
         price_type: '',
         lease_duration: '',
         location_description: '',
@@ -145,7 +147,8 @@ const PropertyEdit: React.FC = () => {
                 transaction: propertyData.transaction || 'sale',
                 property_type: propertyData.property_type || 'industrial',
                 location: propertyData.location || '',
-                price: propertyData.price || '',
+                price: propertyData.price ? Math.abs(parseFloat(propertyData.price)).toString() : '',
+                is_poa: propertyData.is_poa || false,
                 price_type: propertyData.price_type || '',
                 lease_duration: propertyData.lease_duration?.toString() || '',
                 location_description: propertyData.location_description || '',
@@ -374,7 +377,7 @@ const PropertyEdit: React.FC = () => {
             toast.error('Transaction type is required');
             return;
         }
-        if (!formData.price?.trim()) {
+        if (!formData.price) {
             toast.error('Price is required');
             return;
         }
@@ -433,7 +436,7 @@ const PropertyEdit: React.FC = () => {
             Object.entries(formData).forEach(([key, value]) => {
                 if (key !== 'images') {
                     // Skip non-backend fields
-                    if (key === 'is_poa' || key === 'price_type') return;
+                    if (key === 'price_type') return;
 
                     // Only send the active price field
                     if (key === 'pcm') {
@@ -457,6 +460,13 @@ const PropertyEdit: React.FC = () => {
                         // If it's a numeric field and empty, send '0'
                         if (numericFields.includes(key) && val === '') {
                             val = '0';
+                        }
+                        
+                        if (key === 'price') {
+                            let finalPrice = parseFloat(val);
+                            if (!isNaN(finalPrice)) {
+                                val = Math.abs(finalPrice).toString();
+                            }
                         }
 
                         formDataToSend.append(key, val);
@@ -631,7 +641,7 @@ const PropertyEdit: React.FC = () => {
                                         <label className="block text-base text-gray-900">
                                             Price (£) or POA *
                                         </label>
-                                        {/* <label className="flex items-center gap-2 cursor-pointer">
+                                        <label className="flex items-center gap-2 cursor-pointer">
                                              <input
                                                  type="checkbox"
                                                  name="is_poa"
@@ -640,13 +650,13 @@ const PropertyEdit: React.FC = () => {
                                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                              />
                                              <span className="text-sm font-medium text-gray-700">POA</span>
-                                         </label> */}
+                                         </label>
                                     </div>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
                                         <input
                                             type="number"
-                                            name={formData.price_type === 'pcm' ? 'pcm' : 'pa'}
+                                            name="price"
                                             value={formData.price}
                                             onChange={handleInputChange}
                                             onBlur={handleCurrencyBlur}

@@ -19,8 +19,8 @@ interface PropertyData {
     transaction: string;
     property_type: string;
     location: string;
-    price_type:string;
-    price:string;
+    price_type: string;
+    price: string;
     lease_duration: number;
     location_description: string;
     built_area: string;
@@ -250,8 +250,8 @@ const PropertyInformationForm: React.FC = () => {
                                 </label>
                                 <div className="w-full h-[42px] px-3 text-[13px] text-gray-900 bg-gray-100 border border-gray-300 rounded-md flex items-center">
                                     {/* £{propertyData.price_type === "pcm" ?  propertyData.price} {propertyData.transaction === 'lease' ? '/month' : ''} */}
-                                    
-                                    {propertyData.price_type === "sale" ? `£${parseInt(propertyData.price).toLocaleString()}` : propertyData.price_type === "pcm" ? `£${parseInt(propertyData.price).toLocaleString()}/PCM` : `£${parseInt(propertyData.price).toLocaleString()}/PA`}
+
+                                    {propertyData.price_type === "sale" ? `£${Math.abs(parseInt(propertyData.price)).toLocaleString()}` : propertyData.price_type === "pcm" ? `£${Math.abs(parseInt(propertyData.price)).toLocaleString()}/PCM` : `£${Math.abs(parseInt(propertyData.price)).toLocaleString()}/PA`}
                                 </div>
                             </div>
 
@@ -518,7 +518,7 @@ const PropertyInformationForm: React.FC = () => {
                             Contact Information
                         </h2>
                         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-                         <div >
+                            <div >
                                 <label className="block text-base text-gray-900 mb-1.5">
                                     Email
                                 </label>
@@ -526,7 +526,7 @@ const PropertyInformationForm: React.FC = () => {
                                     {propertyData.email}
                                 </div>
                             </div>
-                             <div>
+                            <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
                                     Phone Number
                                 </label>
@@ -534,7 +534,7 @@ const PropertyInformationForm: React.FC = () => {
                                     {propertyData.phone_number}
                                 </div>
                             </div>
-                             <div>
+                            <div>
                                 <label className="block text-base text-gray-900 mb-1.5">
                                     Whatsapp Number
                                 </label>
@@ -542,7 +542,7 @@ const PropertyInformationForm: React.FC = () => {
                                     {propertyData.whatsapp_number}
                                 </div>
                             </div>
-                       </div>
+                        </div>
                     </div>
 
                     {/* Key Specification */}

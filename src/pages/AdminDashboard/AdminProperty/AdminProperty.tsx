@@ -158,7 +158,7 @@ const AdminProperty: React.FC = () => {
         const priceNum = parseInt(price);
         if (isNaN(priceNum)) return price;
 
-        const formatted = priceNum.toLocaleString('en-GB');
+        const formatted = Math.abs(priceNum).toLocaleString('en-GB');
 
         if (priceType === 'sale') return `£${formatted}`;
         if (priceType === 'pcm' || priceType === 'lease') return `£${formatted}/PCM`;

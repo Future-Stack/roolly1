@@ -18,6 +18,7 @@ interface PropertyCardProps {
     transaction: string;
     price?: number | null;
     priceType?: 'pcm' | 'pa' | null;
+    isPoa?: boolean;
 }
 
 interface ApiProperty {
@@ -32,6 +33,7 @@ interface ApiProperty {
     price_type?: 'pcm' | 'pa' | null;
     pcm?: string | number | null;
     pa?: string | number | null;
+    is_poa?: boolean;
 }
 
 interface ApiResponse {
@@ -111,6 +113,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     transaction,
     price,
     priceType,
+    isPoa,
 }) => {
     const role = useAppSelector(selectCurrentRole);
     const canSeePrice = role === 'ADMIN' || role === 'BROKER' || role === 'VENDOR';
@@ -169,12 +172,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                     price != null && (
                         <div className="flex items-center gap-1.5 mb-3">
                             <span className="text-gray-900 font-bold text-sm">
-                                £{price.toLocaleString()}
+                                £{Math.abs(parseFloat(price.toString())).toLocaleString()}
                             </span>
                             {priceType && (
                                 <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceType === 'pcm'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-purple-100 text-purple-700'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-purple-100 text-purple-700'
                                     }`}>
                                     {priceType.toUpperCase()}
                                 </span>
@@ -182,11 +185,27 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                         </div>
                     )
                 ) : (
-                    <div className="flex items-center gap-1.5 mb-3">
-                         <span className="text-gray-900 font-bold text-sm">
-                            POA
-                        </span>
-                    </div>
+                    !isPoa ? (
+                        <div className="flex items-center gap-1.5 mb-3">
+                            <span className="text-gray-900 font-bold text-sm">
+                                £{parseFloat(price?.toString() || '0').toLocaleString()}
+                            </span>
+                            {priceType && (
+                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${priceType === 'pcm'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-purple-100 text-purple-700'
+                                    }`}>
+                                    {priceType.toUpperCase()}
+                                </span>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 mb-3">
+                            <span className="text-gray-900 font-bold text-sm">
+                                POA
+                            </span>
+                        </div>
+                    )
                 )}
                 <Link to={`/details/${id}`}>
                     <button className="w-full py-2.5 hover:bg-gray-50 text-black border border-[#126AD8] text-sm font-medium rounded transition-colors hover:bg-blue-50">
@@ -384,6 +403,7 @@ const AllProperty: React.FC = () => {
                     transaction: property.transaction,
                     price: finalPrice,
                     priceType: finalPriceType as 'pcm' | 'pa' | null,
+                    isPoa: property.is_poa,
                 };
             });
 
@@ -692,6 +712,7 @@ const AllProperty: React.FC = () => {
                                                     transaction={property.transaction}
                                                     price={property.price}
                                                     priceType={property.priceType}
+                                                    isPoa={property.isPoa}
                                                 />
                                             ))}
                                     </div>

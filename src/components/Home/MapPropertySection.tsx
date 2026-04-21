@@ -53,15 +53,15 @@ const MapController: React.FC<{ zoom: number; center: LatLngExpression }> = ({ z
 };
 
 // Component to handle map bounds automatically
-const BoundsHandler: React.FC<{ positions: LatLngExpression[] }> = ({ positions }) => {
+const BoundsHandler: React.FC<{ positions: LatLngExpression[], isFiltered: boolean }> = ({ positions, isFiltered }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (positions.length > 0) {
+    if (isFiltered && positions.length > 0) {
       const bounds = L.latLngBounds(positions);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
     }
-  }, [positions, map]);
+  }, [positions, map, isFiltered]);
 
   return null;
 };
@@ -70,7 +70,7 @@ const MapPropertySection: React.FC = () => {
   const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
   const [searchInput, setSearchInput] = useState("");
   const [geocodedPositions, setGeocodedPositions] = useState<Record<number, [number, number]>>({});
-  const [zoom, setZoom] = useState(11);
+  const [zoom, setZoom] = useState(6);
   const [showStreetView, setShowStreetView] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   
@@ -79,6 +79,15 @@ const MapPropertySection: React.FC = () => {
   const [searchRadius, setSearchRadius] = useState<number>(5); // default 5 miles
   
   const { data: propertiesData, isLoading: propsLoading } = useGetAllUsersPropertyQuery({ page_size: 100 });
+
+  // Update zoom when searchCenter changes
+  useEffect(() => {
+    if (searchCenter || selectedProperty || selectedLocation) {
+      setZoom(12);
+    } else {
+      setZoom(6);
+    }
+  }, [searchCenter, selectedProperty, selectedLocation]);
 
   // Haversine formula in miles
   const getDistanceMiles = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -146,7 +155,7 @@ const MapPropertySection: React.FC = () => {
         const areaKey = Object.keys(coordinateLookup).find(k =>
           locName.toLowerCase().includes(k.toLowerCase())
         );
-        pos = areaKey ? coordinateLookup[areaKey] : [53.4808, -2.2426];
+        pos = areaKey ? coordinateLookup[areaKey] : [54.5, -3.2];
         matchedArea = areaKey || "Unknown";
       }
 
@@ -197,9 +206,9 @@ const MapPropertySection: React.FC = () => {
   );
 
   const center: LatLngExpression = useMemo(() => {
-    if (filteredProperties.length > 0) return filteredProperties[0].position as LatLngExpression;
-    return [53.4808, -2.2426]; // Manchester
-  }, [filteredProperties]);
+    if (searchCenter) return searchCenter as LatLngExpression;
+    return [54.5, -3.2]; // UK
+  }, [searchCenter]);
 
   const streetViewQuery = useMemo(() => {
     if (selectedLocation) return selectedLocation;
@@ -374,7 +383,7 @@ const MapPropertySection: React.FC = () => {
                 />
 
                 <MapController zoom={zoom} center={center} />
-                <BoundsHandler positions={allPositions} />
+                <BoundsHandler positions={allPositions} isFiltered={!!selectedLocation || !!searchCenter} />
 
                 {filteredProperties.map((prop, idx) => (
                   <Marker

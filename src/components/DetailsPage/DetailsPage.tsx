@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppSelector} from '@/redux/hook';
+import { useAppSelector } from '@/redux/hook';
 import { selectCurrentRole } from '@/redux/features/auth/authSlice';
 import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';
 import { useDispatch } from 'react-redux';
@@ -72,6 +72,7 @@ interface PropertyDetails {
   occupied: boolean;
   brochure_pdf: string;
   brochure_video: string;
+  is_poa: boolean;
 }
 
 
@@ -172,16 +173,18 @@ const HomePropertyDetails: React.FC = () => {
 
             <p className="text-md text-[#126AD8] font-medium mb-2">
               {canSeePrice ? (
-                property.price_type === "sale" ? "Price: " + `£${parseInt(property.price).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${parseInt(property.price).toLocaleString()}/PCM` : "Price: " + `£${parseInt(property.price).toLocaleString()}/PA`
+                property.price_type === "sale" ? "Price: " + `£${Math.abs(parseInt(property.price)).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${Math.abs(parseInt(property.price)).toLocaleString()}/PCM` : "Price: " + `£${Math.abs(parseInt(property.price)).toLocaleString()}/PA`
               ) : (
-                'POA'
+                !property.is_poa ? (
+                  property.price_type === "sale" ? "Price: " + `£${parseFloat(property.price).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${parseFloat(property.price).toLocaleString()}/PCM` : "Price: " + `£${parseFloat(property.price).toLocaleString()}/PA`
+                ) : 'POA'
               )}
             </p>
             {
-              canSeePrice && property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>
+              (canSeePrice || !property.is_poa) && property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>
             }
-            {canSeePrice && property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}
-            {canSeePrice && property?.business_rates && <p className="text-sm text-gray-600 mb-2">Business Rates: £{property.business_rates}</p>}
+            {(canSeePrice || !property.is_poa) && property?.insurance && <p className="text-sm text-gray-600 mb-1">Insurance: £{property.insurance}</p>}
+            {(canSeePrice || !property.is_poa) && property?.business_rates && <p className="text-sm text-gray-600 mb-2">Business Rates: £{property.business_rates}</p>}
             {/* <p className="text-md text-[#126AD8] font-medium mb-2">
               Built Area: {parseInt(property?.built_area)} Sqft
             </p> */}

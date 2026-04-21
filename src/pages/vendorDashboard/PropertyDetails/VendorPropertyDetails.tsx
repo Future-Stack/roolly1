@@ -207,7 +207,7 @@ const VendorPropertyDetails: React.FC = () => {
                             {propertyData.property_name}
                         </h2>
                         <p className="text-md text-[#126AD8] font-medium mb-2">
-                            Price: {propertyData.price_type === "sale" ? `£${parseInt(propertyData.price).toLocaleString()}` : propertyData.price_type === "pcm" ? `£${parseInt(propertyData.price).toLocaleString()}/PCM` : `£${parseInt(propertyData.price).toLocaleString()}/PA`}
+                            Price: {propertyData.price_type === "sale" ? `£${Math.abs(parseInt(propertyData.price)).toLocaleString()}` : propertyData.price_type === "pcm" ? `£${Math.abs(parseInt(propertyData.price)).toLocaleString()}/PCM` : `£${Math.abs(parseInt(propertyData.price)).toLocaleString()}/PA`}
 
                         </p>
                         {propertyData.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{propertyData.service_charge}</p>}
