@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, Mail, MessageCircle, Phone } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, CloudCog, FileText, Home, Loader2, Mail, MessageCircle, Phone } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
@@ -82,6 +82,7 @@ const HomePropertyDetails: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data: propertyData, isLoading, error } = useGetUserPropertyDetailsQuery(id);
+  console.log("property",propertyData);
 
   const property: PropertyDetails | undefined = propertyData;
   const role = useAppSelector(selectCurrentRole);
@@ -101,6 +102,12 @@ const HomePropertyDetails: React.FC = () => {
 
   const propertyImages = property?.images?.map(img => getImageUrl(img.image)) || [];
   const totalImages = propertyImages.length;
+
+  const formatNumber = (value: string | number | undefined) => {
+    const num = Number(value);
+    return isNaN(num) ? null : num.toLocaleString();
+  };
+  const price = formatNumber(property?.price);
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev + 1) % totalImages);
@@ -172,13 +179,25 @@ const HomePropertyDetails: React.FC = () => {
             </h2>
 
             <p className="text-md text-[#126AD8] font-medium mb-2">
-              {canSeePrice ? (
+              {/* {canSeePrice ? (
                 property.price_type === "sale" ? "Price: " + `£${Math.abs(parseInt(property.price)).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${Math.abs(parseInt(property.price)).toLocaleString()}/PCM` : "Price: " + `£${Math.abs(parseInt(property.price)).toLocaleString()}/PA`
               ) : (
                 !property.is_poa ? (
                   property.price_type === "sale" ? "Price: " + `£${parseFloat(property.price).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${parseFloat(property.price).toLocaleString()}/PCM` : "Price: " + `£${parseFloat(property.price).toLocaleString()}/PA`
                 ) : 'POA'
-              )}
+              )} */}
+  {canSeePrice ? (
+    price
+      ? property.price_type === "sale"
+        ? `Price: £${price}`
+        : property.price_type === "pcm"
+        ? `Price: £${price}/PCM`
+        : `Price: £${price}/PA`
+      : 'POA'
+  ) : !property.is_poa && price ? (
+    `Price: £${price}`
+  ) : 'POA'}
+
             </p>
             {
               (canSeePrice || !property.is_poa) && property?.service_charge && <p className="text-sm text-gray-600 mb-1">Service Charge: £{property.service_charge}</p>
@@ -317,7 +336,7 @@ const HomePropertyDetails: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   <div className="flex text-sm">
                     <li className="text-gray-600">Area-</li>
-                    <span className="text-gray-900 ml-1 font-medium text-md">{parseInt(property?.built_area)} sq ft</span>
+                    <span className="text-gray-900 ml-1 font-medium text-md">{formatNumber(property?.built_area) || 'N/A'} sq ft</span>
                   </div>
                   <div className="flex text-[13px]">
                     <li className="text-gray-600">Type of roller shutter-</li>
