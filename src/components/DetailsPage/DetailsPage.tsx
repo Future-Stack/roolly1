@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronLeft, ChevronRight, CloudCog, FileText, Home, Loader2, Mail, MessageCircle, Phone } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, FileText, Home, Loader2, Mail, MessageCircle, Phone } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
