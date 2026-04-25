@@ -45,7 +45,7 @@ interface PropertyData {
     key_specification: string;
     // existing_images?: string;
     brochure_pdf_url?: string | null;
-    brochure_video_url?: string | null;
+    video_url?: string | null;
     vehicle_repair_use: boolean;
     vehicle_sale_use: boolean;
     subletting: boolean;
@@ -53,7 +53,7 @@ interface PropertyData {
     pet_business_use: boolean;
     plastic_recycling_use: boolean;
     floor_plans: boolean;
-    other_restriction: boolean;
+    other_restrictions: string;
     existing_images?: Array<{
         name: string;
         url: string;
@@ -651,18 +651,18 @@ const PropertyInformationForm: React.FC = () => {
                                         </p>
 
                                         <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
-                                            {propertyData.brochure_video_url ? (
+                                            {propertyData.video_url ? (
                                                 <a
-                                                    href={propertyData.brochure_video_url}
+                                                    href={propertyData.video_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="px-3 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors text-[13px] font-medium w-full sm:w-auto"
                                                 >
-                                                    View Video
+                                                    Watch on YouTube
                                                 </a>
                                             ) : (
                                                 <div className="px-3 py-2 bg-gray-100 text-gray-500 rounded-sm text-[13px] font-medium w-full sm:w-auto">
-                                                    No Video Uploaded
+                                                    No Video URL
                                                 </div>
                                             )}
                                         </div>

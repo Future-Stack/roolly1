@@ -4,6 +4,7 @@ import playButton from '../../assets/play-button.png';
 import { useGetUserPropertyDetailsQuery } from '@/redux/features/vendor/property/getPropertyDetailsApi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector } from '@/redux/hook';
+import { selectCurrentRole } from '@/redux/features/auth/authSlice';
 import { openChatbot, setChatbotView } from '@/redux/features/chatbot/chatbotSlice';
 import { useDispatch } from 'react-redux';
 

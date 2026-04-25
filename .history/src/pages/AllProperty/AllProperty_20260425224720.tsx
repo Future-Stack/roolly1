@@ -1,7 +1,7 @@
 import Pagination from '@/components/ui/Pagination';
 import { useGetAllUsersPropertyQuery } from '@/redux/features/users/getAllUsersPropertyApi';
-// import { useAppSelector } from '@/redux/hook';
-// import { selectCurrentRole } from '@/redux/features/auth/authSlice';
+import { useAppSelector } from '@/redux/hook';
+import { selectCurrentRole } from '@/redux/features/auth/authSlice';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Building, Home, Store, TreePine, Warehouse } from 'lucide-react';
@@ -115,7 +115,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     // priceType,
     // isPoa,
 }) => {
-    // const role = useAppSelector(selectCurrentRole);
+    const role = useAppSelector(selectCurrentRole);
     // const canSeePrice = role === 'ADMIN' || role === 'BROKER' || role === 'VENDOR';
 
     // Get property type icon

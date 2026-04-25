@@ -90,7 +90,7 @@ const RiskProfileManagementForm: React.FC<RiskProfileManagementFormProps> = ({
                     {/* Step Indicator */}
                     <div className="flex items-center justify-center mb-8">
                         <div className="flex items-center gap-0">
-                            <Link to={`/broker-dashboard/edit-property/${id}`}>
+                            <Link to={`/broker-dashboard/properties/${id}`}>
                                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-[14px] font-medium">
                                     1
                                 </div>

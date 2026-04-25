@@ -61,7 +61,7 @@ interface FormData {
     phone_number: string;
     images: File[];
     brochure_pdf?: File;
-    brochure_video?: File;
+    video_url?: string;
     service_charge: string;
     insurance: string;
     business_rates: string;
@@ -120,12 +120,12 @@ const PropertyEdit: React.FC = () => {
         service_charge: '',
         insurance: '',
         business_rates: '',
+        video_url: '',
     });
 
     // const [priceType, setPriceType] = useState<'pcm' | 'pa' | ''>('');
 
     const [brochurePdfFile, setBrochurePdfFile] = useState<File | null>(null);
-    const [brochureVideoFile, setBrochureVideoFile] = useState<File | null>(null);
 
     const [images, setImages] = useState<{ [key: string]: ImageUpload }>({
         aerial: { id: 'aerial', title: 'Aerial View', description: 'Overhead or drone shot showing building in context (site layout, access points).' },
@@ -186,6 +186,7 @@ const PropertyEdit: React.FC = () => {
                 service_charge: propertyData.service_charge || '',
                 insurance: propertyData.insurance || '',
                 business_rates: propertyData.business_rates || '',
+                video_url: propertyData.video_url || '',
             });
             // Determine price type from loaded data
             // if (propertyData.pcm) setPriceType('pcm');
@@ -333,24 +334,7 @@ const PropertyEdit: React.FC = () => {
         // toast.success(`PDF selected: ${file.name}`);
     };
 
-    const handleBrochureVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
 
-        if (!file.type.startsWith('video/')) {
-            toast.error('Invalid file type. Please upload a video file.');
-            e.target.value = '';
-            return;
-        }
-        const maxSizeMB = 100;
-        if (file.size > maxSizeMB * 1024 * 1024) {
-            toast.error(`Video file must be smaller than ${maxSizeMB}MB.`);
-            e.target.value = '';
-            return;
-        }
-        setBrochureVideoFile(file);
-        // toast.success(`Video selected: ${file.name}`);
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -484,9 +468,7 @@ const PropertyEdit: React.FC = () => {
                 formDataToSend.append('brochure_pdf', brochurePdfFile);
             }
 
-            if (brochureVideoFile) {
-                formDataToSend.append('brochure_video', brochureVideoFile);
-            }
+
 
             // Call API
             const response = await editProperty({
@@ -1313,10 +1295,10 @@ const PropertyEdit: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Media Upload */}
+                            {/* Video URL */}
                             <div>
                                 <h2 className="text-base font-semibold text-gray-900 mb-4">
-                                    Media Upload (Video)
+                                    Video URL (YouTube)
                                 </h2>
 
                                 <div className="border border-dashed border-[#EA4335] rounded-lg p-6">
@@ -1326,40 +1308,21 @@ const PropertyEdit: React.FC = () => {
                                             <SquarePlay className="w-22 h-12 text-gray-500" strokeWidth={1.5} />
                                         </div>
 
-                                        {/* Text + Button Section */}
+                                        {/* Text + Input Section */}
                                         <div className="text-center sm:text-left w-full">
                                             <p className="text-md text-gray-600 font-semibold">
-                                                Please upload Video, less than 100MB
+                                                Enter a YouTube video URL for this property
                                             </p>
 
-                                            <div className="bg-[#F8FCFF] p-2 mt-1 flex flex-col sm:flex-row items-center sm:items-start w-full">
-                                                <label className="cursor-pointer">
-                                                    <div className="px-3 py-2 bg-white border-dashed border-[#EA4335] text-blue-600 rounded-sm hover:bg-blue-50 transition-colors text-[13px] font-medium w-full sm:w-auto">
-                                                        Choose File
-                                                    </div>
-                                                    <input
-                                                        type="file"
-                                                        accept="video/*"
-                                                        onChange={handleBrochureVideoUpload}
-                                                        className="hidden"
-                                                    />
-                                                </label>
-                                                {brochureVideoFile ? (
-                                                    <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-md px-2 py-1 flex-1 min-w-0">
-                                                        <span className="text-green-500 text-xs">✔</span>
-                                                        <span className="text-sm text-green-800 font-medium truncate flex-1">{brochureVideoFile.name}</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setBrochureVideoFile(null)}
-                                                            className="text-red-400 hover:text-red-600 text-xs font-bold shrink-0"
-                                                        >✕</button>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-sm text-gray-400 mt-1 sm:mt-0 sm:ml-2">No File Chosen</span>
-                                                )}
-                                                {/* <span className="text-sm text-gray-800 mt-2 sm:mt-0 sm:ml-5 break-all">
-                                                    {brochureVideoFile ? brochureVideoFile.name : 'No File Chosen'}
-                                                </span> */}
+                                            <div className="bg-[#F8FCFF] p-2 mt-1 w-full">
+                                                <input
+                                                    type="url"
+                                                    name="video_url"
+                                                    value={formData.video_url || ''}
+                                                    onChange={handleInputChange}
+                                                    placeholder="https://www.youtube.com/watch?v=..."
+                                                    className="w-full h-[38px] px-3 text-[13px] text-gray-900 placeholder-gray-400 bg-white border border-dashed border-[#EA4335] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
                                             </div>
                                         </div>
                                     </div>
