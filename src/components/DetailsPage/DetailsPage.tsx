@@ -214,7 +214,12 @@ const HomePropertyDetails: React.FC = () => {
   ) : (
     isLoggedIn ? (
       <span className="text-md text-[#126AD8] font-medium mb-2">
-        Price (POA): £{price || property?.price || '0'}
+        {
+          (price !== null || property?.price) ?
+          "Price (POA): £" + (price || property?.price)
+          :
+          "POA"
+        }
         {property?.price_type === 'pcm' ? '/PCM' : property?.price_type === 'pa' ? '/PA' : ''}
       </span>
     ) : (
