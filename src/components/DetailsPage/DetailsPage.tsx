@@ -20,6 +20,10 @@ interface RelatedProperty {
   transaction: string;
   location: string;
   location_description: string;
+  location_coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 interface PropertyDetails {
@@ -37,6 +41,10 @@ interface PropertyDetails {
   property_type: string;
   location: string;
   location_description: string;
+  location_coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
   lease_duration: string | null;
   built_area: string;
   length_width: string;
@@ -71,6 +79,7 @@ interface PropertyDetails {
   occupied: boolean;
   brochure_pdf: string;
   brochure_video: string;
+  video_url: string;
   is_poa: boolean;
 }
 
@@ -128,23 +137,14 @@ const HomePropertyDetails: React.FC = () => {
 
   const handleDownloadBrochure = () => {
     if (property?.brochure_pdf) {
-      const link = document.createElement('a');
-      link.href = getImageUrl(property.brochure_pdf);
-      link.download = `brochure_${property.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      window.open(getImageUrl(property.brochure_pdf), '_blank', 'noopener,noreferrer');
     }
   };
 
   const handleDownloadFlyThrough = () => {
-    if (property?.brochure_video) {
-      const link = document.createElement('a');
-      link.href = getImageUrl(property.brochure_video);
-      link.download = `fly_through_${property.id}.mp4`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    const videoUrl = property?.video_url || property?.brochure_video;
+    if (videoUrl) {
+      window.open(getImageUrl(videoUrl), '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -343,22 +343,29 @@ const HomePropertyDetails: React.FC = () => {
               </div>
 
               {/* Facts & Features */}
-              <div className="mb-6">
+              {
+                (property?.brochure_pdf || property?.brochure_video || property?.video_url) && 
+                <div className="mb-6">
                 <h3 className="text-[18px] font-semibold text-[#082D5B] mb-4">
                   Facts & features
                 </h3>
                 <div className="flex gap-4">
-
-                  <button onClick={() => handleDownloadBrochure()} className="flex items-center gap-2 px-6 py-1 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-                    <FileText size={18} />
-                    <span className="text-[14px] font-medium">Brochure</span>
-                  </button>
-                  <button onClick={() => handleDownloadFlyThrough()} className="flex items-center gap-2 px-6 py-3 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-                    <img src={playButton} alt="play-button" className='w-8 h-8' />
-                    <span className="text-[14px] font-medium">Fly Through</span>
-                  </button>
+                  {property?.brochure_pdf && (
+                    <button onClick={() => handleDownloadBrochure()} className="flex items-center gap-2 px-6 py-1 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                      <FileText size={18} />
+                      <span className="text-[14px] font-medium">Brochure</span>
+                    </button>
+                  )}
+                  {(property?.video_url || property?.brochure_video) && (
+                    <button onClick={() => handleDownloadFlyThrough()} className="flex items-center gap-2 px-6 py-3 border border-[#0D4B99] text-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                      <img src={playButton} alt="play-button" className='w-8 h-8' />
+                      <span className="text-[14px] font-medium">Fly Through</span>
+                    </button>
+                  )}
                 </div>
               </div>
+              }
+              
 
               {/* Internals */}
               <div className='bg-[#E7F0FB] p-3 rounded-sm'>
@@ -477,7 +484,11 @@ const HomePropertyDetails: React.FC = () => {
 
           {/* Embedded Google Map */}
           <iframe
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(property?.postcode || property?.location || 'Manchester')}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+            src={
+              property?.location_coordinates?.latitude != null && property?.location_coordinates?.longitude != null
+                ? `https://maps.google.com/maps?q=${property.location_coordinates.latitude},${property.location_coordinates.longitude}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+                : `https://maps.google.com/maps?q=${encodeURIComponent(property?.postcode || property?.location || 'Manchester')}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+            }
             width="100%"
             height="100%"
             style={{ border: 0 }}

@@ -111,6 +111,9 @@ const MapPropertySection: React.FC = () => {
       let changed = false;
 
       for (const p of results) {
+        if (p.location_coordinates && p.location_coordinates.latitude != null && p.location_coordinates.longitude != null) {
+          continue; // Skip geocoding if API already provides coordinates
+        }
         if (p.postcode && !newGeocoded[p.id]) {
           try {
             const response = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(p.postcode)}`);
@@ -145,8 +148,11 @@ const MapPropertySection: React.FC = () => {
       let pos: [number, number];
       let matchedArea: string;
 
-      // 1. Check geocoded state
-      if (geocodedPositions[p.id]) {
+      // 1. Check API location coordinates or geocoded state
+      if (p.location_coordinates && p.location_coordinates.latitude != null && p.location_coordinates.longitude != null) {
+        pos = [p.location_coordinates.latitude, p.location_coordinates.longitude];
+        matchedArea = p.location || "Custom";
+      } else if (geocodedPositions[p.id]) {
         pos = geocodedPositions[p.id];
         matchedArea = p.location || "Custom";
       } else {
