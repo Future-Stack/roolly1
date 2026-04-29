@@ -66,6 +66,30 @@ const BoundsHandler: React.FC<{ positions: LatLngExpression[], isFiltered: boole
   return null;
 };
 
+// Component to ensure map tiles are correctly rendered on mobile/resize
+const MapResizer: React.FC = () => {
+  const map = useMap();
+  useEffect(() => {
+    // Force a redraw after a short delay to ensure container dimensions are settled
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 500);
+
+    // Also handle window resize events
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [map]);
+  return null;
+};
+
 const MapPropertySection: React.FC = () => {
   const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
   const [searchInput, setSearchInput] = useState("");
@@ -308,10 +332,10 @@ const MapPropertySection: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-3 bg-gray-100 border border-[#609BE5] rounded-xl overflow-hidden shadow-sm">
 
         {/* Left Side - MAP */}
-        <div className="w-full lg:w-1/2 min-h-[400px] lg:min-h-[730px] relative z-10 bg-white group">
+        <div className="w-full lg:w-1/2 h-[450px] sm:h-[500px] lg:h-[730px] relative z-10 bg-white group">
           
           {/* Floating Map Info Card (Google Maps Style) */}
-          <div className="absolute top-4 left-4 z-[1001] bg-white rounded-lg shadow-xl border border-gray-100 p-1.5 flex items-center gap-3 min-w-[300px] sm:min-w-[360px] pointer-events-auto transition-all animate-in fade-in slide-in-from-left-2">
+          <div className="absolute top-4 left-4 right-4 md:right-auto z-[1001] bg-white rounded-lg shadow-xl border border-gray-100 p-1.5 flex items-center gap-3 min-w-0 md:min-w-[360px] pointer-events-auto transition-all animate-in fade-in slide-in-from-left-2">
             <button 
               onClick={() => setShowStreetView(!showStreetView)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] px-4 py-2.5 rounded shadow-sm transition-all whitespace-nowrap"
@@ -345,7 +369,7 @@ const MapPropertySection: React.FC = () => {
           </div>
 
           {/* Location Search Overlay */}
-          <div className="absolute top-4 right-4 sm:w-72 z-[1001]">
+          <div className="absolute top-[76px] left-4 right-4 md:top-4 md:left-auto md:right-4 md:w-72 z-[1001]">
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
@@ -381,7 +405,6 @@ const MapPropertySection: React.FC = () => {
                 zoom={zoom}
                 zoomControl={false}
                 className="h-full w-full"
-                key={center.toString()}
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -389,6 +412,7 @@ const MapPropertySection: React.FC = () => {
                 />
 
                 <MapController zoom={zoom} center={center} />
+                <MapResizer />
                 <BoundsHandler positions={allPositions} isFiltered={!!selectedLocation || !!searchCenter} />
 
                 {filteredProperties.map((prop, idx) => (
