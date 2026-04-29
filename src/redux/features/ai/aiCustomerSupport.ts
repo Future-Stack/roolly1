@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const aiBaseApi = createApi({
   reducerPath: "aiBaseApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://broker360re.com",
+    baseUrl: "https://broker360re.com/chatbot/",
     // baseUrl: "http://156.67.216.137:8002",
   }),
   endpoints: () => ({}),
