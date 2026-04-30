@@ -34,7 +34,7 @@ interface PropertyFormData {
     roller_shutter_type: string;
     roller_shutters: string;
     lighting_type: string;
-    epc_rating: number;
+    epc_rating: string;
     ev_chaging: boolean;
     solar_panels: boolean;
     any_further_details: string;
@@ -85,8 +85,8 @@ const AddProperty: React.FC = () => {
         roller_shutter_type: '',
         roller_shutters: '',
         dimensions_roller_shutter: '',
-        lighting_type: '1',
-        epc_rating: 1,
+        lighting_type: '',
+        epc_rating: '',
         any_further_details: '',
         yard_space: false,
         yard_area: '',

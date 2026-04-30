@@ -119,9 +119,9 @@ const PropertyInformationForm: React.FC = () => {
     };
 
     // Format EPC rating
-    const formatEPCRating = (rating: number | string) => {
-        return `Rating ${rating}`;
-    };
+    // const formatEPCRating = (rating: number | string) => {
+    //     return `Rating ${rating}`;
+    // };
 
     // Format phase
     // const formatPhase = (phase: number | string) => {
@@ -400,7 +400,7 @@ const PropertyInformationForm: React.FC = () => {
                                     EPC Rating
                                 </label>
                                 <div className="w-full h-[38px] px-3 text-[13px] text-gray-900 bg-blue-50 border border-gray-200 rounded-md flex items-center">
-                                    {formatEPCRating(propertyData.epc_rating === 'U' ? 'Unknown' : propertyData.epc_rating)}
+                                    {propertyData.epc_rating ? (propertyData.epc_rating === 'U' ? 'Unknown' : `Rating ${propertyData.epc_rating}`) : 'N/A'}
                                 </div>
                             </div>
                             {/* EV Charging */}

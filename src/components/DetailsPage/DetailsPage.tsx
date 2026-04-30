@@ -95,6 +95,7 @@ const HomePropertyDetails: React.FC = () => {
   console.log("property",propertyData);
 
   const property: PropertyDetails | undefined = propertyData;
+  console.log(property)
   const isLoggedIn = !!user;
   const canSeePrice = isLoggedIn;
 

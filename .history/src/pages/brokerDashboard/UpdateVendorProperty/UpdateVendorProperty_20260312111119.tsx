@@ -85,8 +85,8 @@ const UpdateVendorProperty: React.FC = () => {
         roller_shutter_type: '',
         roller_shutters: '',
         dimensions_roller_shutter: '',
-        lighting_type: '1',
-        epc_rating: 1,
+        lighting_type: '',
+        epc_rating: '',
         any_further_details: '',
         yard_space: false,
         yard_area: '',
@@ -401,7 +401,7 @@ const UpdateVendorProperty: React.FC = () => {
     // const riskLevelOptions = ['low', 'medium', 'high'];
     const phaseOptions = ['Single phase', 'Three Phase'];
     const lightingTypeOptions = ['Halogen', 'LED',];
-    const epcRatingOptions = ['1', '2', '3', '4', '5', '6', '7'];
+    const epcRatingOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G','U'];
 
     return (
         <div className="w-full min-h-screen">

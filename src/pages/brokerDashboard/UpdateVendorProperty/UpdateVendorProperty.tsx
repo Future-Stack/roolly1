@@ -169,7 +169,7 @@ const UpdateVendorProperty: React.FC = () => {
                 roller_shutters: propertyData.roller_shutters || '',
                 dimensions_roller_shutter: propertyData.dimensions_roller_shutter || '',
                 lighting_type: propertyData.lighting_type?.toString() || '1',
-                epc_rating: propertyData.epc_rating?.toString() || '1',
+                epc_rating: propertyData.epc_rating?.toString() || '',
                 any_further_details: propertyData.any_further_details || '',
                 yard_space: propertyData.yard_space || false,
                 yard_area: propertyData.yard_area || '',
