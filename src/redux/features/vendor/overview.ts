@@ -3,6 +3,7 @@ import { baseApi } from "../../api/baseApi";
 export interface PropertyStats {
     total_properties: number;
     available_properties: number;
+    total_views: number;
 }
 
 export interface LeadStats {

@@ -57,28 +57,28 @@ const StatsCards: React.FC = () => {
   const stats = [
     {
       title: 'Total Leads',
-      value: overviewData.lead_stats.total_leads.toString(),
-      subtitle: `Qualified: ${overviewData.lead_stats.qualified_leads}`,
+      value: (overviewData?.lead_stats?.total_leads ?? 0).toString(),
+      subtitle: `Qualified: ${overviewData?.lead_stats?.qualified_leads ?? 0}`,
       icon: <Users size={24} strokeWidth={2} />,
-      subtitleColor: overviewData.lead_stats.total_leads > 0 ? 'text-green-600' : 'text-gray-600'
+      subtitleColor: (overviewData?.lead_stats?.total_leads ?? 0) > 0 ? 'text-green-600' : 'text-gray-600'
     },
     {
       title: 'Listed Properties',
-      value: overviewData.property_stats.total_properties.toString(),
-      subtitle: `Available: ${overviewData.property_stats.available_properties}`,
+      value: (overviewData?.property_stats?.total_properties ?? 0).toString(),
+      subtitle: `Available: ${overviewData?.property_stats?.available_properties ?? 0}`,
       icon: <Building2 size={24} strokeWidth={2} />,
-      subtitleColor: overviewData.property_stats.total_properties > 0 ? 'text-green-600' : 'text-gray-600'
+      subtitleColor: (overviewData?.property_stats?.total_properties ?? 0) > 0 ? 'text-green-600' : 'text-gray-600'
     },
     {
       title: 'Conversion Rate',
-      value: overviewData.conversion_rates.all_time,
-      subtitle: `This Month: ${overviewData.conversion_rates.this_month}`,
+      value: overviewData?.conversion_rates?.all_time ?? "0%",
+      subtitle: `This Month: ${overviewData?.conversion_rates?.this_month ?? "0%"}`,
       icon: <TrendingUp size={24} strokeWidth={2} />,
-      subtitleColor: overviewData.conversion_rates.all_time !== "0%" ? 'text-green-600' : 'text-gray-600'
+      subtitleColor: (overviewData?.conversion_rates?.all_time && overviewData?.conversion_rates?.all_time !== "0%") ? 'text-green-600' : 'text-gray-600'
     },
     {
       title: 'Total Views',
-      value: "0",
+      value: (overviewData?.property_stats?.total_views ?? 0).toString(),
       subtitle: "API data pending",
       icon: <Eye size={24} strokeWidth={2} />,
       subtitleColor: 'text-gray-600'

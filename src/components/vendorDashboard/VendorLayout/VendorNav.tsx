@@ -8,6 +8,7 @@ import { useAppSelector } from "@/redux/hook";
 import { useGetVendorProfileQuery } from "@/redux/features/vendor/getVendorProfileApi";
 import ProfileDropdown from "./ProfileDropdown";
 import { useNavigate } from "react-router-dom";
+import UserAvatar from "../../shared/UserAvatar";
 
 // Notification Types
 interface Notification {
@@ -643,10 +644,10 @@ const VendorNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
               }}
               aria-label="Profile"
             >
-              <img
-                src={profile?.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
-                alt="Profile"
+              <UserAvatar
+                image={profile?.image}
+                name={profile?.full_name}
+                className="w-8 h-8 sm:w-9 sm:h-9 ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
               />
             </button>
 

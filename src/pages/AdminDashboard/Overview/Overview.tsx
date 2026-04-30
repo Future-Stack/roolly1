@@ -6,6 +6,7 @@ import { useGetOverviewQuery } from '@/redux/features/admin/overview/getOverview
 import { useGetPerformanceQuery } from '@/redux/features/admin/overview/getPerformanceApi';
 import { Clock, Mail, Phone, TrendingUp, User } from 'lucide-react';
 import React, { useMemo } from 'react';
+import UserAvatar from '../../../components/shared/UserAvatar';
 
 interface BrokerPerformanceData {
     id: string;
@@ -91,31 +92,6 @@ const AdminOverview: React.FC = () => {
         }
     };
 
-
-    const getInitials = (fullName: string): string => {
-        return fullName
-            .split(' ')
-            .map(word => word[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-    };
-
-    // Helper function to get placeholder image URL
-    const getImageUrl = (broker: BrokerPerformanceData, index: number): string => {
-        if (broker.image) return broker.image;
-
-        // Use a placeholder service or initials
-        const placeholderImages = [
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-            'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-            'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-        ];
-
-        return placeholderImages[index % placeholderImages.length];
-    };
 
     // const toggleDropdown = (index: number) => {
     //     setActiveDropdown(activeDropdown === index ? null : index);
@@ -297,25 +273,22 @@ const AdminOverview: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {brokerPerformance?.map((broker, idx) => {
+                                        {brokerPerformance?.map((broker) => {
                                             // const avgResponse = getAvgResponse(idx);
                                             // const responseColor = getResponseColor(avgResponse);
                                             const memberColor = getMemberColor(broker.joining_date);
                                             const leadColor = getLeadColor(broker.active_leads);
                                             const formattedDate = formatDate(broker.joining_date);
-                                            const imageUrl = getImageUrl(broker, idx);
 
                                             return (
                                                 <tr key={broker.id} className="border-b border-gray-100 last:border-b-0">
                                                     <td className="py-4 px-4">
                                                         <div className="flex items-center gap-3">
-                                                            {broker.image ? (
-                                                                <img src={imageUrl} alt="profile" className='w-10 h-10 rounded-full object-cover' />
-                                                            ) : (
-                                                                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                                                                    {getInitials(broker.full_name)}
-                                                                </div>
-                                                            )}
+                                                            <UserAvatar
+                                                                image={broker.image || undefined}
+                                                                name={broker.full_name}
+                                                                className="w-10 h-10"
+                                                            />
                                                             <span className="text-sm font-medium text-[#25292C]">{broker.full_name}</span>
                                                         </div>
                                                     </td>
@@ -391,24 +364,21 @@ const AdminOverview: React.FC = () => {
 
                             {/* Mobile Cards */}
                             <div className="lg:hidden space-y-4">
-                                {brokerPerformance?.map((broker, idx) => {
+                                {brokerPerformance?.map((broker) => {
                                     // const avgResponse = getAvgResponse(idx);
                                     // const responseColor = getResponseColor(avgResponse);
                                     const memberColor = getMemberColor(broker.joining_date);
                                     const leadColor = getLeadColor(broker.active_leads);
                                     const formattedDate = formatDate(broker.joining_date);
-                                    const imageUrl = getImageUrl(broker, idx);
 
                                     return (
                                         <div key={broker.id} className="border border-gray-200 rounded-xl p-4">
                                             <div className="flex items-center gap-3 mb-4">
-                                                {broker.image ? (
-                                                    <img src={imageUrl} alt="profile" className='w-10 h-10 rounded-full object-cover' />
-                                                ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                                                        {getInitials(broker.full_name)}
-                                                    </div>
-                                                )}
+                                                <UserAvatar
+                                                    image={broker.image || undefined}
+                                                    name={broker.full_name}
+                                                    className="w-10 h-10"
+                                                />
                                                 <div className="flex-1">
                                                     <div className="text-sm font-semibold text-gray-900">{broker.full_name}</div>
                                                     <div className="text-xs text-gray-600">{broker.email}</div>

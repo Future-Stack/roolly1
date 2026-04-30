@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import { Link, useLocation } from "react-router-dom";
+import UserAvatar from "../../shared/UserAvatar";
 
 interface BrokerSidebarProps {
   onClose?: () => void;
@@ -33,7 +34,7 @@ const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="w-[300px] min-h-screen relative px-4 py-5 sm:mt-0 md:mt-4 sm:rounded-l-none md:rounded-2xl bg-white">
+    <div className="w-[300px] flex-1 flex flex-col relative px-4 py-5 sm:rounded-l-none md:rounded-2xl bg-white overflow-y-auto custom-scrollbar">
 
       {/* Close Button (mobile only) */}
       {onClose && (
@@ -47,10 +48,10 @@ const AdminSidebar: React.FC<BrokerSidebarProps> = ({ onClose }) => {
 
       {/* User Profile */}
       <div className="flex items-center gap-3 px-4 py-4 border border-[#F1F5F9] rounded-sm">
-        <img
-          src={profile?.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'}
-          alt="Profile"
-          className="w-10 h-10 rounded-full object-cover"
+        <UserAvatar
+          image={profile?.image}
+          name={profile?.full_name}
+          className="w-10 h-10"
         />
         <div className="flex flex-col">
           <span className="text-lg font-semibold text-[#0F172A]">{profile?.full_name}</span>

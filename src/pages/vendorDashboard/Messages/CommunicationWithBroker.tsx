@@ -10,6 +10,7 @@ import { getCurrentUserId } from '@/utils/userUtils';
 import { Check, CheckCheck, Menu, Search, SendHorizontal, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import UserAvatar from '@/components/shared/UserAvatar';
 
 const CommunicationWithBroker: React.FC = () => {
   const { data: profile } = useGetVendorProfileQuery(undefined)
@@ -22,7 +23,7 @@ const CommunicationWithBroker: React.FC = () => {
   const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionError, setConnectionError] = useState<string>('');
+
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
   const [userStatus, setUserStatus] = useState<{ [key: string]: string }>({});
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -376,7 +377,6 @@ const CommunicationWithBroker: React.FC = () => {
     cleanupWebSockets();
 
     setConnectionStatus('connecting');
-    setConnectionError('');
     setReconnectAttempts(0);
 
     const wsUrl = `wss://broker360re.com/ws/conversation/${conversationId}/?token=${token}`;
@@ -390,7 +390,6 @@ const CommunicationWithBroker: React.FC = () => {
         console.log('✅ WebSocket connected');
         setIsConnected(true);
         setConnectionStatus('connected');
-        setConnectionError('');
         setReconnectAttempts(0);
 
         setupPingInterval();
@@ -437,7 +436,6 @@ const CommunicationWithBroker: React.FC = () => {
       socket.onerror = (error) => {
         console.error('❌ WebSocket error:', error);
         setConnectionStatus('error');
-        setConnectionError('Connection error');
         setIsConnected(false);
       };
 
@@ -459,7 +457,6 @@ const CommunicationWithBroker: React.FC = () => {
     } catch (error) {
       console.error('❌ Failed to create WebSocket:', error);
       setConnectionStatus('error');
-      setConnectionError('Failed to connect');
       scheduleReconnect(conversationId);
     }
   }, [token, currentUserId]);
@@ -468,7 +465,6 @@ const CommunicationWithBroker: React.FC = () => {
   const scheduleReconnect = (conversationId: string) => {
     if (reconnectAttempts >= 5) {
       console.log('Max reconnection attempts reached');
-      setConnectionError('Unable to connect. Please refresh.');
       return;
     }
 
@@ -569,25 +565,26 @@ const CommunicationWithBroker: React.FC = () => {
   // Handle error
   const handleError = (data: WebSocketMessage) => {
     if (data.code === 'ACCOUNT_DEACTIVATED') {
-      setConnectionError('Your account has been deactivated');
       setIsConnected(false);
       setConnectionStatus('error');
     } else {
-      setConnectionError(data.message || 'An error occurred');
     }
   };
 
   // Send message
   const sendMessage = () => {
     const message = messageInput.trim();
-    if (!message || !socketRef.current || !isConnected) {
-      console.log('❌ Cannot send message');
+    if (!message) {
       return;
     }
 
     try {
-      const messageData = { message: message };
-      socketRef.current.send(JSON.stringify(messageData));
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        const messageData = { message: message };
+        socketRef.current.send(JSON.stringify(messageData));
+      } else {
+        console.log('📡 WebSocket not open, message will only show locally');
+      }
 
       // Add temporary message on RIGHT side (your side)
       const tempId = `temp-${Date.now()}`;
@@ -628,7 +625,6 @@ const CommunicationWithBroker: React.FC = () => {
 
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      setConnectionError('Failed to send message');
     }
   };
 
@@ -738,7 +734,7 @@ const CommunicationWithBroker: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-h-screen" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
+    <div className="w-full h-full flex flex-col" onClick={updateActivityTime} onKeyDown={updateActivityTime}>
 
       {/* Header */}
       <div className="pb-4 md:pb-6">
@@ -761,7 +757,7 @@ const CommunicationWithBroker: React.FC = () => {
       </div>
 
       {/* Chat Interface */}
-      <div className="flex flex-col md:flex-row h-[calc(100dvh-180px)] md:h-[calc(100vh-150px)] p-1.5 md:p-4 border-gray-200 border rounded-xl md:rounded-2xl bg-white overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 p-1.5 md:p-4 border-gray-200 border rounded-xl md:rounded-2xl bg-white overflow-hidden">
         {/* Left Sidebar - Chat List */}
         <div className={`
           ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -866,10 +862,10 @@ const CommunicationWithBroker: React.FC = () => {
                     }`}
                 >
                   <div className="relative flex-shrink-0">
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+                    <UserAvatar
+                      image={user.avatar}
+                      name={user.name}
+                      className="w-10 h-10 md:w-12 md:h-12"
                     />
                     {/* {user.isOnline && (
                       <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
@@ -923,10 +919,10 @@ const CommunicationWithBroker: React.FC = () => {
               </button>
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="relative">
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover border border-gray-100"
+                  <UserAvatar
+                    image={currentUser.avatar}
+                    name={currentUser.name}
+                    className="w-9 h-9 md:w-11 md:h-11 border border-gray-100"
                   />
                   {currentUser.isOnline && connectionStatus === 'connected' && (
                     <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></span>
@@ -965,11 +961,6 @@ const CommunicationWithBroker: React.FC = () => {
                 <div className="text-center text-gray-500">
                   <p className="text-lg font-medium mb-2">No messages yet</p>
                   <p className="text-sm">Start the conversation</p>
-                  {connectionStatus !== 'connected' && (
-                    <p className="text-sm text-yellow-600 mt-2">
-                      Waiting for connection...
-                    </p>
-                  )}
                 </div>
               </div>
             ) : (
@@ -982,10 +973,10 @@ const CommunicationWithBroker: React.FC = () => {
                   {message.sender === 'other' && (
                     <div className="flex items-start gap-2 md:gap-3 max-w-[85%] md:max-w-[600px]">
                       {/* Other person's avatar - ALWAYS ON LEFT */}
-                      <img
-                        src={message.avatar}
-                        alt="Other User"
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                      <UserAvatar
+                        image={message.avatar}
+                        name={selectedChat?.name}
+                        className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0 border-2 border-white shadow"
                       />
 
                       {/* Message bubble - LEFT */}
@@ -1021,17 +1012,11 @@ const CommunicationWithBroker: React.FC = () => {
                       </div>
 
                       {/* Your avatar - ALWAYS ON RIGHT */}
-                      {message.avatar?.startsWith("http") ? (
-                      <img
-                        src={message.avatar}
-                        alt="avatar"
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                      <UserAvatar
+                        image={profile?.image}
+                        name={profile?.full_name}
+                        className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0 border-2 border-white shadow"
                       />
-                    ) : (
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold border-2 border-white shadow">
-                        {message.avatar}
-                      </div>
-                    )}
                     </div>
                   )}
                 </div>
@@ -1049,31 +1034,26 @@ const CommunicationWithBroker: React.FC = () => {
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  placeholder={connectionStatus === 'connected' ? "Type your message" : "Connecting..."}
+                  placeholder="Type your message"
                   value={messageInput}
                   onChange={(e) => {
                     setMessageInput(e.target.value);
                     updateActivityTime();
                   }}
                   onKeyPress={handleKeyPress}
-                  disabled={connectionStatus !== 'connected' || !!connectionError}
-                  className={`w-full h-10 md:h-[42px] px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${connectionStatus === 'connected' && !connectionError
-                    ? 'border-gray-300 focus:ring-blue-500'
-                    : 'border-gray-200 focus:ring-gray-300 cursor-not-allowed'
-                    }`}
+                  className={`w-full h-10 md:h-[42px] px-3 md:px-4 pr-10 md:pr-12 text-sm md:text-[14px] text-gray-900 placeholder-gray-400 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent border-gray-300 focus:ring-blue-500`}
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
                   <EmojiPickerButton
                     onEmojiSelect={handleEmojiSelect}
-                    disabled={connectionStatus !== 'connected' || !!connectionError}
                   />
                 </div>
 
               </div>
               <button
                 onClick={sendMessage}
-                disabled={!messageInput.trim() || connectionStatus !== 'connected' || !!connectionError}
-                className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim() && connectionStatus === 'connected' && !connectionError
+                disabled={!messageInput.trim()}
+                className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-colors ${messageInput.trim()
                   ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                   : 'bg-gray-300 cursor-not-allowed'
                   }`}

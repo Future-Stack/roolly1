@@ -24,6 +24,7 @@ interface Lead {
     phone: string;
     email: string;
     alertMessage: string;
+    broker: string;
 }
 
 interface ApiLead {
@@ -55,6 +56,7 @@ interface ApiLead {
     sqft_range: string | null;
     source: string;
     created_at: string;
+    broker: string;
 }
 
 interface ApiResponse {
@@ -223,16 +225,17 @@ const AdminLeads = () => {
                     name: apiLead.client_name || 'Unknown',
                     status: status,
                     secondaryStatus: secondaryStatus,
-                    propertyId: apiLead.property ? `PR${apiLead.property.id}` : 'N/A',
-                    propertyName: apiLead.property ? apiLead.property.property_name : 'No property selected',
+                    propertyId: apiLead.property ? `PR${apiLead.property.id}` : '',
+                    propertyName: apiLead.property ? apiLead.property.property_name : 'No Property Selected',
                     timeAgo: formatTimeAgo(apiLead.created_at),
                     date: formatDate(apiLead.created_at),
-                    propertyType: apiLead.property?.property_type || 'Not specified', // Default or from API if available
-                    budget: apiLead.sqft_range ? apiLead.sqft_range : 'Not specified',
+                    propertyType: apiLead.property?.property_type || 'Not Specified', // Default or from API if available
+                    budget: apiLead.sqft_range ? apiLead.sqft_range : 'Not Specified',
                     source: apiLead.source || 'Unknown',
                     phone: apiLead.phone_number || 'N/A',
                     email: apiLead.email_address || 'N/A',
-                    alertMessage: getAlertMessage()
+                    alertMessage: getAlertMessage(),
+                    broker: apiLead.broker || 'Not Assigned',
                 };
             });
 
@@ -548,7 +551,7 @@ const AdminLeads = () => {
                                 <div className="flex items-center gap-4 text-[13px] text-gray-600 mb-4">
                                     <div className="flex items-center gap-1.5 text-[#717182]">
                                         <MapPin className="w-4 h-4" strokeWidth={2} />
-                                        <span>{lead.propertyId}: {lead.propertyName}</span>
+                                        <span>{lead.propertyId && `${lead.propertyId}:`} {lead.propertyName}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-[#717182]">
                                         <Clock className="w-4 h-4" strokeWidth={2} />
@@ -586,6 +589,10 @@ const AdminLeads = () => {
                                             }`}>
                                             {lead.source}
                                         </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Broker</p>
+                                        <p className="text-[14px] text-gray-900 font-normal">{lead.broker}</p>
                                     </div>
                                 </div>
 

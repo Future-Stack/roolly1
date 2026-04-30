@@ -18,13 +18,13 @@ export interface ChatMessage {
 }
 
 const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
+    const [name, setName] = useState(() => localStorage.getItem('chatbot_name') || '');
+    const [email, setEmail] = useState(() => localStorage.getItem('chatbot_email') || '');
+    const [phone, setPhone] = useState(() => localStorage.getItem('chatbot_phone') || '');
     const [countryCode, setCountryCode] = useState('+44');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [threadId, setThreadId] = useState<string | null>(null);
+    const [threadId, setThreadId] = useState<string | null>(() => localStorage.getItem('chatbot_thread_id'));
     const [message, setMessage] = useState("");
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
@@ -37,9 +37,22 @@ const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     useEffect(() => {
         if (threadId) {
+            setIsSubmitted(true);
             fetchHistory(threadId);
         }
     }, [threadId]);
+
+    useEffect(() => {
+        localStorage.setItem('chatbot_name', name);
+    }, [name]);
+
+    useEffect(() => {
+        localStorage.setItem('chatbot_email', email);
+    }, [email]);
+
+    useEffect(() => {
+        localStorage.setItem('chatbot_phone', phone);
+    }, [phone]);
 
     const fetchHistory = async (id: string) => {
         try {
@@ -132,6 +145,7 @@ const SurveyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
             const res = await createChatThread(payload).unwrap();
             setThreadId(res.thread_id);
+            localStorage.setItem('chatbot_thread_id', res.thread_id);
             setIsSubmitted(true);
             fetchHistory(res.thread_id);
 

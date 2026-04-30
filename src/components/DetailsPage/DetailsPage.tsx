@@ -98,9 +98,11 @@ const HomePropertyDetails: React.FC = () => {
   const isLoggedIn = !!user;
   const canSeePrice = isLoggedIn;
 
-  const handleOpenChat = () => {
-    dispatch(setChatbotView('survey'));
-    dispatch(openChatbot());
+  const handleWhatsAppClick = () => {
+    if (property?.whatsapp_number) {
+      const message = encodeURIComponent(`Hi, I am interested in ${property.property_name}. Can I get more details about the price?`);
+      window.open(`https://wa.me/${property.whatsapp_number}?text=${message}`, '_blank', 'noopener,noreferrer');
+    }
   };
 
   console.log(property);
@@ -194,43 +196,43 @@ const HomePropertyDetails: React.FC = () => {
                   property.price_type === "sale" ? "Price: " + `£${parseFloat(property.price).toLocaleString()}` : property.price_type === "pcm" ? "Price: " + `£${parseFloat(property.price).toLocaleString()}/PCM` : "Price: " + `£${parseFloat(property.price).toLocaleString()}/PA`
                 ) : 'POA'
               )} */}
-  {!property?.is_poa ? (
-    (price !== null || property?.price) ? (
-      <span className="text-md text-[#126AD8] font-medium mb-2">
-        {property?.price_type === 'sale'
-          ? `Price: £${price || property?.price}`
-          : property?.price_type === 'pcm'
-          ? `Price: £${price || property?.price}/PCM`
-          : `Price: £${price || property?.price}/PA`}
-      </span>
+    {!property?.is_poa ? (
+      (price !== null || property?.price) ? (
+        <span className="text-md text-[#126AD8] font-medium mb-2">
+          {property?.price_type === 'sale'
+            ? `Price: £${price || property?.price}`
+            : property?.price_type === 'pcm'
+            ? `Price: £${price || property?.price}/PCM`
+            : `Price: £${price || property?.price}/PA`}
+        </span>
+      ) : (
+        <button
+          // onClick={handleWhatsAppClick}
+          className="text-blue-600 font-bold hover:underline"
+        >
+          POA
+        </button>
+      )
     ) : (
-      <button
-        onClick={handleOpenChat}
-        className="text-blue-600 font-bold hover:underline"
-      >
-        POA
-      </button>
-    )
-  ) : (
-    isLoggedIn ? (
-      <span className="text-md text-[#126AD8] font-medium mb-2">
-        {
-          (price !== null || property?.price) ?
-          "Price (POA): £" + (price || property?.price)
-          :
-          "POA"
-        }
-        {property?.price_type === 'pcm' ? '/PCM' : property?.price_type === 'pa' ? '/PA' : ''}
-      </span>
-    ) : (
-      <button
-        onClick={handleOpenChat}
-        className="bg-blue-600 text-white px-6 py-2 rounded-md font-bold hover:bg-blue-700 transition-all shadow-sm active:scale-95"
-      >
-        POA (Inquire for price)
-      </button>
-    )
-  )}
+      isLoggedIn ? (
+        <span className="text-md text-[#126AD8] font-medium mb-2">
+          {
+            (price !== null || property?.price) ?
+            "Price (POA): £" + (price || property?.price)
+            :
+            "POA"
+          }
+          {property?.price_type === 'pcm' ? '/PCM' : property?.price_type === 'pa' ? '/PA' : ''}
+        </span>
+      ) : (
+        <button
+          onClick={handleWhatsAppClick}
+          className="bg-blue-600 text-white px-6 py-2 rounded-md font-bold hover:bg-blue-700 transition-all shadow-sm active:scale-95"
+        >
+          POA (Inquire for price)
+        </button>
+      )
+    )}
 
             </p>
             {
