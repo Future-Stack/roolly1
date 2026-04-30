@@ -78,7 +78,7 @@ const StatsCards: React.FC = () => {
     },
     {
       title: 'Total Views',
-      value: (overviewData?.property_stats?.total_views ?? 0).toString(),
+      value: (overviewData?.total_views ?? 0).toString(),
       subtitle: "API data pending",
       icon: <Eye size={24} strokeWidth={2} />,
       subtitleColor: 'text-gray-600'

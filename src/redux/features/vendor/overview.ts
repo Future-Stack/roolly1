@@ -3,7 +3,7 @@ import { baseApi } from "../../api/baseApi";
 export interface PropertyStats {
     total_properties: number;
     available_properties: number;
-    total_views: number;
+
 }
 
 export interface LeadStats {
@@ -20,6 +20,7 @@ export interface OverviewStatsResponse {
     property_stats: PropertyStats;
     lead_stats: LeadStats;
     conversion_rates: ConversionRates;
+    total_views: number;
 }
 
 export interface PropertyStatusCountsResponse {
