@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Bell, Menu, Search, MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot } from "lucide-react";
+import { Bell, Menu, MessageSquare, ClipboardCheck, Shield, ChevronRight, CircleDot } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import logo from '../../../assets/logo.png'
@@ -587,7 +587,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
         </div>
 
         {/* Search Bar - Center aligned on larger screens */}
-        <div className="flex-1 max-w-md mx-4">
+        {/* <div className="flex-1 max-w-md mx-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -596,7 +596,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
               className="w-full h-[44px] pl-12 pr-4 text-[15px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Right Section - Notifications and Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
@@ -662,7 +662,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
       </div>
 
       {/* Mobile Search Bar - Only visible on mobile below sm breakpoint */}
-      <div className="sm:hidden px-4 pb-3 pt-1">
+      {/* <div className="sm:hidden px-4 pb-3 pt-1">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -671,7 +671,7 @@ const BrokerNav: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
             className="w-full h-[44px] pl-12 pr-4 text-[15px] text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-      </div>
+      </div> */}
     </header>
   );
 };
