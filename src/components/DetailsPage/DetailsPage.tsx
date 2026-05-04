@@ -99,10 +99,24 @@ const HomePropertyDetails: React.FC = () => {
   const isLoggedIn = !!user;
   const canSeePrice = isLoggedIn;
 
+  const formatWhatsAppNumber = (number: string) => {
+    if (!number) return '';
+    // Remove all non-digit characters
+    let cleaned = number.replace(/\D/g, '');
+    
+    // If it's a UK number starting with 0 (11 digits), replace 0 with 44
+    if (cleaned.startsWith('0') && cleaned.length === 11) {
+      cleaned = '44' + cleaned.substring(1);
+    }
+    
+    return cleaned;
+  };
+
   const handleWhatsAppClick = () => {
     if (property?.whatsapp_number) {
+      const formattedNumber = formatWhatsAppNumber(property.whatsapp_number);
       const message = encodeURIComponent(`Hi, I am interested in ${property.property_name}. Can I get more details about the price?`);
-      window.open(`https://wa.me/${property.whatsapp_number}?text=${message}`, '_blank', 'noopener,noreferrer');
+      window.open(`https://wa.me/${formattedNumber}?text=${message}`, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -525,7 +539,7 @@ const HomePropertyDetails: React.FC = () => {
             <div className="space-y-4">
               {/* WhatsApp and Phone Row */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <a href={`https://wa.me/${property?.whatsapp_number}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 hover:bg-green-600 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
+                <a href={`https://wa.me/${formatWhatsAppNumber(property?.whatsapp_number)}`} target="_blank" rel="noopener noreferrer" className="bg-green-500 hover:bg-green-600 text-white font-medium text-base px-6 py-3 rounded-md flex items-center justify-center gap-2 transition-colors">
                   <MessageCircle size={20} />
                   WhatsApp
                 </a>
